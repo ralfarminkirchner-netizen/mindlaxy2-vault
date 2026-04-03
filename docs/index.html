@@ -248,7 +248,7 @@
 
   <!-- Tornado Panel -->
   <div class="panel" id="p-tornado">
-    <textarea id="tText" placeholder="Thema für den Tornado...&#10;&#10;Alle konfigurierten AIs denken gleichzeitig darüber nach. kiNTEGRiTY 1.0 synthetisiert die Unterschiede." rows="5"></textarea>
+    <textarea id="tText" placeholder="Thema für den Tornado...&#10;&#10;Gemini, DeepSeek und Grok denken gleichzeitig darüber nach.&#10;kiNTEGRiTY 1.0 (Claude) verdichtet alles zu einem Gesamtfazit — ohne Attribute, nur die Essenz. Echte Widersprüche landen im Divergenzen-Absatz." rows="5"></textarea>
     <button class="btn" id="tBtn" onclick="sendT()">Tornado</button>
     <div id="tOut"></div>
   </div>
@@ -307,13 +307,17 @@
         <option value="deepseek">DeepSeek</option>
         <option value="grok">xAI · Grok</option>
       </select>
-      <div class="key-label" style="margin-top:0.6rem;">kiNTEGRiTY Synthese (Tornado)</div>
+      <div class="key-label" style="margin-top:0.6rem;">kiNTEGRiTY Synthese — Orchestrator</div>
+      <div style="font-size:0.78rem;color:var(--muted);margin-top:0.3rem;">
+        Claude orchestriert — denkt nicht mit, verdichtet nur was Gemini, DeepSeek &amp; Grok sagen.
+        Fallback auf einen anderen Provider wenn kein Anthropic-Key.
+      </div>
       <select id="synthesisProvider" onchange="saveKey('synthesisProvider','mx_synthesis_provider')"
-        style="width:100%;margin-top:0.3rem;padding:0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);">
-        <option value="anthropic">Anthropic · Claude</option>
-        <option value="gemini">Google · Gemini</option>
-        <option value="deepseek">DeepSeek</option>
-        <option value="grok">xAI · Grok</option>
+        style="width:100%;margin-top:0.5rem;padding:0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);">
+        <option value="anthropic">Anthropic · Claude (Standard)</option>
+        <option value="gemini">Google · Gemini (Fallback)</option>
+        <option value="deepseek">DeepSeek (Fallback)</option>
+        <option value="grok">xAI · Grok (Fallback)</option>
       </select>
     </div>
 
@@ -652,15 +656,23 @@ Biete eine originelle, präzise und philosophisch fundierte Perspektive.
 Geh in die Tiefe, identifiziere das Wesentliche, zeige Verbindungen auf.
 Antworte auf Deutsch, fließend, ohne Aufzählungen — reiner Gedankenfluss.`;
 
-const KINTEGRITY_SYSTEM = `Du bist kiNTEGRiTY 1.0 — ein Synthese-Denker. Du hast mehrere KI-Antworten auf das gleiche Thema bekommen.
-Deine Aufgabe: Synthetisiere die Antworten. Antworte NUR mit gültigem JSON:
-{
-  "gemeinsamer_kern": "Was alle Antworten gemein haben",
-  "unterschiede": ["Unterschied 1", "Unterschied 2"],
-  "spannungen": ["Spannung 1"],
-  "bruecken": ["Brücke 1"],
-  "verdichtung": "Das Destillat aller Perspektiven in einem prägnanten Absatz"
-}`;
+const KINTEGRITY_SYSTEM = `Du bist kiNTEGRiTY 1.0 — Orchestrator und Verdichter. Du bekommst die Antworten von Gemini, DeepSeek und Grok auf dasselbe Thema.
+
+DEINE AUFGABE:
+Schreibe einen einzigen, fließenden Gesamtfazit-Text auf Deutsch — ohne Aufzählungen, ohne Bullet Points, ohne irgendeine Nennung wer etwas gesagt hat. Dieser Text soll ALLE wesentlichen Gedanken, Aspekte und Erkenntnisse aus allen drei Antworten so dicht und vollständig wie möglich verdichten. Fließend, direkt, als würde eine einzige Stimme sprechen.
+
+Du selbst DENKST NICHT über das Thema nach. Du kondensierst ausschließlich, was Gemini, DeepSeek und Grok gesagt haben — nichts hinzufügen, nichts weglassen, was wichtig ist.
+
+DANN — nur wenn es tatsächliche Widersprüche, Unvereinbarkeiten oder wesentliche Unterschiede zwischen den drei gibt — füge einen zweiten Absatz hinzu, der beginnt mit exakt diesem Marker:
+
+⚡ Divergenzen:
+
+In diesem Divergenzen-Absatz nennst du explizit welche KI (Gemini, DeepSeek oder Grok) welche abweichende Position vertritt. Wenn es keine echten Divergenzen gibt, lasse diesen Absatz vollständig weg.
+
+Format deiner Antwort:
+[Gesamtfazit — fließender Fließtext, alle wichtigen Punkte aller drei AIs, keine Attributionen]
+
+⚡ Divergenzen: [nur wenn vorhanden — Widersprüche mit Nennung der jeweiligen KI]`;
 
 async function sendT() {
   const cfg = getCfg();
@@ -672,15 +684,16 @@ async function sendT() {
   const out = document.getElementById('tOut');
   out.innerHTML = '';
 
-  const providers = availableProviders();
+  // Tornado: only non-Claude providers think — Claude orchestrates (synthesis only)
+  const providers = availableProviders().filter(p => p !== 'anthropic');
   if (providers.length === 0) {
-    out.innerHTML = '<div style="color:var(--asteroid)">⚠ Kein AI-Key konfiguriert! → ⚙ Settings</div>';
+    out.innerHTML = '<div style="color:var(--asteroid)">⚠ Kein AI-Key konfiguriert (Gemini, DeepSeek oder Grok)! → ⚙ Settings</div>';
     btn.disabled = false; btn.textContent = 'Tornado';
     return;
   }
 
   try {
-    // Call all providers in parallel
+    // Call all non-Claude providers in parallel
     const results = await Promise.allSettled(
       providers.map(p => callProvider(p, TORNADO_SYSTEM, text).then(r => ({ provider: p, content: r })))
     );
@@ -717,25 +730,31 @@ async function sendT() {
           <div id="kintegrity-body" style="color:var(--muted)">Synthetisiere...</div>
         </div>`;
 
-        const synthPrompt = `Hier sind ${responses.length} KI-Antworten auf das Thema: "${text}"\n\n` +
-          responses.map(r => `--- ${r.provider} ---\n${r.content}`).join('\n\n');
+        const synthPrompt = `Thema: "${text}"\n\n` +
+          responses.map(r => `=== ${r.provider} ===\n${r.content}`).join('\n\n');
 
         try {
           const raw = await callProvider(synthProvider, KINTEGRITY_SYSTEM, synthPrompt);
-          const match = raw.match(/\{[\s\S]*\}/);
-          if (match) {
-            const k = JSON.parse(match[0]);
-            document.getElementById('kintegrity-body').innerHTML = `
-              ${k.gemeinsamer_kern ? `<div class="kreuzung-section"><h4>Gemeinsamer Kern</h4><p>${escHtml(k.gemeinsamer_kern)}</p></div>` : ''}
-              ${(k.unterschiede||[]).length ? `<div class="kreuzung-section"><h4>Unterschiede</h4><ul>${k.unterschiede.map(u=>'<li>'+escHtml(u)+'</li>').join('')}</ul></div>` : ''}
-              ${(k.spannungen||[]).length ? `<div class="kreuzung-section"><h4>Spannungen</h4><ul>${k.spannungen.map(s=>'<li>'+escHtml(s)+'</li>').join('')}</ul></div>` : ''}
-              ${(k.bruecken||[]).length ? `<div class="kreuzung-section"><h4>Brücken</h4><ul>${k.bruecken.map(b=>'<li>'+escHtml(b)+'</li>').join('')}</ul></div>` : ''}
-              ${k.verdichtung ? `<div class="kreuzung-section"><h4>Verdichtung</h4><p>${escHtml(k.verdichtung)}</p></div>` : ''}`;
-            document.querySelector('#kintegrity-card .tornado-provider').textContent = 'kiNTEGRiTY 1.0';
+
+          // Split on divergenzen marker if present
+          const divMarker = '⚡ Divergenzen:';
+          const divIdx = raw.indexOf(divMarker);
+          let fazitHtml = '', divHtml = '';
+
+          if (divIdx > -1) {
+            const fazitText = raw.substring(0, divIdx).trim();
+            const divText = raw.substring(divIdx + divMarker.length).trim();
+            fazitHtml = `<div class="kreuzung-section"><p style="line-height:1.75;white-space:pre-wrap">${escHtml(fazitText)}</p></div>`;
+            divHtml = divText ? `<div class="kreuzung-section" style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem">
+              <div style="font-size:0.75rem;font-weight:700;color:var(--gold);letter-spacing:0.1em;margin-bottom:0.5rem">⚡ DIVERGENZEN</div>
+              <p style="line-height:1.75;white-space:pre-wrap;color:var(--muted)">${escHtml(divText)}</p>
+            </div>` : '';
           } else {
-            document.getElementById('kintegrity-body').textContent = raw;
-            document.querySelector('#kintegrity-card .tornado-provider').textContent = 'kiNTEGRiTY 1.0';
+            fazitHtml = `<div class="kreuzung-section"><p style="line-height:1.75;white-space:pre-wrap">${escHtml(raw.trim())}</p></div>`;
           }
+
+          document.getElementById('kintegrity-body').innerHTML = fazitHtml + divHtml;
+          document.querySelector('#kintegrity-card .tornado-provider').textContent = 'kiNTEGRiTY 1.0';
         } catch(e) {
           document.getElementById('kintegrity-body').innerHTML = `<span style="color:var(--asteroid)">✕ Synthese fehlgeschlagen: ${escHtml(e.message)}</span>`;
           document.querySelector('#kintegrity-card .tornado-provider').textContent = 'kiNTEGRiTY 1.0';
