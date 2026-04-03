@@ -374,6 +374,7 @@
   .kreuzung         { border-color: var(--gold); }
   /* BaiNSTORM responsive grid */
   @media (max-width: 520px) { #bs-grid { grid-template-columns: repeat(2,1fr) !important; } }
+  @media (max-width: 600px) { #vlt-layout { grid-template-columns: 1fr !important; } #vlt-list { max-height:200px !important; } }
   .kreuzung-section { margin-top: 0.8rem; }
   .kreuzung-section h4 { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.3rem; }
   .kreuzung-section p, .kreuzung-section li { font-size: 0.9rem; line-height: 1.5; }
@@ -421,6 +422,7 @@
     <div class="tab active" onclick="sw('gedanke')">Gedanke</div>
     <div class="tab" onclick="sw('tornado')">🌪 BaiNSTORM</div>
     <div class="tab" onclick="sw('matrix')">4×</div>
+    <div class="tab" onclick="sw('vault')">🌌 Vault</div>
     <div class="tab" onclick="sw('settings')">⚙</div>
   </div>
 
@@ -455,6 +457,28 @@
     </div>
     <!-- 4 columns -->
     <div class="matrix-grid" id="mGrid"></div>
+  </div>
+
+  <!-- Vault Browser Panel -->
+  <div class="panel" id="p-vault">
+    <!-- Search bar -->
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;align-items:center;">
+      <input id="vlt-search" type="text" placeholder="🔍 Notizen durchsuchen…"
+        style="flex:1;font-size:0.88rem;"
+        oninput="vltSearch(this.value)"
+        onkeydown="if(event.key==='Escape'){this.value='';vltSearch('');}">
+      <button class="btn" style="font-size:0.78rem;padding:0.35rem 0.7rem;flex-shrink:0;" onclick="vltLoad()" id="vlt-reload-btn">↻ Laden</button>
+    </div>
+    <!-- Folder tabs -->
+    <div id="vlt-folders" style="display:flex;gap:0.3rem;flex-wrap:wrap;margin-bottom:0.6rem;"></div>
+    <!-- Content area: list + note viewer -->
+    <div style="display:grid;grid-template-columns:220px 1fr;gap:0.5rem;min-height:300px;" id="vlt-layout">
+      <div id="vlt-list" style="border:1px solid var(--border);border-radius:6px;overflow-y:auto;max-height:70vh;background:var(--surface);"></div>
+      <div id="vlt-note" style="border:1px solid var(--border);border-radius:6px;padding:1rem;overflow-y:auto;max-height:70vh;background:var(--surface);color:var(--muted);font-size:0.82rem;">
+        ← Notiz auswählen
+      </div>
+    </div>
+    <div id="vlt-status" style="font-size:0.72rem;color:var(--muted);margin-top:0.5rem;"></div>
   </div>
 
   <!-- Settings Panel -->
@@ -583,12 +607,13 @@ function saveKey(inputId, storageKey) {
 
 function sw(n) {
   document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active', ['gedanke','tornado','matrix','settings'][i] === n);
+    t.classList.toggle('active', ['gedanke','tornado','matrix','vault','settings'][i] === n);
   });
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('p-' + n).classList.add('active');
   document.querySelector('main').classList.toggle('matrix-mode', n === 'matrix');
   if (n === 'matrix') initMatrix();
+  if (n === 'vault' && !vltLoaded) vltLoad();
 }
 
 function updateDots() {
@@ -1516,6 +1541,189 @@ async function sendT() {
   });
 }
 
+
+// ─── Vault Browser ───────────────────────────────────────────────────────────
+
+let vltLoaded   = false;
+let vltAllFiles = {};    // { 'Sterne': [{name,path,download_url,html_url},...], ... }
+let vltCurFolder= 'Sterne';
+let vltCurFile  = null;
+let vltSearchQ  = '';
+
+const VLT_FOLDERS = ['Sterne','Planeten','Monde','Asteroiden','Notizen','Chats'];
+const VLT_ICONS   = {Sterne:'⭐',Planeten:'🪐',Monde:'🌙',Asteroiden:'🪨',Notizen:'📝',Chats:'💬'};
+const VLT_COLORS  = {Sterne:'#ffd700',Planeten:'#4488ff',Monde:'#aaaaaa',Asteroiden:'#8b6914',Notizen:'#66cc88',Chats:'#aa66ff'};
+
+async function vltLoad() {
+  const cfg = getCfg();
+  if (!cfg.ghToken || !cfg.vault) {
+    document.getElementById('vlt-status').textContent = '⚠ GitHub Token / Vault Repo nicht konfiguriert → ⚙ Settings';
+    return;
+  }
+  document.getElementById('vlt-reload-btn').textContent = '…';
+  document.getElementById('vlt-status').textContent = 'Lade Vault…';
+  vltAllFiles = {};
+
+  // Fetch all folders in parallel (including Chats/* subfolders)
+  const fetchFolder = async (path) => {
+    const r = await fetch(`https://api.github.com/repos/${cfg.vault}/contents/${path}`,
+      { headers: { 'Authorization': `token ${cfg.ghToken}` } });
+    if (!r.ok) return [];
+    return r.json();
+  };
+
+  const results = await Promise.allSettled(VLT_FOLDERS.map(f => fetchFolder(f)));
+
+  for (let i = 0; i < VLT_FOLDERS.length; i++) {
+    const folder = VLT_FOLDERS[i];
+    if (results[i].status !== 'fulfilled') { vltAllFiles[folder] = []; continue; }
+    const items = results[i].value;
+    if (folder === 'Chats') {
+      // Chats has subfolders — fetch each
+      const subDirs = items.filter(x => x.type === 'dir');
+      const subResults = await Promise.allSettled(subDirs.map(d => fetchFolder(d.path)));
+      const files = [];
+      subResults.forEach((sr, si) => {
+        if (sr.status === 'fulfilled') {
+          sr.value.filter(f => f.name.endsWith('.md')).forEach(f => files.push({...f, subfolder: subDirs[si].name}));
+        }
+      });
+      vltAllFiles[folder] = files;
+    } else {
+      vltAllFiles[folder] = (Array.isArray(items) ? items : []).filter(f => f.name.endsWith('.md'));
+    }
+  }
+
+  vltLoaded = true;
+  document.getElementById('vlt-reload-btn').textContent = '↻ Laden';
+  vltBuildFolderTabs();
+  vltShowFolder(vltCurFolder);
+  const total = Object.values(vltAllFiles).reduce((a,b) => a+b.length, 0);
+  document.getElementById('vlt-status').textContent = `${total} Notizen · letzte Aktualisierung ${new Date().toLocaleTimeString('de')}`;
+}
+
+function vltBuildFolderTabs() {
+  const el = document.getElementById('vlt-folders');
+  el.innerHTML = VLT_FOLDERS.map(f => {
+    const n = (vltAllFiles[f]||[]).length;
+    const col = VLT_COLORS[f];
+    const active = f === vltCurFolder;
+    return `<button onclick="vltShowFolder('${f}')" id="vlt-tab-${f}" style="font-size:0.72rem;padding:0.2rem 0.55rem;border:1px solid ${active?col+'88':'#333'};background:${active?col+'22':'none'};color:${active?col:'#888'};border-radius:12px;cursor:pointer;">${VLT_ICONS[f]} ${f} <span style="opacity:0.7">${n}</span></button>`;
+  }).join('');
+}
+
+function vltShowFolder(folder) {
+  vltCurFolder = folder;
+  vltBuildFolderTabs();
+  vltRenderList();
+}
+
+function vltRenderList() {
+  const files = (vltAllFiles[vltCurFolder]||[]).filter(f => {
+    if (!vltSearchQ) return true;
+    return f.name.toLowerCase().includes(vltSearchQ.toLowerCase());
+  });
+  const list = document.getElementById('vlt-list');
+  if (!files.length) {
+    list.innerHTML = `<div style="padding:1rem;color:var(--muted);font-size:0.8rem;">Keine Notizen${vltSearchQ?' für "'+escHtml(vltSearchQ)+'"':''}</div>`;
+    return;
+  }
+  const col = VLT_COLORS[vltCurFolder];
+  list.innerHTML = files.map((f,i) => {
+    const label = f.name.replace(/\.md$/,'').replace(/_/g,' ');
+    const sub   = f.subfolder ? `<span style="font-size:0.65rem;color:#666;margin-left:4px">${f.subfolder}</span>` : '';
+    const active = vltCurFile === f.path;
+    return `<div onclick="vltOpenNote('${f.path.replace(/'/g,"\\'")}','${(f.download_url||'').replace(/'/g,"\\'")}','${(f.html_url||'').replace(/'/g,"\\'")}',${i})"
+      style="padding:0.5rem 0.7rem;cursor:pointer;border-bottom:1px solid #111;font-size:0.78rem;color:${active?col:'#ccc'};background:${active?col+'11':'transparent'};">
+      ${escHtml(label)}${sub}
+    </div>`;
+  }).join('');
+}
+
+async function vltOpenNote(path, downloadUrl, htmlUrl, idx) {
+  vltCurFile = path;
+  vltRenderList();
+  const noteEl = document.getElementById('vlt-note');
+  noteEl.innerHTML = `<div style="color:var(--muted);font-size:0.8rem;">Lade…</div>`;
+
+  try {
+    const r = await fetch(downloadUrl, { headers: { 'Authorization': `token ${getCfg().ghToken}` } });
+    const md = await r.text();
+    noteEl.innerHTML = vltRenderMd(md, htmlUrl, path);
+  } catch(e) {
+    noteEl.innerHTML = `<div style="color:var(--asteroid)">✕ ${escHtml(e.message)}</div>`;
+  }
+}
+
+// Lightweight Markdown → HTML renderer
+function vltRenderMd(md, ghUrl, path) {
+  const filename = path.split('/').pop().replace(/\.md$/,'');
+  const col = VLT_COLORS[vltCurFolder] || '#888';
+
+  let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:0.6rem;border-bottom:1px solid var(--border);">
+    <span style="font-size:0.65rem;color:var(--muted);font-family:monospace;">${escHtml(path)}</span>
+    <div style="display:flex;gap:0.4rem;">
+      <a href="${escHtml(ghUrl)}" target="_blank" style="font-size:0.7rem;color:${col};text-decoration:none;">↗ GitHub</a>
+      <button onclick="vltCopyNote()" style="font-size:0.7rem;padding:0.15rem 0.4rem;border:1px solid ${col}44;background:none;color:${col};border-radius:4px;cursor:pointer;">📋 Kopieren</button>
+    </div>
+  </div>`;
+
+  // Strip YAML frontmatter
+  let body = md.replace(/^---[\s\S]*?---\n?/, '').trim();
+
+  // Render markdown (simplified)
+  body = body
+    .replace(/^# (.+)$/gm,   `<h1 style="font-size:1.1rem;font-weight:700;color:var(--text);margin:1rem 0 0.5rem;border-bottom:1px solid ${col}44;padding-bottom:0.3rem;">$1</h1>`)
+    .replace(/^## (.+)$/gm,  `<h2 style="font-size:0.95rem;font-weight:600;color:${col};margin:0.9rem 0 0.3rem;">$1</h2>`)
+    .replace(/^### (.+)$/gm, `<h3 style="font-size:0.85rem;font-weight:600;color:var(--muted);margin:0.7rem 0 0.2rem;">$1</h3>`)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,     '<em style="color:var(--muted)">$1</em>')
+    .replace(/`(.+?)`/g,        '<code style="font-family:monospace;background:#111;padding:0.1em 0.3em;border-radius:3px;font-size:0.85em;">$1</code>')
+    .replace(/^\- (.+)$/gm,    '<li style="margin-left:1rem;list-style:disc;color:var(--text);">$1</li>')
+    .replace(/^> (.+)$/gm,     '<blockquote style="border-left:2px solid '+col+';margin:0.5rem 0;padding-left:0.7rem;color:var(--muted);font-style:italic;">$1</blockquote>')
+    .replace(/\[(.+?)\]\((.+?)\)/g, `<a href="$2" target="_blank" style="color:${col};text-decoration:underline;">$1</a>`)
+    .replace(/^(⭐|🪐|🌙|🪨|⚡|📌)(.*)$/gm, `<p style="color:${col};font-weight:600;margin:0.4rem 0;">$1$2</p>`)
+    .replace(/^---+$/gm, `<hr style="border:none;border-top:1px solid var(--border);margin:1rem 0;">`)
+    .replace(/\n\n/g, '</p><p style="line-height:1.7;margin:0.5rem 0;">')
+    .replace(/\n/g, '<br>');
+
+  // Store raw for copy
+  html += `<div id="vlt-md-body" data-raw="${encodeURIComponent(md)}" style="font-size:0.85rem;line-height:1.7;color:var(--text);"><p style="line-height:1.7;margin:0.5rem 0;">${body}</p></div>`;
+  return html;
+}
+
+function vltCopyNote() {
+  const el = document.getElementById('vlt-md-body');
+  if (el) navigator.clipboard?.writeText(decodeURIComponent(el.dataset.raw)).then(()=>showToast('📋 Notiz kopiert!'));
+}
+
+function vltSearch(q) {
+  vltSearchQ = q;
+  // Search across all folders if q is non-empty
+  if (q) {
+    const list = document.getElementById('vlt-list');
+    const col  = '#aaa';
+    const all  = [];
+    for (const [folder, files] of Object.entries(vltAllFiles)) {
+      files.filter(f => f.name.toLowerCase().includes(q.toLowerCase()) || f.path.toLowerCase().includes(q.toLowerCase()))
+        .forEach(f => all.push({...f, _folder: folder}));
+    }
+    if (!all.length) { list.innerHTML = `<div style="padding:1rem;color:var(--muted);font-size:0.8rem;">Keine Treffer für "${escHtml(q)}"</div>`; return; }
+    list.innerHTML = all.map((f,i) => {
+      const label = f.name.replace(/\.md$/,'').replace(/_/g,' ');
+      const fc    = VLT_COLORS[f._folder] || '#888';
+      return `<div onclick="vltOpenNote('${f.path.replace(/'/g,"\\'")}','${(f.download_url||'').replace(/'/g,"\\'")}','${(f.html_url||'').replace(/'/g,"\\'")}',${i})"
+        style="padding:0.45rem 0.7rem;cursor:pointer;border-bottom:1px solid #111;font-size:0.78rem;">
+        <span style="color:${fc}">${VLT_ICONS[f._folder]}</span> <span style="color:#ccc">${escHtml(label)}</span>
+        <span style="color:#555;font-size:0.65rem;margin-left:4px">${f._folder}</span>
+      </div>`;
+    }).join('');
+    document.getElementById('vlt-status').textContent = `${all.length} Treffer für "${q}"`;
+  } else {
+    vltRenderList();
+    document.getElementById('vlt-status').textContent = '';
+  }
+}
 
 // ─── Export & Share ──────────────────────────────────────────────────────────
 
