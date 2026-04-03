@@ -17,6 +17,15 @@
     --mond: #a0d0a0;
     --asteroid: #c080c0;
     --accent: #4040c0;
+    /* LLM brand colors */
+    --gemini-primary: #4285f4;
+    --gemini-light: #5a9cff;
+    --deepseek-primary: #00d4a3;
+    --deepseek-light: #33e0b3;
+    --grok-primary: #c060ff;
+    --grok-light: #d080ff;
+    --openai-primary: #10a37f;
+    --openai-light: #33b89f;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -141,21 +150,39 @@
 
   .tabs {
     display: flex;
-    gap: 0;
+    gap: 0.5rem;
     margin-bottom: 1.5rem;
     border-bottom: 1px solid var(--border);
   }
   .tab {
-    padding: 0.7rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1.2rem;
     cursor: pointer;
     color: var(--muted);
     font-size: 0.85rem;
     letter-spacing: 0.05em;
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
-    transition: all 0.2s;
+    transition: all 0.25s ease;
+    position: relative;
   }
-  .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .tab svg {
+    width: 16px;
+    height: 16px;
+    transition: all 0.25s ease;
+  }
+  .tab:hover {
+    color: var(--text);
+  }
+  .tab.active {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+  }
+  .tab.active svg {
+    filter: drop-shadow(0 0 4px rgba(240, 192, 64, 0.4));
+  }
 
   .panel { display: none; }
   .panel.active { display: block; }
@@ -177,27 +204,53 @@
   .matrix-col {
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
     overflow: hidden;
-    background: var(--surface);
+    background: rgba(15, 15, 25, 0.4);
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
   }
-  .matrix-col.active-provider { border-color: currentColor; }
+  .matrix-col.active-provider {
+    border-color: currentColor;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  .matrix-col[data-provider="gemini"] { border-color: var(--gemini-primary); }
+  .matrix-col[data-provider="deepseek"] { border-color: var(--deepseek-primary); }
+  .matrix-col[data-provider="grok"] { border-color: var(--grok-primary); }
+  .matrix-col[data-provider="openai"] { border-color: var(--openai-primary); }
   .matrix-header {
-    padding: 0.45rem 0.6rem;
-    font-size: 0.65rem;
+    padding: 0.7rem 0.8rem;
+    font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.15em;
     text-align: center;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
+    gap: 0.6rem;
+    color: inherit;
+    transition: all 0.25s ease;
   }
-  .matrix-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .matrix-header:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .matrix-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+    box-shadow: 0 0 8px currentColor;
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 1; box-shadow: 0 0 8px currentColor; }
+    50% { opacity: 0.7; box-shadow: 0 0 12px currentColor; }
+  }
   .matrix-messages {
     flex: 1;
     overflow-y: auto;
@@ -389,6 +442,42 @@
     color: var(--muted);
   }
   .badge.on { background: #1a1a3a; color: #8080e0; border: 1px solid #3030a0; }
+
+  /* SPiRAL Layout Transition */
+  main.spiral-mode {
+    max-width: 100% !important;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding: 1rem !important;
+  }
+  .spiral-text-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    overflow-y: auto;
+    max-height: calc(100vh - 180px);
+  }
+  .spiral-text-column .tornado-card {
+    flex-shrink: 0;
+    margin-bottom: 0;
+    background: rgba(30, 30, 50, 0.6);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+  }
+  .spiral-canvas-column {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* SVG Icon styles */
+  svg.icon {
+    transition: all 0.25s ease;
+  }
+  svg.icon:hover {
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
+  }
 </style>
 </head>
 <body>
@@ -419,10 +508,10 @@
 
 <main>
   <div class="tabs">
-    <div class="tab active" onclick="sw('gedanke')">Gedanke</div>
-    <div class="tab" onclick="sw('tornado')">🌪 SPiRAL</div>
-    <div class="tab" onclick="sw('vault')">🌌 MiNDLAXY</div>
-    <div class="tab" onclick="sw('settings')">⚙</div>
+    <div class="tab active" onclick="sw('gedanke')"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><circle cx="9" cy="10" r="1"></circle><circle cx="12" cy="10" r="1"></circle><circle cx="15" cy="10" r="1"></circle></svg>Gedanke</div>
+    <div class="tab" onclick="sw('tornado')"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"></circle><path d="M12 8 L 13 5 L 12 6 L 11 5 L 12 8"></path><path d="M12 16 L 14 20 L 12.5 17 L 11 20 L 12 16"></path><path d="M8 12 L 4 11 L 7 12 L 5 13 L 8 12"></path><path d="M16 12 L 20 13 L 17 12 L 19 11 L 16 12"></path></svg>SPiRAL</div>
+    <div class="tab" onclick="sw('vault')"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L 22 8 L 22 16 C 22 20.4 17.5 23 12 23 C 6.5 23 2 20.4 2 16 L 2 8 L 12 2"></path><path d="M12 12.5 C 14.5 12.5 16.5 10.5 16.5 8"></path></svg>MiNDLAXY</div>
+    <div class="tab" onclick="sw('settings')"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"></path></svg>Settings</div>
   </div>
 
   <!-- Gedanke Panel -->
@@ -946,7 +1035,7 @@ const TORNADO_SYSTEM = `Du bist ein tiefgründiger Denker. Analysiere das gegebe
 Biete eine originelle, präzise Perspektive auf Deutsch.
 Gehe in die Tiefe — identifiziere das Wesentliche, zeige Verbindungen auf.
 Schreibe in fließendem Fließtext ohne Aufzählungen.
-WICHTIG: Antworte in genau 180–250 Wörtern. Nicht kürzer, nicht länger.`;
+WICHTIG: Antworte in genau 80–120 Wörtern. Nicht kürzer, nicht länger. Komm direkt zum Punkt.`;
 
 const KINTEGRITY_SYSTEM = `Du bist kiNTEGRiTY 1.0 — Orchestrator und Verdichter innerhalb der BLACK-HOLE-BOX von BRaiNSTORM SPiRAL.
 Du bekommst die Antworten von Gemini, DeepSeek, Grok und ChatGPT (oder einer Auswahl davon) auf dasselbe Thema.
@@ -1326,174 +1415,202 @@ class SpectacleAnim {
     this._drawTrap(ctx, 0.1+0.06*Math.sin(T*0.04), 'idle');
   }
 
-  // ── GHOST TRAP (detailed) ──
+  // ── 3D VOXEL GHOST TRAP (isometric aesthetic) ──
   _drawTrap(ctx, f, trapPhase) {
     const {cx, trap_y:by, W, H, T} = this;
-    const bw = Math.min(W*0.7, 500);
-    const jaw = 22;
-    const gap = f*20;
+    const trapW = Math.min(W*0.5, 380);
+    const trapH = trapW * 0.8;
+    const isometric = 0.866; // ~cos(30°) for isometric projection
 
-    // Containment beam (when opening/absorbing)
+    // Containment energy beam (when opening/absorbing)
     if(f > 0.15 && (trapPhase==='absorb'||trapPhase==='capturing')) {
       this.trapCapT++;
       const beamOp = Math.min(1,(this.trapCapT-4)/20) * (0.5+0.3*Math.sin(T*0.2));
-      const beamW = bw*0.4*f;
+      const beamW = trapW*0.35*f;
 
-      // Main beam
-      const bg = ctx.createLinearGradient(cx, by-gap, cx, by-H*0.6);
-      bg.addColorStop(0, `rgba(255,180,0,${beamOp*0.8})`);
-      bg.addColorStop(0.3, `rgba(255,100,0,${beamOp*0.4})`);
-      bg.addColorStop(0.7, `rgba(200,50,200,${beamOp*0.15})`);
+      // Gradient energy beam
+      const bg = ctx.createLinearGradient(cx, by-trapH*0.6, cx, by-H*0.4);
+      bg.addColorStop(0, `rgba(255,100,50,${beamOp*0.9})`);
+      bg.addColorStop(0.4, `rgba(200,80,255,${beamOp*0.5})`);
       bg.addColorStop(1, 'transparent');
-      ctx.fillStyle = bg; ctx.fillRect(cx-beamW/2, by-H*0.6, beamW, H*0.6-gap);
+      ctx.fillStyle = bg;
+      ctx.fillRect(cx-beamW/2, by-H*0.4, beamW, H*0.3);
 
-      // Containment rings
-      ctx.globalAlpha = beamOp*0.5;
-      for(let i=0;i<6;i++){
-        const ry = by-gap - i*(H*0.08);
-        const rw = beamW*(0.8-i*0.08);
-        const ringOp = 0.3+0.3*Math.sin(T*0.15+i*0.8);
-        ctx.globalAlpha = beamOp*ringOp;
-        ctx.strokeStyle = i%2 ? '#ffd700' : '#ff6600';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.ellipse(cx, ry, rw/2, rw*0.08, 0, 0, Math.PI*2);
-        ctx.stroke();
-      }
-
-      // Sparks around beam
+      // Swirling energy rings
       ctx.globalAlpha = beamOp*0.6;
-      const sparks = ['∴','✦','◈','⬡','⊕','∞','Ψ','Ω','⚡','✧','◆','⟡'];
-      for(let i=0;i<16;i++){
-        const a = (i/16)*Math.PI*2 + T*0.12;
-        const sr = (12+20*Math.sin(T*0.08+i*0.5))*f;
-        ctx.fillStyle = i%3===0 ? '#ff4400' : i%3===1 ? '#ffd700' : '#ff9900';
-        ctx.font = `${8+Math.sin(T*0.1+i)*3}px monospace`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(sparks[i%sparks.length], cx+Math.cos(a)*sr, by-gap-sr*0.4);
+      for(let i=0;i<5;i++){
+        const ry = by-trapH*0.5 - i*(H*0.06);
+        const rw = beamW*(0.7-i*0.1);
+        const ringOp = 0.4+0.3*Math.sin(T*0.18+i);
+        ctx.globalAlpha = beamOp*ringOp;
+        ctx.strokeStyle = i%2 ? '#ff6600' : '#ff00ff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(cx, ry, rw/2+Math.sin(T*0.1+i)*3, rw*0.06, 0, 0, Math.PI*2);
+        ctx.stroke();
       }
       ctx.globalAlpha = 1;
     }
 
-    // Orange ambient glow
-    if(f>0.05){
-      const g = ctx.createRadialGradient(cx,by,0,cx,by,140*f);
-      g.addColorStop(0, `rgba(255,140,0,${0.25*f})`);
-      g.addColorStop(0.5, `rgba(255,80,0,${0.1*f})`);
+    // Energy field glow around trap
+    if(f>0.08){
+      const g = ctx.createRadialGradient(cx,by,0,cx,by,trapW*0.8*f);
+      g.addColorStop(0, `rgba(255,100,200,${0.3*f})`);
+      g.addColorStop(0.6, `rgba(100,100,255,${0.1*f})`);
       g.addColorStop(1, 'transparent');
-      ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,W,H);
     }
 
-    // Jaw drawing function (enhanced)
-    const drawJaw = (jy, isTop) => {
-      // Main jaw body
-      const jawG = ctx.createLinearGradient(cx-bw/2, jy, cx-bw/2, jy+jaw);
-      jawG.addColorStop(0, '#0c0c18');
-      jawG.addColorStop(0.5, '#12121e');
-      jawG.addColorStop(1, '#080810');
-      ctx.fillStyle = jawG;
-      ctx.fillRect(cx-bw/2, jy, bw, jaw);
+    // Draw 3D voxel trap in isometric perspective
+    const drawVoxelTrap = (centerX, centerY, openFactor) => {
+      // Box dimensions (isometric)
+      const sz = trapW/3;
 
-      // Border
-      ctx.strokeStyle = f>0 ? `rgba(255,145,0,${0.6+0.4*f})` : '#252218';
+      // Define isometric directions (angles in 2D for 3D effect)
+      const isoX = (x, z) => centerX + x;
+      const isoY = (y, z) => centerY - y - z*isometric;
+
+      // Top face (when closed, visible)
+      const openF = Math.min(1, openFactor*2);
+      const topShift = openF*sz*0.5;
+
+      // Draw main box faces
+      ctx.globalAlpha = f>0.1 ? 0.85 : 0.5;
+
+      // Front face (dark)
+      ctx.fillStyle = f>0 ? '#1a0a2a' : '#0f0f1f';
+      ctx.beginPath();
+      ctx.moveTo(isoX(-sz, 0), isoY(0, 0));
+      ctx.lineTo(isoX(sz, 0), isoY(0, 0));
+      ctx.lineTo(isoX(sz, -sz*0.8), isoY(0, 0));
+      ctx.lineTo(isoX(-sz, -sz*0.8), isoY(0, 0));
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = f>0 ? '#ff6600' : '#333';
       ctx.lineWidth = f>0 ? 2 : 1;
-      ctx.strokeRect(cx-bw/2, jy, bw, jaw);
+      ctx.stroke();
 
-      // Hazard stripes
-      ctx.save();
-      ctx.beginPath(); ctx.rect(cx-bw/2+2, jy+2, bw-4, jaw-4); ctx.clip();
-      ctx.globalAlpha = f>0 ? 0.2 : 0.06;
-      ctx.strokeStyle = f>0 ? '#ff7700' : '#443300';
-      ctx.lineWidth = 4;
-      for(let i=-4;i<bw/6+4;i++){
+      // Left face (medium)
+      ctx.fillStyle = f>0 ? '#2a1a3a' : '#15151f';
+      ctx.beginPath();
+      ctx.moveTo(isoX(-sz, 0), isoY(0, 0));
+      ctx.lineTo(isoX(-sz, -sz*0.8), isoY(0, 0));
+      ctx.lineTo(isoX(-sz*0.5, -sz*1.2), isoY(0, sz*0.6));
+      ctx.lineTo(isoX(-sz*0.5, -sz*0.4), isoY(0, sz*0.6));
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = f>0 ? '#ff9900' : '#222';
+      ctx.lineWidth = f>0 ? 1.5 : 0.5;
+      ctx.stroke();
+
+      // Right face (lighter)
+      ctx.fillStyle = f>0 ? '#3a2a5a' : '#1a1a2a';
+      ctx.beginPath();
+      ctx.moveTo(isoX(sz, 0), isoY(0, 0));
+      ctx.lineTo(isoX(sz*0.5, -sz*0.4), isoY(0, sz*0.6));
+      ctx.lineTo(isoX(sz*0.5, -sz*1.2), isoY(0, sz*0.6));
+      ctx.lineTo(isoX(sz, -sz*0.8), isoY(0, 0));
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = f>0 ? '#ffaa00' : '#333';
+      ctx.lineWidth = f>0 ? 1.5 : 0.5;
+      ctx.stroke();
+
+      // Top face (opens/splits when activating)
+      ctx.globalAlpha = f>0 ? (0.6+0.2*Math.sin(T*0.1)) : 0.3;
+      if(openFactor < 1) {
+        // Closed top
+        ctx.fillStyle = f>0 ? '#4a3a6a' : '#2a2a3a';
         ctx.beginPath();
-        ctx.moveTo(cx-bw/2+i*6, jy);
-        ctx.lineTo(cx-bw/2+i*6+jaw, jy+jaw);
+        ctx.moveTo(isoX(-sz*0.5, -sz*0.4), isoY(0, sz*0.6));
+        ctx.lineTo(isoX(sz*0.5, -sz*0.4), isoY(0, sz*0.6));
+        ctx.lineTo(isoX(sz, -sz*0.8), isoY(0, 0));
+        ctx.lineTo(isoX(-sz, -sz*0.8), isoY(0, 0));
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        // Split top halves opening
+        ctx.fillStyle = f>0 ? '#5a5a8a' : '#3a3a4a';
+        // Left half
+        ctx.beginPath();
+        ctx.moveTo(isoX(-sz*0.5-topShift, -sz*0.4), isoY(0, sz*0.6));
+        ctx.lineTo(isoX(-0.1, -sz*0.4), isoY(0, sz*0.6));
+        ctx.lineTo(isoX(-sz*0.5, -sz*0.8), isoY(0, 0));
+        ctx.lineTo(isoX(-sz, -sz*0.8), isoY(0, 0));
+        ctx.closePath();
+        ctx.fill();
+        // Right half
+        ctx.beginPath();
+        ctx.moveTo(isoX(0.1, -sz*0.4), isoY(0, sz*0.6));
+        ctx.lineTo(isoX(sz*0.5+topShift, -sz*0.4), isoY(0, sz*0.6));
+        ctx.lineTo(isoX(sz, -sz*0.8), isoY(0, 0));
+        ctx.lineTo(isoX(sz*0.5, -sz*0.8), isoY(0, 0));
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      // Glowing seams between polygons
+      if(f>0){
+        ctx.globalAlpha = 0.6+0.2*Math.sin(T*0.12);
+        ctx.strokeStyle = '#00ff88';
+        ctx.lineWidth = 0.8;
+        // Vertical seams
+        ctx.beginPath();
+        ctx.moveTo(isoX(-sz*0.5, -sz*0.4), isoY(0, sz*0.6));
+        ctx.lineTo(isoX(-sz*0.5, -sz*1.2), isoY(0, sz*0.6));
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(isoX(sz*0.5, -sz*0.4), isoY(0, sz*0.6));
+        ctx.lineTo(isoX(sz*0.5, -sz*1.2), isoY(0, sz*0.6));
         ctx.stroke();
       }
-      ctx.restore();
 
-      // Hydraulic pistons (sides)
-      for(const side of [-1,1]){
-        const px = cx + side*(bw/2+8);
-        ctx.fillStyle = '#1a1a2a';
-        ctx.fillRect(px-3, jy-4, 6, jaw+8);
-        ctx.strokeStyle = f>0 ? '#ff990044' : '#222';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(px-3, jy-4, 6, jaw+8);
-        // Piston rod
-        ctx.fillStyle = f>0 ? '#ff990066' : '#333';
-        ctx.fillRect(px-1, jy+2, 2, jaw-4);
-      }
-
-      // Rivets
-      const rivetPositions = [];
-      for(let i=0;i<Math.floor(bw/30);i++) rivetPositions.push(cx-bw/2+15+i*30);
-      for(const rx of rivetPositions){
-        for(const ry of [jy+4, jy+jaw-4]){
-          ctx.beginPath(); ctx.arc(rx, ry, 2.5, 0, Math.PI*2);
-          ctx.fillStyle = f>0 ? '#cc6600' : '#2e2200';
+      // Pulsing warning lights (colored dots)
+      const fast = trapPhase==='absorb'||trapPhase==='capturing';
+      const lightPos = [
+        [isoX(-sz*0.5), isoY(-sz*0.2, 0.3*sz)],
+        [isoX(0), isoY(-sz*0.2, 0.3*sz)],
+        [isoX(sz*0.5), isoY(-sz*0.2, 0.3*sz)],
+      ];
+      for(let i=0;i<lightPos.length;i++){
+        const blink = Math.sin(T*(fast?0.4:0.08)+i) > 0;
+        ctx.globalAlpha = blink ? 1 : 0.3;
+        ctx.fillStyle = i===1 ? '#ff1155' : '#ff6600';
+        ctx.beginPath();
+        ctx.arc(lightPos[i][0], lightPos[i][1], 4, 0, Math.PI*2);
+        ctx.fill();
+        if(blink && f>0){
+          ctx.globalAlpha = 0.4;
+          ctx.beginPath();
+          ctx.arc(lightPos[i][0], lightPos[i][1], 8, 0, Math.PI*2);
           ctx.fill();
-          ctx.globalAlpha = 0.3;
-          ctx.beginPath(); ctx.arc(rx-0.5, ry-0.5, 1, 0, Math.PI*2);
-          ctx.fillStyle = '#ffffff'; ctx.fill();
-          ctx.globalAlpha = 1;
         }
       }
+      ctx.globalAlpha = 1;
     };
 
-    drawJaw(by-jaw-gap, true);
-    drawJaw(by+gap, false);
-
-    // Inner glow between jaws
-    if(f>0.08){
-      ctx.globalAlpha = Math.min(1,f)*0.75;
-      const ig = ctx.createLinearGradient(0,by-jaw-gap+jaw,0,by+gap);
-      ig.addColorStop(0,'#ff5500');ig.addColorStop(0.5,'#ffd700');ig.addColorStop(1,'#ff5500');
-      ctx.fillStyle = ig;
-      ctx.fillRect(cx-bw/2+4, by-jaw-gap+jaw, bw-8, gap*2);
-      ctx.globalAlpha = 1;
-    }
-
-    // Warning lights
-    const fast = (trapPhase==='absorb'||trapPhase==='capturing');
-    const blinkRate = fast ? 0.42 : 0.07;
-    const blink = Math.sin(T*blinkRate) > 0;
-    for(const dx of [-bw/2+18, -bw/4, bw/4, bw/2-18]) {
-      ctx.beginPath(); ctx.arc(cx+dx, by, 5, 0, Math.PI*2);
-      ctx.fillStyle = blink ? (fast?'#ff1100':'#ff3300') : '#2a0000';
-      ctx.fill();
-      if(blink){
-        ctx.globalAlpha = 0.35;
-        ctx.beginPath(); ctx.arc(cx+dx, by, 10, 0, Math.PI*2);
-        ctx.fillStyle = '#ff2200'; ctx.fill();
-        ctx.globalAlpha = 1;
-      }
-    }
-
-    // Ghost emoji (fades when opening)
-    if(f<0.3){
-      ctx.globalAlpha = (1-f/0.3)*0.25;
-      ctx.font = 'bold 20px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillStyle = '#666'; ctx.fillText('👻', cx, by);
-      ctx.globalAlpha = 1;
-    }
+    drawVoxelTrap(cx, by, f);
 
     // Status label
-    const labels = {idle:'─── BRaiNSTORM SPiRAL ───',opening:'▲  TRAP OPENING  ▲',absorb:'◈  CAPTURE MODE  ◈',capturing:'◈  CAPTURE MODE  ◈',closing:'●  SEALED  ●'};
+    const labels = {
+      idle: '─ SPiRAL CONTAINMENT READY ─',
+      opening: '◆ TRAP OPENING ◆',
+      absorb: '◈ CAPTURE INITIATED ◈',
+      capturing: '◈ SIPHONING ENERGY ◈',
+      closing: '● SEALED ●'
+    };
     ctx.globalAlpha = f>0 ? (0.85+0.15*Math.sin(T*0.06)) : 0.4;
-    ctx.fillStyle = f>0 ? '#ffd700' : '#555';
-    ctx.font = 'bold 10px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText(labels[trapPhase]||labels.idle, cx, by);
-    if(f>0 && fast){
-      ctx.shadowColor = '#ffd700'; ctx.shadowBlur = 15;
-      ctx.fillText(labels[trapPhase]||labels.idle, cx, by);
-      ctx.shadowBlur = 0;
-    }
+    ctx.fillStyle = f>0 ? '#00ff88' : '#666';
+    ctx.font = 'bold 10px monospace';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText(labels[trapPhase]||labels.idle, cx, by+trapH*0.8);
     ctx.globalAlpha = 1;
   }
 
-  // ── Phase: ABSORB + SPAGHETTIFICATION ──
+  // ── Phase: ABSORB + SPIRAL SPAGHETTIFICATION ──
   _drawAbsorb(ctx) {
     const {cx, tornado_cy, trap_y, W, H, T} = this;
     this.absorb_e = Math.min(1, this.absorb_e+0.012);
@@ -1509,26 +1626,34 @@ class SpectacleAnim {
     for(const p of this.mega) {
       this._stepMega(p, cx, cy, 1.5+e*8);
 
-      // Pull toward trap center
-      p.sx += (cx-p.sx) * e * 0.06;
-      p.sy += (trap_y-p.sy) * e * 0.05;
-
-      // SPAGHETTIFICATION: stretch vertically as approaching trap
-      const distToTrap = Math.abs(p.sy - trap_y);
-      const maxDist = H*0.5;
+      // SPIRAL MOTION: particles spiral inward toward center
+      const distToTrap = Math.sqrt((p.sx-cx)**2 + (p.sy-trap_y)**2);
+      const maxDist = Math.sqrt(W*W + H*H)*0.4;
       const proximity = 1 - Math.min(1, distToTrap/maxDist);
-      p.stretchY = 1 + proximity * e * 7; // Up to 8x stretch
+
+      // Spiral angle increases as proximity increases (Kepler-like)
+      const spiralAngle = p.ang + proximity*e*Math.PI*4;
+      const spiralRadius = distToTrap * (1 - proximity*e*0.8);
+
+      // New position with spiral motion
+      p.sx += Math.cos(spiralAngle) * (spiralRadius - distToTrap)*0.3;
+      p.sy += Math.sin(spiralAngle) * (spiralRadius - distToTrap)*0.3;
+
+      // Pull toward trap center (enhanced by proximity)
+      p.sx += (cx-p.sx) * e * (0.08 + proximity*0.12);
+      p.sy += (trap_y-p.sy) * e * (0.07 + proximity*0.10);
+
+      // SPAGHETTIFICATION: stretch vertically and horizontally as approaching
+      const stretchAmount = proximity * e * 8; // Up to 9x stretch
+      p.stretchY = 1 + stretchAmount;
+      const horizontalCompress = Math.max(0.1, 1 - proximity*e*0.6);
 
       // Color shift toward orange/red near singularity
-      const colorShift = proximity * e;
       let drawCol = p.col;
-      if(colorShift > 0.5) {
-        const cs = (colorShift-0.5)*2;
-        drawCol = cs>0.7 ? '#ff3300' : cs>0.4 ? '#ff6600' : '#ff9900';
+      if(proximity > 0.3) {
+        const cs = (proximity-0.3)*1.4; // 0 to 1 as proximity goes 0.3 to 1
+        drawCol = cs>0.7 ? '#ff2200' : cs>0.4 ? '#ff5500' : '#ff8800';
       }
-
-      // Speed increase near event horizon
-      const speedBoost = 1 + proximity * e * 3;
 
       ctx.globalAlpha = p.op * (1-e*0.6);
       ctx.fillStyle = drawCol;
@@ -1536,24 +1661,51 @@ class SpectacleAnim {
       // Draw stretched character
       ctx.save();
       ctx.translate(p.sx, p.sy);
-      ctx.scale(Math.max(0.15, 1-proximity*e*0.7), p.stretchY);
+      ctx.scale(horizontalCompress, p.stretchY);
       ctx.font = `${p.sz}px monospace`;
       ctx.textBaseline = 'middle';
       ctx.fillText(p.ch, 0, 0);
       ctx.restore();
     }
 
-    // Convergence lines (spaghetti streams)
-    if(e > 0.2) {
-      ctx.globalAlpha = (e-0.2)*0.25;
-      ctx.strokeStyle = '#ffd700';
-      ctx.lineWidth = 0.5;
-      for(let i=0;i<24;i++){
-        const a = (i/24)*Math.PI*2 + T*0.05;
-        const r = Math.max(20, 80*(1-e));
+    // Spiral spaghetti streams (spiral-shaped convergence)
+    if(e > 0.15) {
+      ctx.globalAlpha = (e-0.15)*0.35;
+      ctx.strokeStyle = '#ff8800';
+      ctx.lineWidth = 1.2;
+      for(let i=0;i<20;i++){
+        const startAngle = (i/20)*Math.PI*2;
+        const startR = Math.max(50, 140*(1-e*0.6));
+
         ctx.beginPath();
-        ctx.moveTo(cx+Math.cos(a)*r, cy+Math.sin(a)*r*0.3);
-        ctx.quadraticCurveTo(cx+Math.cos(a)*r*0.3, (cy+trap_y)/2, cx, trap_y);
+        // Start at outer radius
+        let x = cx + Math.cos(startAngle)*startR;
+        let y = cy + Math.sin(startAngle)*startR*0.4;
+        ctx.moveTo(x, y);
+
+        // Spiral inward
+        const spiralTurns = 3 + e*2;
+        for(let t=0;t<=1;t+=0.05){
+          const angle = startAngle + t*spiralTurns*Math.PI*2;
+          const r = startR*(1-t*0.95);
+          x = cx + Math.cos(angle)*r;
+          y = cy + Math.sin(angle)*r*0.3 + (t*t)*trapH*0.2;
+          ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+
+      // Radial stretch lines for spaghettification effect
+      ctx.globalAlpha = e*0.25;
+      ctx.strokeStyle = '#ffaa00';
+      ctx.lineWidth = 0.6;
+      for(let i=0;i<16;i++){
+        const a = (i/16)*Math.PI*2;
+        const r1 = 30;
+        const r2 = 80+e*60;
+        ctx.beginPath();
+        ctx.moveTo(cx+Math.cos(a)*r1, trap_y+Math.sin(a)*r1*0.2);
+        ctx.lineTo(cx+Math.cos(a)*r2, trap_y+Math.sin(a)*r2*0.2);
         ctx.stroke();
       }
       ctx.globalAlpha = 1;
@@ -1564,7 +1716,7 @@ class SpectacleAnim {
     if(this.absorb_e >= 1) { this.phase='blackhole'; this.T=0; this.bh_e=0; }
   }
 
-  // ── Phase: BLACK HOLE ──
+  // ── Phase: BLACK HOLE (with accretion disk, lensing, jets) ──
   _drawBlackhole(ctx) {
     const {cx, trap_y:by, W, H, T} = this;
     this.bh_e = Math.min(1, this.bh_e+0.008);
@@ -1573,86 +1725,146 @@ class SpectacleAnim {
     ctx.fillStyle = `rgba(6,6,16,${this.overlayAlpha})`;
     ctx.fillRect(0,0,W,H);
 
-    const r = 15+e*80;
+    const r = 20+e*95; // Event horizon radius
 
-    // Massive accretion disk glow
-    const aGlow = ctx.createRadialGradient(cx,by,r*0.5,cx,by,r*4);
-    aGlow.addColorStop(0, `rgba(255,150,0,${0.35*e})`);
-    aGlow.addColorStop(0.2, `rgba(255,80,200,${0.15*e})`);
-    aGlow.addColorStop(0.5, `rgba(80,0,200,${0.08*e})`);
+    // Massive accretion disk glow (background layer)
+    const aGlow = ctx.createRadialGradient(cx,by,r*0.3,cx,by,r*5);
+    aGlow.addColorStop(0, `rgba(255,200,100,${0.4*e})`);
+    aGlow.addColorStop(0.25, `rgba(255,100,200,${0.2*e})`);
+    aGlow.addColorStop(0.5, `rgba(100,50,255,${0.1*e})`);
     aGlow.addColorStop(1, 'transparent');
-    ctx.fillStyle = aGlow; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle = aGlow;
+    ctx.fillRect(0,0,W,H);
 
-    // Gravitational lensing ring
-    ctx.globalAlpha = e*0.5;
-    ctx.strokeStyle = `rgba(255,220,100,${0.4+0.3*Math.sin(T*0.07)})`;
-    ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(cx, by, r*1.5, 0, Math.PI*2); ctx.stroke();
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = `rgba(255,255,255,${0.2+0.15*Math.sin(T*0.11)})`;
-    ctx.beginPath(); ctx.arc(cx, by, r*1.8, 0, Math.PI*2); ctx.stroke();
+    // Photon ring (bright thin circle at event horizon)
+    ctx.globalAlpha = e*(0.8+0.2*Math.sin(T*0.08));
+    ctx.strokeStyle = '#ffff99';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(cx, by, r*1.0, 0, Math.PI*2);
+    ctx.stroke();
 
-    // Accretion disk particles (rotating)
-    const diskC = ['#ff9900','#ffd700','#ff6600','#ff3300','#cc00ff','#0077ff','#00ffcc','#ff44aa'];
-    for(let i=0;i<60;i++){
-      const a = (i/60)*Math.PI*2 + T*0.03*(1+(i%4)*0.01);
-      const dr = r*1.2 + Math.sin(T*0.07+i*0.4)*r*0.45;
+    // Rotating accretion disk (main disk)
+    const diskC = ['#ffaa00','#ff8800','#ff6600','#ff3300','#cc00ff','#0088ff','#00ffdd'];
+    const diskR = r*2.2;
+    const diskH = r*0.35;
+
+    for(let i=0;i<120;i++){
+      const a = (i/120)*Math.PI*2 + T*0.025*(1+(i%6)*0.005);
+      const radialVariation = Math.sin(T*0.08+i*0.15)*r*0.4;
+      const dr = r*1.5 + radialVariation;
       const px = cx+Math.cos(a)*dr;
-      const py = by+Math.sin(a)*dr*0.18;
-      ctx.globalAlpha = e*(0.3+0.4*Math.sin(T*0.06+i));
+      const py = by+Math.sin(a)*dr*0.18 + Math.sin(a*2+T*0.1)*r*0.1;
+      const dist = Math.sqrt((dr-r*1.5)**2);
+      const diskGlow = Math.max(0.2, 1 - dist/(r*0.8));
+      ctx.globalAlpha = e*diskGlow*(0.4+0.3*Math.sin(T*0.06+i*0.2));
       ctx.fillStyle = diskC[i%diskC.length];
-      ctx.font = `${6+Math.sin(T*0.05+i)*3}px monospace`;
-      ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText(T_CHARS[(i*3+T)|0%T_CHARS.length]||'*', px, py);
+      ctx.font = `${5+diskGlow*4}px monospace`;
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText(T_CHARS[(i*2+T)|0%T_CHARS.length]||'*', px, py);
     }
 
-    // Hawking radiation sparks
-    ctx.globalAlpha = e*0.3;
-    for(let i=0;i<8;i++){
-      const a = Math.random()*Math.PI*2;
-      const dist = r*1.1 + Math.random()*r*0.5;
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '3px monospace';
-      ctx.fillText('·', cx+Math.cos(a)*dist, by+Math.sin(a)*dist*0.2);
+    // Gravitational lensing rings (distortion effect)
+    ctx.globalAlpha = e*0.6;
+    ctx.strokeStyle = `rgba(200,255,100,${0.5+0.2*Math.sin(T*0.06)})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, by, r*1.35, 0, Math.PI*2);
+    ctx.stroke();
+
+    ctx.globalAlpha = e*0.4;
+    ctx.strokeStyle = `rgba(100,200,255,${0.3+0.15*Math.sin(T*0.09)})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(cx, by, r*1.9, 0, Math.PI*2);
+    ctx.stroke();
+
+    // Hawking radiation jets (from poles)
+    ctx.globalAlpha = e*(0.5+0.2*Math.sin(T*0.12));
+    for(let pole=-1;pole<=1;pole+=2) {
+      const jetY = by+pole*r*2.5;
+      const jetW = r*0.4;
+      const jetGrad = ctx.createLinearGradient(cx, by, cx, jetY);
+      jetGrad.addColorStop(0, `rgba(0,255,200,${0.5*e})`);
+      jetGrad.addColorStop(0.5, `rgba(100,100,255,${0.2*e})`);
+      jetGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = jetGrad;
+      ctx.beginPath();
+      ctx.moveTo(cx-jetW, by);
+      ctx.lineTo(cx+jetW, by);
+      ctx.lineTo(cx+jetW*0.5, jetY);
+      ctx.lineTo(cx-jetW*0.5, jetY);
+      ctx.closePath();
+      ctx.fill();
+
+      // Jet particles
+      ctx.globalAlpha = e*0.4;
+      for(let j=0;j<8;j++){
+        const px = cx + (Math.random()-0.5)*jetW;
+        const py = by + pole*(r*0.5+j*r*0.25);
+        ctx.fillStyle = '#00ffcc';
+        ctx.font = '2px monospace';
+        ctx.fillText('·', px, py);
+      }
     }
 
     // Event horizon (black core)
     const bhG = ctx.createRadialGradient(cx,by,0,cx,by,r);
-    bhG.addColorStop(0,'#000');
-    bhG.addColorStop(0.75,'#000');
-    bhG.addColorStop(1,'rgba(0,0,0,0)');
+    bhG.addColorStop(0,'#000000');
+    bhG.addColorStop(0.8,'#000000');
+    bhG.addColorStop(1,'rgba(0,0,0,0.2)');
     ctx.globalAlpha = 1;
     ctx.fillStyle = bhG;
-    ctx.beginPath(); ctx.arc(cx, by, r*1.1, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx, by, r*1.05, 0, Math.PI*2);
+    ctx.fill();
 
-    // Event horizon edge glow
-    ctx.globalAlpha = e*0.8;
-    ctx.strokeStyle = `rgba(255,200,0,${0.6+0.3*Math.sin(T*0.09)})`;
-    ctx.lineWidth = 2.5;
-    ctx.shadowColor = '#ffd700'; ctx.shadowBlur = 20;
-    ctx.beginPath(); ctx.arc(cx, by, r, 0, Math.PI*2); ctx.stroke();
+    // Event horizon ring glow
+    ctx.globalAlpha = e*(0.6+0.3*Math.sin(T*0.1));
+    ctx.strokeStyle = '#ff9944';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = '#ff8800';
+    ctx.shadowBlur = 25;
+    ctx.beginPath();
+    ctx.arc(cx, by, r*0.98, 0, Math.PI*2);
+    ctx.stroke();
     ctx.shadowBlur = 0;
 
-    // Gravitational streaks
-    ctx.globalAlpha = e*0.18;
-    ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 0.5;
-    for(let i=0;i<18;i++){
-      const a = (i/18)*Math.PI*2+T*0.006;
-      const r1=r*1.8, r2=r*4.5;
+    // Distortion field (gravitational lensing lines)
+    ctx.globalAlpha = e*0.2;
+    ctx.strokeStyle = '#ffcc88';
+    ctx.lineWidth = 0.7;
+    for(let i=0;i<24;i++){
+      const a = (i/24)*Math.PI*2+T*0.008;
+      const r1=r*1.15, r2=r*3.5;
       ctx.beginPath();
-      ctx.moveTo(cx+Math.cos(a)*r1, by+Math.sin(a)*r1*0.2);
-      ctx.lineTo(cx+Math.cos(a+0.2)*r2, by+Math.sin(a+0.2)*r2*0.2);
+      ctx.moveTo(cx+Math.cos(a)*r1, by+Math.sin(a)*r1*0.25);
+      // Curved path to show distortion
+      const mid = (r1+r2)/2;
+      ctx.quadraticCurveTo(
+        cx+Math.cos(a+0.3)*mid, by+Math.sin(a+0.3)*mid*0.25,
+        cx+Math.cos(a+0.1)*r2, by+Math.sin(a+0.1)*r2*0.25
+      );
       ctx.stroke();
     }
     ctx.globalAlpha = 1;
 
-    // Label
-    const p2 = 0.5+0.3*Math.sin(T*0.07);
+    // Label with pulsing intensity
+    const p2 = 0.5+0.35*Math.sin(T*0.07);
     ctx.globalAlpha = e*p2;
-    ctx.fillStyle = '#ffd700';
-    ctx.font = 'bold 12px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.shadowColor = '#ffd700'; ctx.shadowBlur = 25;
-    ctx.fillText('◈  SCHWARZES LOCH  ◈', cx, by-r-25);
+    ctx.fillStyle = '#ffdd00';
+    ctx.font = 'bold 14px monospace';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.shadowColor = '#ff9900';
+    ctx.shadowBlur = 30;
+    ctx.fillText('◆  SCHWARZES LOCH  ◆', cx, by-r-30);
+    ctx.font = '9px monospace';
+    ctx.fillStyle = '#99ff99';
+    ctx.shadowColor = '#00cc00';
+    ctx.shadowBlur = 15;
+    ctx.fillText('Akkretion · Singularität · Verdampfung', cx, by-r-10);
     ctx.shadowBlur = 0;
     ctx.globalAlpha = 1;
 
@@ -1804,7 +2016,8 @@ class BainstormHub {
       const col = meta.cols[0];
       const cell = document.createElement('div');
       cell.id = `bs-cell-${p}`;
-      cell.style.cssText = `display:flex;flex-direction:column;border:1px solid ${active?col+'55':'#1a1a1a'};border-radius:8px;overflow:hidden;background:#050510;`;
+      cell.setAttribute('data-provider', p);
+      cell.style.cssText = `display:flex;flex-direction:column;border:1.5px solid ${active?col+'88':'#1a1a1a'};border-radius:10px;overflow:hidden;background:rgba(10,10,20,0.4);backdrop-filter:blur(10px);transition:all 0.3s ease;`;
       const cv = document.createElement('canvas');
       cv.style.cssText = 'display:block;width:100%;flex-shrink:0;';
       cell.appendChild(cv);
@@ -2083,13 +2296,34 @@ async function sendT() {
   const out = document.getElementById('tOut');
   out.innerHTML = '';
 
+  // Apply spiral layout mode
+  const main = document.querySelector('main');
+  main.classList.add('spiral-mode');
+
   const providers = availableProviders().filter(p => p !== 'anthropic');
   if (providers.length === 0) {
     out.innerHTML = '<div style="color:var(--asteroid)">⚠ Kein AI-Key konfiguriert (Gemini, DeepSeek, Grok oder OpenAI) → ⚙ Settings</div>';
-    btn.disabled = false; btn.textContent = '⚡ SPiRAL'; return;
+    btn.disabled = false; btn.textContent = '⚡ SPiRAL';
+    main.classList.remove('spiral-mode');
+    return;
   }
 
-  const hub = new BainstormHub(out, providers);
+  // Create two-column wrapper for spiral layout
+  const spiralWrapper = document.createElement('div');
+  spiralWrapper.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:1rem;width:100%;max-height:calc(100vh - 200px);';
+
+  const textColumn = document.createElement('div');
+  textColumn.className = 'spiral-text-column';
+
+  const canvasColumn = document.createElement('div');
+  canvasColumn.className = 'spiral-canvas-column';
+
+  spiralWrapper.appendChild(textColumn);
+  spiralWrapper.appendChild(canvasColumn);
+  out.appendChild(spiralWrapper);
+
+  // BainstormHub will render into canvasColumn
+  const hub = new BainstormHub(canvasColumn, providers);
   let okCards = [], errCards = [], responses = [];
 
   // Fire all LLM calls in parallel, show responses live
@@ -2139,6 +2373,10 @@ async function sendT() {
 
   // Start absorb → black hole → emerge sequence
   hub.absorb(bodyType, () => {
+    // Get the text column for spiral layout
+    const textColumn = out.querySelector('.spiral-text-column');
+    const outputTarget = textColumn || out;
+
     if (synthRaw) {
       const parsed = parseSpiralOutput(synthRaw, text);
       const today  = new Date().toISOString().split('T')[0];
@@ -2151,22 +2389,24 @@ async function sendT() {
       saveRun(window._lastSpiral);
       renderRunHistory();
 
-      // ── kiNTEGRiTY Panel (separate, before BLACK-HOLE-BOX) ──
+      // ── kiNTEGRiTY Panel ──
       const kintegrityPanel = document.createElement('div');
       kintegrityPanel.id = 'kintegrity-panel';
-      kintegrityPanel.style.cssText = 'margin-top:1.2rem;padding:1.2rem;border-radius:10px;border:1px solid #3a3a80;background:#0d0d1a;';
+      kintegrityPanel.className = 'tornado-card';
+      kintegrityPanel.style.cssText = 'background:rgba(40,30,70,0.7);border:1px solid #5a4a9a;';
       kintegrityPanel.innerHTML = `
         <div style="font-size:0.7rem;font-weight:700;letter-spacing:.12em;color:#8080e0;text-transform:uppercase;margin-bottom:0.8rem;">
-          🔗 kiNTEGRiTY — Synthese-Analyse
+          🔗 kiNTEGRiTY
         </div>
-        <div style="line-height:1.6;font-size:0.92rem;white-space:pre-wrap;">${escHtml(parsed.kintegrity)}</div>
+        <div style="line-height:1.6;font-size:0.85rem;white-space:pre-wrap;">${escHtml(parsed.kintegrity)}</div>
       `;
-      out.appendChild(kintegrityPanel);
+      outputTarget.appendChild(kintegrityPanel);
 
       // ── BLACK-HOLE-BOX container ──
       const bhb = document.createElement('div');
       bhb.id = 'black-hole-box';
-      bhb.style.cssText = 'margin-top:0.75rem;border:1px solid #333;border-radius:10px;overflow:hidden;background:#08080f;';
+      bhb.className = 'tornado-card';
+      bhb.style.cssText = 'background:rgba(20,20,40,0.8);border:1px solid #2a2a5a;';
 
       // Header
       bhb.innerHTML = `
@@ -2219,7 +2459,7 @@ async function sendT() {
           <button onclick="exportHandoffJson()" style="font-size:0.72rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:none;color:var(--muted);border-radius:6px;cursor:pointer;">📤 Handoff JSON</button>
         </div>`;
 
-      out.appendChild(bhb);
+      outputTarget.appendChild(bhb);
 
       // Vault push
       const slug = (parsed.title||text.substring(0,50)).replace(/[^a-zA-ZäöüÄÖÜß0-9\s\-]/g,'').trim().replace(/\s+/g,'_').substring(0,60)||'Synthese';
@@ -2237,10 +2477,13 @@ async function sendT() {
       const d = document.createElement('div');
       d.className='tornado-card kreuzung reveal-card';d.style.cssText='opacity:0.55;margin-top:0.5rem;';
       d.innerHTML=`<div class="tornado-provider" style="color:var(--gold)">BRaiNSTORM SPiRAL</div><div style="color:var(--muted);font-size:.85rem">⚠ Kein Synthese-Provider konfiguriert → ⚙ Settings</div>`;
-      out.appendChild(d);
+      outputTarget.appendChild(d);
     }
     btn.disabled = false; btn.textContent = '⚡ SPiRAL';
     document.getElementById('mAllText').value = '';
+    // Remove spiral mode when done
+    const main = document.querySelector('main');
+    setTimeout(() => main.classList.remove('spiral-mode'), 5000);
   });
 }
 
