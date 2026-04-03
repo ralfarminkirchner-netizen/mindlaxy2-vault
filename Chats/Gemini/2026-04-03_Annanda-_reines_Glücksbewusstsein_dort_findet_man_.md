@@ -76,4 +76,10 @@ Haben Sie eine Frage oder möchten Sie diesen Gedankengang vertiefen?
 
 ---
 
+**Du:** sein ist nicht sein
+
+**GOOGLE · GEMINI:** Dies drückt einen fundamentalen philosophischen Widerspruch oder eine Dialektik aus.
+
+---
+
 *GOOGLE · GEMINI · 2026-04-03*
