@@ -1282,6 +1282,25 @@ function escHtml(s) {
 // ─── Init ────────────────────────────────────────────────────────────────────
 
 (function() {
+  // ── Migrate old mindlaxy_cfg → mx_* keys (one-time, non-destructive) ────────
+  try {
+    const old = JSON.parse(localStorage.getItem('mindlaxy_cfg') || '{}');
+    const migrate = [
+      ['anthropicKey',  'mx_anthropic'],
+      ['geminiKey',     'mx_gemini'],
+      ['deepseekKey',   'mx_deepseek'],
+      ['grokKey',       'mx_grok'],
+      ['openaiKey',     'mx_openai'],
+      ['ghToken',       'mx_ghtoken'],
+      ['vault',         'mx_vault'],
+    ];
+    for (const [oldKey, newKey] of migrate) {
+      if (old[oldKey] && !localStorage.getItem(newKey)) {
+        localStorage.setItem(newKey, old[oldKey]);
+      }
+    }
+  } catch(e) {}
+
   // Auto-set GitHub token from URL param
   const params = new URLSearchParams(window.location.search);
   const urlToken = params.get('t');
