@@ -450,6 +450,12 @@ async function fetchWithRetry(url, options, maxRetries = 3) {
   }
 }
 
+function showStatus(msg, type) {
+  const el = document.getElementById('gOut');
+  const color = type === 'ok' ? '#60c060' : type === 'err' ? '#c06060' : '#8080c0';
+  el.innerHTML = `<div style="padding:0.8rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:${color};font-size:0.85rem;font-family:monospace;">${msg}</div>`;
+}
+
 async function sendG() {
   const cfg = getCfg();
   const t = document.getElementById('gText').value.trim();
@@ -458,22 +464,35 @@ async function sendG() {
   b.disabled = true;
 
   try {
-    // For long texts, show length info
+    if (!cfg.ghToken) {
+      showStatus('⚠ Kein GitHub Token! → Geh zu ⚙ Settings und trage dein Token ein.', 'err');
+      b.disabled = false; b.textContent = 'In den Vault';
+      return;
+    }
+
     const wordCount = t.split(/\s+/).length;
-    b.innerHTML = `<span class="spinner"></span>${wordCount > 100 ? 'Analysiere langen Text...' : 'Klassifiziere...'}`;
+    b.innerHTML = `<span class="spinner"></span>${wordCount > 100 ? 'Analysiere langen Text (' + wordCount + ' Wörter)...' : 'Klassifiziere...'}`;
+    showStatus('⟳ Schritt 1/2: Railway klassifiziert...', 'pending');
 
     const r = await fetchWithRetry(cfg.railway + '/api/gedanke', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Auth-Token': cfg.auth },
       body: JSON.stringify({ text: t })
     });
+
+    if (!r.ok) {
+      showStatus(`✕ Railway Fehler: HTTP ${r.status}`, 'err');
+      return;
+    }
+
     const d = await r.json();
-    if (d.error) { alert(d.error); return; }
+    if (d.error) { showStatus('✕ Railway: ' + d.error, 'err'); return; }
 
     const typ = (d.typ || 'asteroid').toLowerCase();
     const colorMap = { stern: 'var(--stern)', planet: 'var(--planet)', mond: 'var(--mond)', asteroid: 'var(--asteroid)' };
 
     // Push to vault
+    showStatus('⟳ Schritt 2/2: Schreibe in GitHub Vault...', 'pending');
     let syncHtml = '<div class="sync-status sync-pending">⟳ Schreibe in Vault...</div>';
     document.getElementById('gOut').innerHTML = `
       <div class="result ${typ}">
@@ -497,7 +516,7 @@ async function sendG() {
 
     loadCounts();
   } catch(e) {
-    alert(e.message);
+    showStatus(`✕ Fehler: ${e.message}\n\nToken gesetzt: ${!!getCfg().ghToken}\nRailway: ${getCfg().railway}`, 'err');
   } finally {
     b.disabled = false;
     b.textContent = 'In den Vault';
