@@ -372,7 +372,7 @@
   .tornado-provider { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.6rem; }
   .tornado-content  { line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem; }
   .kreuzung         { border-color: var(--gold); }
-  /* BaiNSTORM responsive grid */
+  /* BRaiNSTORM responsive grid */
   @media (max-width: 520px) { #bs-grid { grid-template-columns: repeat(2,1fr) !important; } }
   @media (max-width: 600px) { #vlt-layout { grid-template-columns: 1fr !important; } #vlt-list { max-height:200px !important; } }
   .kreuzung-section { margin-top: 0.8rem; }
@@ -420,7 +420,7 @@
 <main>
   <div class="tabs">
     <div class="tab active" onclick="sw('gedanke')">Gedanke</div>
-    <div class="tab" onclick="sw('tornado')">🌪 BaiNSTORM</div>
+    <div class="tab" onclick="sw('tornado')">🌪 BRaiNSTORM</div>
     <div class="tab" onclick="sw('matrix')">4×</div>
     <div class="tab" onclick="sw('vault')">🌌 MiNDLAXY</div>
     <div class="tab" onclick="sw('settings')">⚙</div>
@@ -433,10 +433,10 @@
     <div id="gOut"></div>
   </div>
 
-  <!-- BaiNSTORM Panel -->
+  <!-- BRaiNSTORM Panel -->
   <div class="panel" id="p-tornado">
-    <textarea id="tText" placeholder="Thema für BaiNSTORM HUNTER…&#10;&#10;Gemini, DeepSeek, Grok und ChatGPT entfesseln ihre Tornados gleichzeitig.&#10;kiNTEGRiTY (Claude) fängt alles in der Ghost Trap — Gesamtfazit + Divergenzen." rows="5"></textarea>
-    <button class="btn" id="tBtn" onclick="sendT()">⚡ BaiNSTORM</button>
+    <textarea id="tText" placeholder="Thema für BRaiNSTORM HUNTER…&#10;&#10;Gemini, DeepSeek, Grok und ChatGPT entfesseln ihre Tornados gleichzeitig.&#10;kiNTEGRiTY (Claude) fängt alles in der Ghost Trap — Gesamtfazit + Divergenzen." rows="5"></textarea>
+    <button class="btn" id="tBtn" onclick="sendT()">⚡ BRaiNSTORM</button>
     <div id="tOut"></div>
   </div>
 
@@ -570,8 +570,8 @@
         <button class="btn" style="flex:1;font-size:0.8rem;padding:0.4rem 0.8rem;" onclick="exportMatrixMd()">⬇ Alle Chats als .md</button>
         <button class="btn" style="flex:1;font-size:0.8rem;padding:0.4rem 0.8rem;" onclick="exportMatrixJson()">⬇ Alle Chats als .json</button>
       </div>
-      <div class="key-label" style="margin-top:0.8rem;">BaiNSTORM-Ergebnis teilen</div>
-      <div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem;">Die Teilen-Buttons erscheinen direkt unter dem BaiNSTORM HUNTER Ergebnis nach jeder Synthese (↗ Teilen öffnet den Apple Share Sheet in Safari).</div>
+      <div class="key-label" style="margin-top:0.8rem;">BRaiNSTORM-Ergebnis teilen</div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem;">Die Teilen-Buttons erscheinen direkt unter dem BRaiNSTORM HUNTER Ergebnis nach jeder Synthese (↗ Teilen öffnet den Apple Share Sheet in Safari).</div>
     </div>
   </div>
 </main>
@@ -961,7 +961,7 @@ Exaktes Format deiner Antwort:
 
 ⚡ Divergenzen: [IMMER vorhanden]`;
 
-// ─── BaiNSTORM HUNTER Visualization ─────────────────────────────────────────
+// ─── BRaiNSTORM HUNTER Visualization ─────────────────────────────────────────
 
 const T_CHARS = 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩαβγδεζηθικλμνξοπρστυφχψω∞∫∑∏∂∇⊕⊗△▽○●◆◇⬡0123456789ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijklmnpqrstuvwxyz';
 
@@ -1194,7 +1194,7 @@ class BainstormAnim {
     const blink=Math.sin(T*(fast?0.42:0.07))>0;
     for(const dx of[-bw/2+15,bw/2-15]){ctx.beginPath();ctx.arc(cx+dx,by,4.5,0,Math.PI*2);ctx.fillStyle=blink?(fast?'#ff1100':'#ff3300'):'#2a0000';ctx.fill();if(blink){ctx.globalAlpha=0.3;ctx.beginPath();ctx.arc(cx+dx,by,8,0,Math.PI*2);ctx.fillStyle='#ff2200';ctx.fill();ctx.globalAlpha=1;}}
     if(f<0.3){ctx.globalAlpha=(1-f/0.3)*0.22;ctx.font='bold 16px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#666';ctx.fillText('👻',cx,by);ctx.globalAlpha=1;}
-    const lbl={idle:'─── BaiNSTORM HUNTER ───',opening:'▲  TRAP OPENING  ▲',absorb:'◈  CAPTURE MODE  ◈',capturing:'◈  CAPTURE MODE  ◈',closing:'●  SEALED  ●'};
+    const lbl={idle:'─── BRaiNSTORM HUNTER ───',opening:'▲  TRAP OPENING  ▲',absorb:'◈  CAPTURE MODE  ◈',capturing:'◈  CAPTURE MODE  ◈',closing:'●  SEALED  ●'};
     ctx.globalAlpha=f>0?(0.8+0.15*Math.sin(T*0.07)):0.38;ctx.fillStyle=f>0?'#ffd700':'#555';ctx.font='bold 8px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
     ctx.fillText(lbl[phase]||lbl.idle,cx,by);ctx.globalAlpha=1;
   }
@@ -1206,7 +1206,7 @@ class BainstormAnim {
     for(const p of this.mega){this._stepMega(p,cx,cy,1);ctx.globalAlpha=p.op;ctx.fillStyle=p.col;ctx.font=`${p.sz}px monospace`;ctx.textBaseline='middle';ctx.fillText(p.ch,p.sx,p.sy);}
     const pulse=0.62+0.28*Math.sin(T*0.07);
     ctx.globalAlpha=pulse;ctx.fillStyle='#ffd700';ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText(this.phase==='synth'?'kiNTEGRiTY 1.0 · synthetisiert …':'BaiNSTORM HUNTER · verdichtet …',cx,cy-112);
+    ctx.fillText(this.phase==='synth'?'kiNTEGRiTY 1.0 · synthetisiert …':'BRaiNSTORM HUNTER · verdichtet …',cx,cy-112);
     ctx.globalAlpha=pulse*0.45;ctx.fillStyle='#aaa';ctx.font='8px monospace';
     ctx.fillText('alle Perspektiven · kombiniert · verdichtet',cx,cy-99);ctx.globalAlpha=1;
     this._drawTrap(ctx, 0.13+0.07*Math.sin(T*0.04), 'idle');
@@ -1405,7 +1405,7 @@ class BainstormHub {
   stopAll()     { for(const p of BS_PROVIDERS) this.tornados[p]?.stop(); this.anim?.stop(); }
 }
 
-// ─── BaiNSTORM send ───────────────────────────────────────────────────────────
+// ─── BRaiNSTORM send ─────────────────────────────────────────────────────────
 
 function classifyBody(text) {
   if(!text) return 'asteroid';
@@ -1421,14 +1421,14 @@ async function sendT() {
   const text = document.getElementById('tText').value.trim();
   if (!text) return;
   const btn = document.getElementById('tBtn');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>BaiNSTORM…';
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>BRaiNSTORM…';
   const out = document.getElementById('tOut');
   out.innerHTML = '';
 
   const providers = availableProviders().filter(p => p !== 'anthropic');
   if (providers.length === 0) {
     out.innerHTML = '<div style="color:var(--asteroid)">⚠ Kein AI-Key konfiguriert (Gemini, DeepSeek, Grok oder OpenAI) → ⚙ Settings</div>';
-    btn.disabled = false; btn.textContent = '⚡ BaiNSTORM'; return;
+    btn.disabled = false; btn.textContent = '⚡ BRaiNSTORM'; return;
   }
 
   const hub = new BainstormHub(out, providers);
@@ -1505,7 +1505,7 @@ async function sendT() {
       card.id = 'kintegrity-card';
       card.style.cssText = 'margin-top:0.5rem;';
       card.innerHTML = `
-        <div class="tornado-provider" style="color:var(--gold)" id="ki-prov-label">BaiNSTORM HUNTER · kiNTEGRiTY  ${bIcon} ${bodyType.toUpperCase()}</div>
+        <div class="tornado-provider" style="color:var(--gold)" id="ki-prov-label">BRaiNSTORM HUNTER · kiNTEGRiTY  ${bIcon} ${bodyType.toUpperCase()}</div>
         <div id="kintegrity-body">
           ${kTitle?`<div style="font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:0.8rem;letter-spacing:0.01em">${escHtml(kTitle)}</div>`:''}
           <div class="kreuzung-section"><p style="line-height:1.75;white-space:pre-wrap">${escHtml(fazitText)}</p></div>
@@ -1524,19 +1524,19 @@ async function sendT() {
       // Vault push
       const path  = `Sterne/kiNTEGRiTY_${slug}_${today}.md`;
       const plist = responses.map(r=>r.provider).join(', ');
-      let md = `---\ntyp: BaiNSTORM-HUNTER\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\nkoerper: ${bodyType}\n---\n\n# ${displayTitle}\n\n${fazitText}\n`;
+      let md = `---\ntyp: BRaiNSTORM-HUNTER\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\nkoerper: ${bodyType}\n---\n\n# ${displayTitle}\n\n${fazitText}\n`;
       if(divText) md+=`\n## ⚡ Divergenzen\n\n${divText}\n`;
-      md+=`\n---\n*BaiNSTORM HUNTER · kiNTEGRiTY · ${today} · ${plist}*\n`;
-      pushToVault(path, md, `BaiNSTORM: ${text.substring(0,60)}`)
-        .then(()=>{const el=document.getElementById('ki-prov-label');if(el)el.textContent=`BaiNSTORM HUNTER · ✓ Vault  ${bIcon} ${bodyType.toUpperCase()}`;})
-        .catch(ve=>{const el=document.getElementById('ki-prov-label');if(el)el.textContent='BaiNSTORM HUNTER · ✕ '+ve.message.substring(0,30);});
+      md+=`\n---\n*BRaiNSTORM HUNTER · kiNTEGRiTY · ${today} · ${plist}*\n`;
+      pushToVault(path, md, `BRaiNSTORM: ${text.substring(0,60)}`)
+        .then(()=>{const el=document.getElementById('ki-prov-label');if(el)el.textContent=`BRaiNSTORM HUNTER · ✓ Vault  ${bIcon} ${bodyType.toUpperCase()}`;})
+        .catch(ve=>{const el=document.getElementById('ki-prov-label');if(el)el.textContent='BRaiNSTORM HUNTER · ✕ '+ve.message.substring(0,30);});
     } else if(responses.length >= 2) {
       const d = document.createElement('div');
       d.className='tornado-card kreuzung reveal-card';d.style.cssText='opacity:0.55;margin-top:0.5rem;';
-      d.innerHTML=`<div class="tornado-provider" style="color:var(--gold)">BaiNSTORM HUNTER</div><div style="color:var(--muted);font-size:.85rem">⚠ Kein Synthese-Provider konfiguriert → ⚙ Settings</div>`;
+      d.innerHTML=`<div class="tornado-provider" style="color:var(--gold)">BRaiNSTORM HUNTER</div><div style="color:var(--muted);font-size:.85rem">⚠ Kein Synthese-Provider konfiguriert → ⚙ Settings</div>`;
       out.appendChild(d);
     }
-    btn.disabled = false; btn.textContent = '⚡ BaiNSTORM';
+    btn.disabled = false; btn.textContent = '⚡ BRaiNSTORM';
     document.getElementById('tText').value = '';
   });
 }
@@ -1769,21 +1769,21 @@ function showToast(msg) {
   t._timer = setTimeout(() => { t.style.opacity='0'; }, 2200);
 }
 
-// Build markdown from BaiNSTORM card
+// Build markdown from BRaiNSTORM card
 function bsCardToMd() {
-  const title  = document.querySelector('#kintegrity-body > div')?.textContent?.trim() || 'BaiNSTORM';
+  const title  = document.querySelector('#kintegrity-body > div')?.textContent?.trim() || 'BRaiNSTORM';
   const fazit  = document.querySelector('#kintegrity-body .kreuzung-section p')?.textContent?.trim() || '';
   const divEl  = document.querySelectorAll('#kintegrity-body .kreuzung-section p');
   const divText = divEl.length > 1 ? divEl[1].textContent.trim() : '';
   const today  = new Date().toISOString().split('T')[0];
   let md = `# ${title}\n\n${fazit}\n`;
   if (divText) md += `\n## ⚡ Divergenzen\n\n${divText}\n`;
-  md += `\n---\n*BaiNSTORM HUNTER · ${today}*\n`;
+  md += `\n---\n*BRaiNSTORM HUNTER · ${today}*\n`;
   return { title, md };
 }
 
 function bsShare()    { const {title,md}=bsCardToMd(); shareOrCopy(title, md); }
-function bsDownload() { const {title,md}=bsCardToMd(); downloadFile((title.replace(/[^a-zA-ZäöüÄÖÜß0-9\-]/g,'_')||'BaiNSTORM')+'.md', md); }
+function bsDownload() { const {title,md}=bsCardToMd(); downloadFile((title.replace(/[^a-zA-ZäöüÄÖÜß0-9\-]/g,'_')||'BRaiNSTORM')+'.md', md); }
 function bsCopy()     { const {title,md}=bsCardToMd(); navigator.clipboard?.writeText(md).then(()=>showToast('📋 Kopiert!')); }
 
 // Export all Matrix conversations as one markdown file
