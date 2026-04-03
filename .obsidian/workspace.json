@@ -49,7 +49,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "[\"verbindungen\"]",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -70,7 +70,8 @@
               "title": "Lesezeichen"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
@@ -182,13 +183,23 @@
               "icon": "lucide-file-signature",
               "title": "Fußnoten"
             }
+          },
+          {
+            "id": "e173d811b30ccf46",
+            "type": "leaf",
+            "state": {
+              "type": "git-view",
+              "state": {},
+              "icon": "git-pull-request",
+              "title": "Source Control"
+            }
           }
-        ]
+        ],
+        "currentTab": 3
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -212,7 +223,10 @@
   },
   "active": "a3594f0b586c9bc7",
   "lastOpenFiles": [
+    "_templates/ASTEROID.md",
+    "Sterne/MiNDLAXY.md",
     "Sterne/Die_Stille_als_Bewusstseinsstruktur.md",
+    "Brainstorms Hunter/Tornados/2026-04-02-Was_ist_der_fundamentale_Unterschied_zwischen_Wissen_und_Erk-anthropic.md",
     "Asteroiden/Test_zweiter_Gedanke_Fragment.md",
     "Sterne/Die_Himmel_Metapher_für_Bewusstseinsillusion.md",
     "Brainstorms Hunter/Tornados/2026-04-02-Was_ist_der_fundamentale_Unterschied_zwischen_Wissen_und_Erk-openai.md",
@@ -223,16 +237,13 @@
     "docs",
     "Willkommen.md",
     "Unbenannt.canvas",
-    "Sterne/MiNDLAXY.md",
     "_templates/STERN.md",
     "_MiNDLAXY-META/SCHWERKRAFT.md",
     "_MiNDLAXY-META/SYSTEM.md",
     "_templates/VERDICHTUNG.md",
-    "Brainstorms Hunter/Tornados/2026-04-02-Was_ist_der_fundamentale_Unterschied_zwischen_Wissen_und_Erk-anthropic.md",
     "_templates/TORNADO.md",
     "_templates/PLANET.md",
     "_templates/MOND.md",
-    "_templates/ASTEROID.md",
     "_BLACK-HOLE-BOX/README.md",
     "_templates",
     "Brainstorms Hunter/Verdichtungen",
