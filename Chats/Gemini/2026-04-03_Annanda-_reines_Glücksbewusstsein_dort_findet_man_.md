@@ -70,4 +70,10 @@ Haben Sie eine Frage oder möchten Sie diesen Gedankengang vertiefen?
 
 ---
 
+**Du:** A) Den Prototyp tatsächlich benutzen — einen echten SPiRAL-Lauf machen, Handoff exportieren, durch die Pipeline jagen, schauen ob das Ergebnis im Vault sinnvoll aussieht.
+
+**GOOGLE · GEMINI:** Verstanden. Dies ist ein konkreter Schritt zur Überprüfung des Prototyps und der Datenpipeline.
+
+---
+
 *GOOGLE · GEMINI · 2026-04-03*
