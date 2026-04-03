@@ -1006,7 +1006,7 @@ class WildTornado {
   _resize() {
     const dpr = window.devicePixelRatio||1;
     const W   = this.canvas.parentElement?.clientWidth || 100;
-    const H   = 190;
+    const H   = 340;
     this.canvas.width  = W*dpr; this.canvas.height = H*dpr;
     this.canvas.style.height = H+'px';
     this.ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -1019,8 +1019,8 @@ class WildTornado {
     const dir = Math.random() > 0.22 ? 1 : -1;   // ~22% go backwards — chaos!
     return {
       ang:  Math.random() * Math.PI * 2,
-      h:    (Math.random()-0.5) * 150,             // ±75 height
-      r:    a ? (4 + Math.random()*58) : (3+Math.random()*12),  // very wide radius spread
+      h:    (Math.random()-0.5) * 280,             // ±140 height
+      r:    a ? (4 + Math.random()*90) : (3+Math.random()*18),  // very wide radius spread
       spd:  dir * (a ? (0.01+Math.random()*0.09) : (0.006+Math.random()*0.025)),
       wA:   Math.random() * 14,                    // wobble amplitude on radius
       wF:   0.013 + Math.random()*0.075,           // wobble frequency
@@ -1036,7 +1036,7 @@ class WildTornado {
   }
 
   _init() {
-    const n = this.active ? 70 : 16;
+    const n = this.active ? 140 : 30;
     this.parts = Array.from({length:n}, () => this._mkPart());
   }
 
@@ -1138,7 +1138,7 @@ class BainstormAnim {
   _resize() {
     const dpr = window.devicePixelRatio||1;
     const W   = this.canvas.parentElement?.clientWidth || 400;
-    const H   = 320;
+    const H   = 500;
     this.canvas.width  = W*dpr;  this.canvas.height = H*dpr;
     this.canvas.style.height = H+'px';
     this.ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -1150,7 +1150,7 @@ class BainstormAnim {
 
   _initMega() {
     const all = this.activeCols.flat().concat(['#ffd700','#fffaaa','#ff88ff']);
-    this.mega = Array.from({length:140}, () => {
+    this.mega = Array.from({length:220}, () => {
       const dir = Math.random()>0.18?1:-1;
       return {
         a:   Math.random()*Math.PI*2,
@@ -1559,7 +1559,8 @@ function createHandoffPayload() {
     },
     object_class: s.bodyType,
     status: 'draft',
-    review: deriveReviewFlags(s)
+    review: deriveReviewFlags(s),
+    roles: TiSCH.exportRoleConfig()
   };
 }
 
@@ -1597,6 +1598,7 @@ function saveRun(spiral) {
     icon: icons[spiral.bodyType]||'🪨',
     aberCount: spiral.parsed.aberItems.filter(a=>a.label!=='keine').length,
     reviewFlags: deriveReviewFlags(spiral).flags,
+    roles: TiSCH.exportRoleConfig(),
     handoff: createHandoffPayload()
   });
   // Keep last 50 runs
@@ -1664,7 +1666,11 @@ async function sendT() {
 
   // Fire all LLM calls in parallel, show responses live
   const results = await Promise.allSettled(
-    providers.map(p => callProvider(p, TORNADO_SYSTEM, text).then(r => ({provider:p,content:r})))
+    providers.map(p => {
+      const role = getPaneRole(p);
+      const sysPrompt = role.prompt ? role.prompt + '\n\n' + TORNADO_SYSTEM : TORNADO_SYSTEM;
+      return callProvider(p, sysPrompt, text).then(r => ({provider:p,content:r}));
+    })
   );
 
   for (let i=0; i<results.length; i++) {
@@ -2297,7 +2303,11 @@ async function callOAIHistory(history, apiKey, baseUrl, model, sysPrompt) {
 
 async function callMatrixProvider(p, history) {
   const cfg = getCfg();
-  const sys = M_SYS[p] || '';
+  let sys = M_SYS[p] || '';
+  const role = getPaneRole(p);
+  if (role.prompt) {
+    sys = role.prompt + '\n\n' + sys;
+  }
   switch(p) {
     case 'gemini':   if(!cfg.gemini)   throw new Error('kein Key'); return await callGeminiHistory(history,cfg.gemini,  cfg.geminiModel,  sys);
     case 'deepseek': if(!cfg.deepseek) throw new Error('kein Key'); return await callOAIHistory(history,cfg.deepseek,'https://api.deepseek.com/v1',cfg.deepseekModel,sys);
@@ -2497,6 +2507,83 @@ function parseChatGPTExport(data) {
   }).filter(c => c.msgs.length > 0);
 }
 
+// ── TiSCH Rollen / Perspektiven ──────────────────────────────────────────
+const TISCH_ROLES = [
+  { id: 'none', label: '— Keine Rolle —', prompt: '' },
+  { id: 'philosophisch', label: '🏛 Philosophisch', prompt: 'Antworte aus einer philosophischen Perspektive. Beziehe dich auf Denktraditionen, Grundfragen und begriffliche Tiefe.' },
+  { id: 'therapeutisch', label: '💚 Therapeutisch', prompt: 'Antworte aus einer therapeutischen Perspektive. Fokussiere auf emotionale Resonanz, innere Prozesse, Heilung und Selbstverständnis.' },
+  { id: 'alltag', label: '🏠 Alltagsperspektive', prompt: 'Antworte aus einer alltäglichen, lebenspraktischen Perspektive. Wie zeigt sich das Thema im normalen Leben?' },
+  { id: 'kinderaugen', label: '👶 Kinderaugen', prompt: 'Antworte so, als würdest du einem Kind erklären — mit Staunen, einfachen Bildern und ohne Fachjargon.' },
+  { id: 'akademisch', label: '🎓 Akademisch', prompt: 'Antworte aus einer wissenschaftlich-akademischen Perspektive. Beziehe dich auf Forschung, Methodik und den aktuellen Diskursstand.' },
+  { id: 'achtsam', label: '🧘 Achtsam', prompt: 'Antworte aus einer achtsamen, kontemplativen Perspektive. Fokussiere auf Gegenwärtigkeit, Wahrnehmung und innere Stille.' },
+  { id: 'business', label: '💼 Business', prompt: 'Antworte aus einer unternehmerischen Perspektive. Fokussiere auf Umsetzbarkeit, Strategie, Markt und Wertschöpfung.' },
+  { id: 'juristisch', label: '⚖️ Juristisch', prompt: 'Antworte aus einer juristischen Perspektive. Beziehe dich auf Rechtslage, Regelwerke, Normen und ethische Grenzen.' },
+  { id: 'poetisch', label: '✨ Poetisch', prompt: 'Antworte poetisch und bildhaft. Nutze Metaphern, Rhythmus und Sprachschönheit.' },
+  { id: 'kritisch', label: '🔍 Kritisch', prompt: 'Antworte kritisch-hinterfragend. Decke Schwächen auf, stelle Gegenthesen auf, hinterfrage Annahmen.' },
+  { id: 'visionaer', label: '🔮 Visionär', prompt: 'Antworte visionär und zukunftsgerichtet. Was könnte sein? Welche Möglichkeiten öffnen sich?' },
+  { id: 'systemisch', label: '🌐 Systemisch', prompt: 'Antworte aus einer systemischen Perspektive. Betrachte Wechselwirkungen, Kreisläufe, Muster und Zusammenhänge.' },
+  { id: 'custom', label: '✏️ Eigene Rolle…', prompt: '' },
+];
+
+// Store for current role selections
+const paneRoles = {};
+function getPaneRole(provider) {
+  return paneRoles[provider] || { id: 'none', prompt: '' };
+}
+function setPaneRole(provider, roleId, customText) {
+  const role = TISCH_ROLES.find(r => r.id === roleId);
+  if (roleId === 'custom') {
+    paneRoles[provider] = { id: 'custom', prompt: customText || '', label: customText?.substring(0, 30) || 'Eigene Rolle' };
+  } else if (role) {
+    paneRoles[provider] = { id: role.id, prompt: role.prompt, label: role.label };
+  } else {
+    paneRoles[provider] = { id: 'none', prompt: '', label: '' };
+  }
+  // Save to localStorage for persistence
+  localStorage.setItem('mx_pane_roles', JSON.stringify(paneRoles));
+}
+function loadPaneRoles() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('mx_pane_roles') || '{}');
+    Object.assign(paneRoles, saved);
+  } catch(e) {}
+}
+function onRoleChange(provider) {
+  const sel = document.getElementById('mr-' + provider);
+  const customInput = document.getElementById('mrc-' + provider);
+  const roleId = sel?.value || 'none';
+  if (roleId === 'custom') {
+    if (customInput) customInput.style.display = 'block';
+    setPaneRole(provider, 'custom', customInput?.value || '');
+  } else {
+    if (customInput) customInput.style.display = 'none';
+    setPaneRole(provider, roleId);
+  }
+}
+
+// ── TiSCH Interface Stub (future backend connection) ─────────────────────
+const TiSCH = {
+  version: '0.1-stub',
+  // Future: load roles from shared TiSCH backend
+  async loadRolesFromBackend() { return TISCH_ROLES; },
+  // Future: sync role assignments with TiSCH session
+  async syncRoleAssignment(provider, role) { /* stub */ },
+  // Future: get TiSCH table rules for cross-model interaction
+  async getTableRules() { return null; },
+  // Future: register this session with TiSCH backend
+  async registerSession(sessionId, config) { /* stub */ },
+  // Export current role config for TiSCH handoff
+  exportRoleConfig() {
+    return {
+      tisch_version: this.version,
+      roles: Object.fromEntries(
+        Object.entries(paneRoles).map(([p, r]) => [p, { id: r.id, prompt: r.prompt, label: r.label || '' }])
+      ),
+      timestamp: new Date().toISOString(),
+    };
+  }
+};
+
 // ── initMatrix ────────────────────────────────────────────────────────────────
 
 function initMatrix() {
@@ -2538,6 +2625,16 @@ function initMatrix() {
         <button onclick="mShowImport('${p}')"  title="ChatGPT JSON importieren" style="background:none;border:1px solid ${color}44;color:${color};cursor:pointer;font-size:0.7rem;padding:0.1rem 0.3rem;border-radius:4px" ${!hasKey?'disabled':''}>↑</button>
         <button onclick="mClearOne('${p}')"    title="Gespräch löschen"       style="background:none;border:none;color:${color}55;cursor:pointer;font-size:0.7rem;padding:0.1rem 0.2rem">✕</button>
       </div>
+      <div style="padding:0.25rem 0.4rem;border-bottom:1px solid ${color}22;display:flex;gap:0.3rem;align-items:center">
+        <select id="mr-${p}" onchange="onRoleChange('${p}')"
+          style="flex:1;background:#0a0a0f;border:1px solid ${color}22;color:${color}aa;border-radius:4px;font-size:0.62rem;padding:0.15rem 0.25rem;cursor:pointer"
+          title="Perspektive / Rolle">
+          ${TISCH_ROLES.map(r => `<option value="${r.id}">${r.label}</option>`).join('')}
+        </select>
+        <input id="mrc-${p}" type="text" placeholder="Eigene Rolle beschreiben…"
+          style="display:none;flex:1;background:#0a0a0f;border:1px solid ${color}22;color:${color};border-radius:4px;font-size:0.62rem;padding:0.15rem 0.3rem"
+          oninput="setPaneRole('${p}','custom',this.value)">
+      </div>
       <div class="matrix-messages" id="mm-${p}">
         ${!hasKey?`<div class="matrix-msg no-key">⚙ API Key in Settings eintragen</div>`:''}
       </div>
@@ -2558,6 +2655,21 @@ function initMatrix() {
   for (const p of M_PROVIDERS) {
     const conv = mGetActive(p);
     if (conv) { for (const m of conv.msgs) mRenderMsg(p, m.role, m.content); mScroll(p); }
+  }
+
+  // Restore saved roles
+  loadPaneRoles();
+  for (const p of M_PROVIDERS) {
+    const role = getPaneRole(p);
+    const sel = document.getElementById('mr-' + p);
+    const customInput = document.getElementById('mrc-' + p);
+    if (sel && role.id) {
+      sel.value = role.id;
+      if (role.id === 'custom' && customInput) {
+        customInput.style.display = 'block';
+        customInput.value = role.prompt || '';
+      }
+    }
   }
 }
 
