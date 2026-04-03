@@ -53,11 +53,76 @@
     margin-top: 1rem;
     flex-wrap: wrap;
   }
-  .count-item { text-align: center; }
+  .count-item {
+    text-align: center;
+    cursor: pointer;
+    padding: 0.4rem 0.6rem;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+  .count-item:hover { background: rgba(255,255,255,0.06); }
   .count-num { font-size: 1.8rem; font-weight: 300; }
   .count-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
   .count-stern .count-num { color: var(--stern); }
   .count-planet .count-num { color: var(--planet); }
+
+  /* Vault files popup */
+  #vault-popup {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 1000;
+  }
+  #vault-popup-backdrop {
+    position: absolute;
+    inset: 0;
+  }
+  #vault-popup-box {
+    position: absolute;
+    top: 140px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(480px, 92vw);
+    max-height: 60vh;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+  #vault-popup-header {
+    padding: 0.9rem 1.1rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  #vault-popup-list {
+    overflow-y: auto;
+    flex: 1;
+    padding: 0.5rem;
+  }
+  .vault-file-item {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.85rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text);
+    transition: background 0.1s;
+    line-height: 1.4;
+  }
+  .vault-file-item:hover { background: rgba(255,255,255,0.06); }
+  .vault-file-date { font-size: 0.7rem; color: var(--muted); flex-shrink: 0; }
   .count-mond .count-num { color: var(--mond); }
   .count-asteroid .count-num { color: var(--asteroid); }
 
@@ -329,10 +394,22 @@
   <div class="logo">M i N D L A X Y</div>
   <div class="tagline">Du denkst. Ich strukturiere. Der Vault wächst.</div>
   <div class="counts" id="counts">
-    <div class="count-item count-stern">   <div class="count-num" id="c-stern">–</div>   <div class="count-label">Sterne</div></div>
-    <div class="count-item count-planet">  <div class="count-num" id="c-planet">–</div>  <div class="count-label">Planeten</div></div>
-    <div class="count-item count-mond">    <div class="count-num" id="c-mond">–</div>    <div class="count-label">Monde</div></div>
-    <div class="count-item count-asteroid"><div class="count-num" id="c-asteroid">–</div><div class="count-label">Asteroiden</div></div>
+    <div class="count-item count-stern"    onclick="showVaultPopup('Sterne')">   <div class="count-num" id="c-stern">–</div>   <div class="count-label">Sterne</div></div>
+    <div class="count-item count-planet"   onclick="showVaultPopup('Planeten')"> <div class="count-num" id="c-planet">–</div>  <div class="count-label">Planeten</div></div>
+    <div class="count-item count-mond"     onclick="showVaultPopup('Monde')">    <div class="count-num" id="c-mond">–</div>    <div class="count-label">Monde</div></div>
+    <div class="count-item count-asteroid" onclick="showVaultPopup('Asteroiden')"><div class="count-num" id="c-asteroid">–</div><div class="count-label">Asteroiden</div></div>
+  </div>
+
+  <!-- Vault files popup -->
+  <div id="vault-popup">
+    <div id="vault-popup-backdrop" onclick="closeVaultPopup()"></div>
+    <div id="vault-popup-box">
+      <div id="vault-popup-header">
+        <span id="vault-popup-title">Sterne</span>
+        <span onclick="closeVaultPopup()" style="cursor:pointer;color:var(--muted);font-size:1rem;line-height:1">✕</span>
+      </div>
+      <div id="vault-popup-list"></div>
+    </div>
   </div>
   <div id="sys-status" class="status-bar status-warn">Initialisiere...</div>
 </header>
@@ -1350,6 +1427,8 @@ async function sendT() {
 
 // ─── Status & Counts ────────────────────────────────────────────────────────
 
+const vaultFiles = { Sterne:[], Planeten:[], Monde:[], Asteroiden:[] };
+
 async function loadCounts() {
   const cfg = getCfg();
   if (!cfg.ghToken || !cfg.vault) return;
@@ -1367,8 +1446,50 @@ async function loadCounts() {
 
   results.forEach((r, i) => {
     const files = r.status === 'fulfilled' ? (r.value || []).filter(f => f.name.endsWith('.md')) : [];
+    vaultFiles[folders[i]] = files;
     document.getElementById(ids[i]).textContent = files.length;
   });
+}
+
+function showVaultPopup(folder) {
+  const cfg = getCfg();
+  const colorMap = { Sterne:'var(--stern)', Planeten:'var(--planet)', Monde:'var(--mond)', Asteroiden:'var(--asteroid)' };
+  const color = colorMap[folder] || 'var(--gold)';
+  const files = vaultFiles[folder] || [];
+
+  document.getElementById('vault-popup-title').innerHTML =
+    `<span style="color:${color}">${folder}</span> <span style="font-weight:300;color:var(--muted)">(${files.length})</span>`;
+
+  const list = document.getElementById('vault-popup-list');
+  if (files.length === 0) {
+    list.innerHTML = `<div style="padding:1.2rem;color:var(--muted);text-align:center;font-size:0.85rem">Noch keine Dateien in ${folder}</div>`;
+  } else {
+    // Sort newest first (by name, which starts with date)
+    const sorted = [...files].sort((a, b) => b.name.localeCompare(a.name));
+    list.innerHTML = sorted.map(f => {
+      // Parse name: 2026-04-03-Titel_der_Datei.md → date + title
+      const bare = f.name.replace(/\.md$/, '');
+      const dateMatch = bare.match(/^(\d{4}-\d{2}-\d{2})[_-](.*)/);
+      const date  = dateMatch ? dateMatch[1] : '';
+      const title = (dateMatch ? dateMatch[2] : bare).replace(/_/g, ' ');
+      const ghUrl = `https://github.com/${cfg.vault}/blob/main/${folder}/${f.name}`;
+      const obsUrl = `obsidian://open?vault=mindlaxy2-vault&file=${encodeURIComponent(folder + '/' + f.name)}`;
+      return `<div class="vault-file-item" onclick="window.open('${obsUrl}','_self')" title="${f.name}">
+        <span style="color:${color};font-size:0.7rem;flex-shrink:0">◆</span>
+        <span style="flex:1">${title}</span>
+        ${date ? `<span class="vault-file-date">${date}</span>` : ''}
+        <a href="${ghUrl}" target="_blank" onclick="event.stopPropagation()"
+           style="color:var(--muted);font-size:0.7rem;text-decoration:none;padding:0.1rem 0.3rem;border:1px solid var(--border);border-radius:3px;flex-shrink:0"
+           title="GitHub">↗</a>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('vault-popup').style.display = 'block';
+}
+
+function closeVaultPopup() {
+  document.getElementById('vault-popup').style.display = 'none';
 }
 
 async function testKeys() {
