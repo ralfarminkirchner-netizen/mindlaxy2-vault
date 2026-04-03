@@ -900,10 +900,11 @@ async function sendG() {
 
 // ─── Tornado ────────────────────────────────────────────────────────────────
 
-const TORNADO_SYSTEM = `Du bist ein tiefgründiger Denker. Analysiere das gegebene Thema oder den Text.
-Biete eine originelle, präzise und philosophisch fundierte Perspektive.
-Geh in die Tiefe, identifiziere das Wesentliche, zeige Verbindungen auf.
-Antworte auf Deutsch, fließend, ohne Aufzählungen — reiner Gedankenfluss.`;
+const TORNADO_SYSTEM = `Du bist ein tiefgründiger Denker. Analysiere das gegebene Thema.
+Biete eine originelle, präzise Perspektive auf Deutsch.
+Gehe in die Tiefe — identifiziere das Wesentliche, zeige Verbindungen auf.
+Schreibe in fließendem Fließtext ohne Aufzählungen.
+WICHTIG: Antworte in genau 180–250 Wörtern. Nicht kürzer, nicht länger.`;
 
 const KINTEGRITY_SYSTEM = `Du bist kiNTEGRiTY 1.0 — Orchestrator und Verdichter. Du bekommst die Antworten von Gemini, DeepSeek, Grok und ChatGPT (oder einer Auswahl davon) auf dasselbe Thema.
 
@@ -1068,174 +1069,265 @@ class WildTornado {
   stop() { if(this.raf) cancelAnimationFrame(this.raf); }
 }
 
-// ── Ghost Trap (Geisterfalle) ─────────────────────────────────────────────────
-class GhostTrap {
-  constructor(canvas) {
-    this.canvas = canvas; this.ctx = canvas.getContext('2d');
-    this.T = 0; this.openFrac = 0; this.capT = 0;
-    this.phase = 'idle'; this.doneCb = null; this.raf = null;
-    this._resize(); this._loop();
+// ── BainstormAnim: Full animation stage (merge → big tornado → Ghost Trap → Black Hole → Body) ──
+
+class BainstormAnim {
+  constructor(canvas, activeCols) {
+    this.canvas     = canvas;
+    this.ctx        = canvas.getContext('2d');
+    this.activeCols = activeCols;  // [[col1,col2,...], ...]
+    this.phase      = 'idle';      // idle|merge|synth|absorb|blackhole|emerge|done
+    this.T          = 0;
+    this.mega       = [];
+    this.absorb_e   = 0;
+    this.bh_e       = 0;
+    this.em_e       = 0;
+    this.trapOpenF  = 0;
+    this.trapCapT   = 0;
+    this.bodyType   = 'asteroid';
+    this.doneCb     = null;
+    this.raf        = null;
+    this._resize();
+    this._loop();
   }
 
   _resize() {
     const dpr = window.devicePixelRatio||1;
     const W   = this.canvas.parentElement?.clientWidth || 400;
-    const H   = 74;
-    this.canvas.width  = W*dpr; this.canvas.height = H*dpr;
+    const H   = 320;
+    this.canvas.width  = W*dpr;  this.canvas.height = H*dpr;
     this.canvas.style.height = H+'px';
     this.ctx.setTransform(dpr,0,0,dpr,0,0);
     this.W = W; this.H = H;
+    this.cx      = W/2;
+    this.tornado_cy = H*0.36;
+    this.trap_y  = H*0.80;
   }
 
-  _draw(ctx) {
-    const {W,H} = this;
-    const f   = this.openFrac;
-    const bx  = W/2, by = H/2;
-    const bw  = Math.min(W*0.82, 400);
-    const jaw = 20;          // half-height of each jaw
-    const gap = f * 18;      // max gap = 18px
+  _initMega() {
+    const all = this.activeCols.flat().concat(['#ffd700','#fffaaa','#ff88ff']);
+    this.mega = Array.from({length:140}, () => {
+      const dir = Math.random()>0.18?1:-1;
+      return {
+        a:   Math.random()*Math.PI*2,
+        h:   (Math.random()-0.5)*190,
+        r:   4+Math.random()*70,
+        spd: dir*(0.012+Math.random()*0.092),
+        wA:  Math.random()*18,
+        wF:  0.012+Math.random()*0.07,
+        wT:  Math.random()*Math.PI*2,
+        ch:  T_CHARS[Math.random()*T_CHARS.length|0],
+        life:(4+Math.random()*22)|0, age:0,
+        col: all[Math.random()*all.length|0],
+        sz:  7+Math.random()*13,
+        op:  0.22+Math.random()*0.78,
+        hs:  -(0.32+Math.random()*0.58),
+      };
+    });
+  }
 
-    // ── Background halo ──
-    if (f > 0.05) {
-      const halo = ctx.createRadialGradient(bx,by,0,bx,by,120*f);
-      halo.addColorStop(0,`rgba(255,140,0,${0.2*f})`);
-      halo.addColorStop(1,'transparent');
-      ctx.fillStyle=halo; ctx.fillRect(0,0,W,H);
-    }
+  _stepMega(p, cx, cy, speedMul) {
+    p.a  += p.spd*speedMul;
+    p.wT += p.wF;
+    p.h  += p.hs;
+    p.age++;
+    if(p.age>p.life){p.ch=T_CHARS[Math.random()*T_CHARS.length|0];p.age=0;}
+    if(p.h<-96){p.h=95;p.ch=T_CHARS[Math.random()*T_CHARS.length|0];}
+    const norm   = (p.h+95)/190;
+    const funnel = Math.max(0.025, 1-norm*0.975);
+    const effR   = (p.r+Math.sin(p.wT)*p.wA)*funnel;
+    p.sx = cx+Math.cos(p.a)*effR+(Math.random()-0.5)*4;
+    p.sy = cy+p.h+Math.sin(p.a)*effR*0.07+(Math.random()-0.5)*2.5;
+  }
 
-    // ── Capture beam (upward from gap) ──
-    if ((this.phase==='capturing'||this.phase==='closing') && this.capT > 8) {
-      const bOp = Math.min(1,(this.capT-8)/18) * (0.42+0.28*Math.sin(this.T*0.26));
-      const bW2 = bw * 0.52 * f;
-      const bg = ctx.createLinearGradient(bx,by-gap,bx,0);
-      bg.addColorStop(0,`rgba(255,190,0,${bOp*0.9})`);
-      bg.addColorStop(0.45,`rgba(255,100,0,${bOp*0.4})`);
-      bg.addColorStop(1,'transparent');
-      ctx.fillStyle=bg; ctx.fillRect(bx-bW2/2,0,bW2,by-gap);
-      // Sparks in beam
-      ctx.globalAlpha=bOp*0.75;
-      const sparks=['∴','✦','◈','⬡','⊕','∞','Ψ','Ω'];
-      for(let i=0;i<9;i++){
-        const a=(i/9)*Math.PI*2+this.T*0.1;
-        const sr=(8+14*Math.sin(this.T*0.09+i))*f;
-        ctx.fillStyle=i%2?'#ffd700':'#ff9900';
-        ctx.font='9px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText(sparks[i%sparks.length], bx+Math.cos(a)*sr, by-gap-sr*0.35);
-      }
+  _drawTrap(ctx, f, phase) {
+    const {cx, trap_y:by, W, H, T} = this;
+    const bw=Math.min(W*0.82,400), jaw=18, gap=f*16;
+    if(f>0.05){const g=ctx.createRadialGradient(cx,by,0,cx,by,110*f);g.addColorStop(0,`rgba(255,140,0,${0.2*f})`);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+    if((phase==='absorb'||phase==='capturing')&&this.trapCapT>6){
+      const bOp=Math.min(1,(this.trapCapT-6)/16)*(0.4+0.28*Math.sin(T*0.24));
+      const bW2=bw*0.52*f;
+      const bg=ctx.createLinearGradient(cx,by-gap,cx,0);bg.addColorStop(0,`rgba(255,190,0,${bOp*0.9})`);bg.addColorStop(0.4,`rgba(255,100,0,${bOp*0.35})`);bg.addColorStop(1,'transparent');
+      ctx.fillStyle=bg;ctx.fillRect(cx-bW2/2,0,bW2,by-gap);
+      ctx.globalAlpha=bOp*0.7;const sparks=['∴','✦','◈','⬡','⊕','∞','Ψ','Ω'];
+      for(let i=0;i<9;i++){const a=(i/9)*Math.PI*2+T*0.1;const sr=(8+14*Math.sin(T*0.09+i))*f;ctx.fillStyle=i%2?'#ffd700':'#ff9900';ctx.font='9px monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(sparks[i%sparks.length],cx+Math.cos(a)*sr,by-gap-sr*0.35);}
       ctx.globalAlpha=1;
     }
+    const draw_jaw=(jy)=>{
+      ctx.fillStyle='#070710';ctx.strokeStyle=f>0?`rgba(255,145,0,${0.5+0.5*f})`:'#252218';ctx.lineWidth=f>0?1.5:1;
+      ctx.fillRect(cx-bw/2,jy,bw,jaw);ctx.strokeRect(cx-bw/2,jy,bw,jaw);
+      ctx.save();ctx.beginPath();ctx.rect(cx-bw/2+2,jy+2,bw-4,jaw-4);ctx.clip();
+      ctx.globalAlpha=f>0?0.18:0.05;ctx.strokeStyle=f>0?'#ff7700':'#443300';ctx.lineWidth=3.5;
+      for(let i=-3;i<bw/7+3;i++){ctx.beginPath();ctx.moveTo(cx-bw/2+i*7,jy);ctx.lineTo(cx-bw/2+i*7+jaw,jy+jaw);ctx.stroke();}
+      ctx.restore();
+    };
+    draw_jaw(by-jaw-gap); draw_jaw(by+gap);
+    if(f>0.08){ctx.globalAlpha=Math.min(1,f)*0.72;const ig=ctx.createLinearGradient(0,by-jaw-gap+jaw,0,by+gap);ig.addColorStop(0,'#ff5500');ig.addColorStop(0.5,'#ffd700');ig.addColorStop(1,'#ff5500');ctx.fillStyle=ig;ctx.fillRect(cx-bw/2+2,by-jaw-gap+jaw,bw-4,gap*2);ctx.globalAlpha=1;}
+    const rv=[[cx-bw/2+5,by-jaw-gap+4],[cx+bw/2-5,by-jaw-gap+4],[cx-bw/2+5,by-jaw-gap+jaw-4],[cx+bw/2-5,by-jaw-gap+jaw-4],[cx-bw/2+5,by+gap+4],[cx+bw/2-5,by+gap+4],[cx-bw/2+5,by+gap+jaw-4],[cx+bw/2-5,by+gap+jaw-4]];
+    for(const[rx,ry]of rv){ctx.beginPath();ctx.arc(rx,ry,2.2,0,Math.PI*2);ctx.fillStyle=f>0?'#bb3300':'#2e2200';ctx.fill();}
+    const fast=(phase==='absorb'||phase==='capturing');
+    const blink=Math.sin(T*(fast?0.42:0.07))>0;
+    for(const dx of[-bw/2+15,bw/2-15]){ctx.beginPath();ctx.arc(cx+dx,by,4.5,0,Math.PI*2);ctx.fillStyle=blink?(fast?'#ff1100':'#ff3300'):'#2a0000';ctx.fill();if(blink){ctx.globalAlpha=0.3;ctx.beginPath();ctx.arc(cx+dx,by,8,0,Math.PI*2);ctx.fillStyle='#ff2200';ctx.fill();ctx.globalAlpha=1;}}
+    if(f<0.3){ctx.globalAlpha=(1-f/0.3)*0.22;ctx.font='bold 16px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#666';ctx.fillText('👻',cx,by);ctx.globalAlpha=1;}
+    const lbl={idle:'─── BaiNSTORM HUNTER ───',opening:'▲  TRAP OPENING  ▲',absorb:'◈  CAPTURE MODE  ◈',capturing:'◈  CAPTURE MODE  ◈',closing:'●  SEALED  ●'};
+    ctx.globalAlpha=f>0?(0.8+0.15*Math.sin(T*0.07)):0.38;ctx.fillStyle=f>0?'#ffd700':'#555';ctx.font='bold 8px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(lbl[phase]||lbl.idle,cx,by);ctx.globalAlpha=1;
+  }
 
-    // ── TOP JAW ──
-    const topY = by - jaw - gap;
-    ctx.fillStyle='#070710';
-    ctx.strokeStyle = f>0 ? `rgba(255,145,0,${0.55+0.45*f})` : '#252218';
-    ctx.lineWidth   = f>0 ? 1.5 : 1;
-    ctx.fillRect(bx-bw/2, topY, bw, jaw);
-    ctx.strokeRect(bx-bw/2, topY, bw, jaw);
-    // Diagonal hazard stripes on top jaw
-    ctx.save(); ctx.beginPath(); ctx.rect(bx-bw/2+2,topY+2,bw-4,jaw-4); ctx.clip();
-    ctx.globalAlpha=f>0?0.2:0.05; ctx.strokeStyle=f>0?'#ff7700':'#443300'; ctx.lineWidth=3.5;
-    for(let i=-3;i<bw/7+3;i++){ctx.beginPath();ctx.moveTo(bx-bw/2+i*7,topY);ctx.lineTo(bx-bw/2+i*7+jaw,topY+jaw);ctx.stroke();}
-    ctx.restore();
+  _drawMergeSynth(ctx) {
+    const {cx,tornado_cy:cy,T,W,H} = this;
+    const all=this.activeCols.flat();
+    for(let i=0;i<all.length;i++){const a=(i/all.length)*Math.PI*2+T*0.01;const g=ctx.createRadialGradient(cx+Math.cos(a)*22,cy+Math.sin(a)*16,0,cx,cy,85);g.addColorStop(0,all[i]+'18');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+    for(const p of this.mega){this._stepMega(p,cx,cy,1);ctx.globalAlpha=p.op;ctx.fillStyle=p.col;ctx.font=`${p.sz}px monospace`;ctx.textBaseline='middle';ctx.fillText(p.ch,p.sx,p.sy);}
+    const pulse=0.62+0.28*Math.sin(T*0.07);
+    ctx.globalAlpha=pulse;ctx.fillStyle='#ffd700';ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(this.phase==='synth'?'kiNTEGRiTY 1.0 · synthetisiert …':'BaiNSTORM HUNTER · verdichtet …',cx,cy-112);
+    ctx.globalAlpha=pulse*0.45;ctx.fillStyle='#aaa';ctx.font='8px monospace';
+    ctx.fillText('alle Perspektiven · kombiniert · verdichtet',cx,cy-99);ctx.globalAlpha=1;
+    this._drawTrap(ctx, 0.13+0.07*Math.sin(T*0.04), 'idle');
+  }
 
-    // ── BOTTOM JAW ──
-    const botY = by + gap;
-    ctx.fillStyle='#070710';
-    ctx.strokeStyle = f>0 ? `rgba(255,145,0,${0.55+0.45*f})` : '#252218';
-    ctx.lineWidth   = f>0 ? 1.5 : 1;
-    ctx.fillRect(bx-bw/2, botY, bw, jaw);
-    ctx.strokeRect(bx-bw/2, botY, bw, jaw);
-    ctx.save(); ctx.beginPath(); ctx.rect(bx-bw/2+2,botY+2,bw-4,jaw-4); ctx.clip();
-    ctx.globalAlpha=f>0?0.2:0.05; ctx.strokeStyle=f>0?'#ff7700':'#443300'; ctx.lineWidth=3.5;
-    for(let i=-3;i<bw/7+3;i++){ctx.beginPath();ctx.moveTo(bx-bw/2+i*7,botY);ctx.lineTo(bx-bw/2+i*7+jaw,botY+jaw);ctx.stroke();}
-    ctx.restore();
+  _ease3(t){return t<0.5?4*t*t*t:(t-1)*(2*t-2)*(2*t-2)+1;}
 
-    // ── Inner energy glow between jaws ──
-    if(f>0.08){
-      ctx.globalAlpha=Math.min(1,f)*0.75;
-      const ig=ctx.createLinearGradient(0,topY+jaw,0,botY);
-      ig.addColorStop(0,'#ff5500'); ig.addColorStop(0.5,'#ffd700'); ig.addColorStop(1,'#ff5500');
-      ctx.fillStyle=ig; ctx.fillRect(bx-bw/2+2,topY+jaw,bw-4,gap*2);
+  _drawAbsorb(ctx) {
+    const {cx, tornado_cy, trap_y, W, H, T} = this;
+    this.absorb_e = Math.min(1, this.absorb_e+0.016);
+    const e  = this._ease3(this.absorb_e);
+    this.trapOpenF = Math.min(1, this.trapOpenF+0.025);
+    if(this.trapOpenF>0.85) this.trapCapT++;
+    const cy = tornado_cy+(trap_y-tornado_cy)*e;
+    const sc = Math.max(0.1, 1-e*0.9);
+    for(const p of this.mega){
+      this._stepMega(p,cx,cy,1.4+e*5);
+      p.sx=p.sx+(cx-p.sx)*e*0.05;
+      p.sy=p.sy+(trap_y-p.sy)*e*0.04;
+      ctx.globalAlpha=p.op*(1-e*0.75);ctx.fillStyle=p.col;ctx.font=`${p.sz*sc}px monospace`;ctx.textBaseline='middle';
+      ctx.fillText(p.ch,p.sx,p.sy);
+    }
+    if(e>0.28){
+      const sOp=(e-0.28)/0.72*0.3;ctx.globalAlpha=sOp;ctx.strokeStyle='#ffd700';ctx.lineWidth=0.5;
+      for(let i=0;i<18;i++){const a=(i/18)*Math.PI*2+T*0.06;const r=48*(1-e);ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r*0.3);ctx.lineTo(cx,trap_y);ctx.stroke();}
       ctx.globalAlpha=1;
     }
+    this._drawTrap(ctx,this.trapOpenF,'absorb');
+    if(this.absorb_e>=1){this.phase='blackhole';this.T=0;this.bh_e=0;}
+  }
 
-    // ── Corner rivets ──
-    const rv=[[bx-bw/2+5,topY+5],[bx+bw/2-5,topY+5],[bx-bw/2+5,topY+jaw-5],[bx+bw/2-5,topY+jaw-5],
-              [bx-bw/2+5,botY+5],[bx+bw/2-5,botY+5],[bx-bw/2+5,botY+jaw-5],[bx+bw/2-5,botY+jaw-5]];
-    for(const[rx,ry]of rv){
-      ctx.beginPath(); ctx.arc(rx,ry,2.5,0,Math.PI*2);
-      ctx.fillStyle=f>0?'#bb3300':'#2e2200'; ctx.fill();
-      ctx.strokeStyle=f>0?'#ff7700':'#443300'; ctx.lineWidth=0.5; ctx.stroke();
+  _drawBlackhole(ctx) {
+    const {cx, trap_y:by, W, H, T} = this;
+    this.bh_e = Math.min(1, this.bh_e+0.01);
+    const e = this._ease3(this.bh_e);
+    const r = 10+e*58;
+    const aGlow=ctx.createRadialGradient(cx,by,r,cx,by,r*3.2);
+    aGlow.addColorStop(0,`rgba(255,150,0,${0.32*e})`);aGlow.addColorStop(0.3,`rgba(200,50,200,${0.12*e})`);aGlow.addColorStop(1,'transparent');
+    ctx.fillStyle=aGlow;ctx.fillRect(0,0,W,H);
+    const diskC=['#ff9900','#ffd700','#ff6600','#ff3300','#cc00ff','#0077ff','#00ffcc'];
+    for(let i=0;i<44;i++){
+      const a=(i/44)*Math.PI*2+T*0.038*(1+(i%3)*0.015);
+      const dr=r*1.18+Math.sin(T*0.09+i)*r*0.38;
+      const px=cx+Math.cos(a)*dr;const py=by+Math.sin(a)*dr*0.2;
+      ctx.globalAlpha=e*(0.35+0.38*Math.sin(T*0.07+i));ctx.fillStyle=diskC[i%diskC.length];ctx.font='7px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(T_CHARS[(i*3+T)|0%T_CHARS.length]||'*',px,py);
     }
+    const bhG=ctx.createRadialGradient(cx,by,0,cx,by,r);bhG.addColorStop(0,'#000');bhG.addColorStop(0.72,'#000');bhG.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.globalAlpha=1;ctx.fillStyle=bhG;ctx.beginPath();ctx.arc(cx,by,r*1.08,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=e*0.75;ctx.strokeStyle=`rgba(255,200,0,${0.55+0.3*Math.sin(T*0.09)})`;ctx.lineWidth=2;ctx.beginPath();ctx.arc(cx,by,r,0,Math.PI*2);ctx.stroke();
+    ctx.globalAlpha=e*0.22;ctx.strokeStyle='#ffd700';ctx.lineWidth=0.5;
+    for(let i=0;i<14;i++){const a=(i/14)*Math.PI*2+T*0.008;const r1=r*1.7;const r2=r*3.8;ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*r1,by+Math.sin(a)*r1*0.22);ctx.lineTo(cx+Math.cos(a+0.28)*r2,by+Math.sin(a+0.28)*r2*0.22);ctx.stroke();}
+    ctx.globalAlpha=1;
+    const p2=0.4+0.25*Math.sin(T*0.08);ctx.globalAlpha=e*p2;ctx.fillStyle='#ffd700';ctx.font='bold 8px monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('◈  SCHWARZES LOCH  ◈',cx,by-r-18);ctx.globalAlpha=1;
+    if(this.bh_e>=1){this.phase='emerge';this.T=0;this.em_e=0;}
+  }
 
-    // ── Warning lights (blinking LEDs) ──
-    const fast = this.phase==='capturing';
-    const blink = Math.sin(this.T*(fast?0.42:0.08)) > 0;
-    for(const dx of [-bw/2+17, bw/2-17]){
-      ctx.beginPath(); ctx.arc(bx+dx,by,5,0,Math.PI*2);
-      ctx.fillStyle=blink?(fast?'#ff1100':'#ff3300'):'#2a0000'; ctx.fill();
-      if(blink){ctx.globalAlpha=0.3;ctx.beginPath();ctx.arc(bx+dx,by,9,0,Math.PI*2);ctx.fillStyle='#ff2200';ctx.fill();ctx.globalAlpha=1;}
-    }
+  _bodyRadius(){const r={stern:40,planet:29,mond:20,asteroid:13};return r[this.bodyType]||13;}
+  _bodyColors(){
+    return {
+      stern:    {core:'#ffd700',mid:'#ff9900',shadow:'#cc5500',highlight:'#fffaaa'},
+      planet:   {core:'#4488ff',mid:'#22aa66',shadow:'#113355',highlight:'#aaccff'},
+      mond:     {core:'#bbbbbb',mid:'#888888',shadow:'#444',highlight:'#eeeeee'},
+      asteroid: {core:'#8b6914',mid:'#664400',shadow:'#332200',highlight:'#aa9955'},
+    }[this.bodyType]||{core:'#8b6914',mid:'#664400',shadow:'#332200',highlight:'#aa9955'};
+  }
 
-    // ── Ghostbusters ghost icon (idle, fades as trap opens) ──
-    if(f<0.35){
-      ctx.globalAlpha=(1-f/0.35)*0.28;
-      ctx.font='bold 18px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#777';
-      ctx.fillText('👻',bx,by);
-      ctx.globalAlpha=1;
-    }
-
-    // ── Side detail lines (mechanical look) ──
-    ctx.globalAlpha=f>0?0.35:0.12;
-    ctx.strokeStyle=f>0?'#664400':'#333';
-    ctx.lineWidth=0.8;
-    for(const[jy2,side] of [[topY,1],[botY,-1]]){
-      for(let i=1;i<=3;i++){
-        const lx=bx+(side*(bw/2-8-i*12));
-        ctx.beginPath(); ctx.moveTo(lx,jy2+4); ctx.lineTo(lx,jy2+jaw-4); ctx.stroke();
-      }
+  _drawEmerge(ctx) {
+    const {cx, trap_y:by, W, H, T} = this;
+    this.em_e = Math.min(1, this.em_e+0.009);
+    const e  = this._ease3(this.em_e);
+    const bhR = 68;
+    // Fading black hole
+    const fo=1-e*0.6;
+    const bhG=ctx.createRadialGradient(cx,by,0,cx,by,bhR);bhG.addColorStop(0,'#000');bhG.addColorStop(0.75,'#000');bhG.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.globalAlpha=fo;ctx.fillStyle=bhG;ctx.beginPath();ctx.arc(cx,by,bhR*1.08,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=fo*0.6;ctx.strokeStyle=`rgba(255,200,0,${0.4+0.2*Math.sin(T*0.09)})`;ctx.lineWidth=2;ctx.beginPath();ctx.arc(cx,by,bhR,0,Math.PI*2);ctx.stroke();
+    ctx.globalAlpha=1;
+    // Body rises
+    const bR  = this._bodyRadius();
+    const bodyY = by - e*(bhR+58);
+    const cols  = this._bodyColors();
+    const glowG = ctx.createRadialGradient(cx,bodyY,0,cx,bodyY,bR*2.8);
+    glowG.addColorStop(0,cols.core+'bb');glowG.addColorStop(0.4,cols.mid+'55');glowG.addColorStop(1,'transparent');
+    ctx.globalAlpha=e;ctx.fillStyle=glowG;ctx.fillRect(0,0,W,H);
+    const spG=ctx.createRadialGradient(cx-bR*0.3,bodyY-bR*0.3,bR*0.08,cx,bodyY,bR);
+    spG.addColorStop(0,cols.highlight);spG.addColorStop(0.45,cols.core);spG.addColorStop(1,cols.shadow);
+    ctx.globalAlpha=e;ctx.fillStyle=spG;ctx.beginPath();ctx.arc(cx,bodyY,bR,0,Math.PI*2);ctx.fill();
+    // Type details
+    if(this.bodyType==='stern'){
+      ctx.globalAlpha=e*(0.5+0.3*Math.sin(T*0.12));ctx.strokeStyle=cols.core;ctx.lineWidth=1.5;
+      for(let i=0;i<8;i++){const a=(i/8)*Math.PI*2+T*0.018;const r1=bR*1.2;const r2=bR*(1.9+0.35*Math.sin(T*0.09+i*0.8));ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*r1,bodyY+Math.sin(a)*r1);ctx.lineTo(cx+Math.cos(a)*r2,bodyY+Math.sin(a)*r2);ctx.stroke();}
+    } else if(this.bodyType==='planet'){
+      ctx.globalAlpha=e*0.55;ctx.strokeStyle=cols.mid;ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.ellipse(cx,bodyY,bR*1.95,bR*0.42,Math.PI*0.14,0,Math.PI*2);ctx.stroke();
+      // Band lines
+      ctx.globalAlpha=e*0.25;ctx.fillStyle=cols.shadow;
+      for(const dy of[-bR*0.25,bR*0.1]){ctx.beginPath();ctx.ellipse(cx,bodyY+dy,bR,bR*0.18,0,0,Math.PI*2);ctx.fill();}
+    } else if(this.bodyType==='mond'){
+      ctx.globalAlpha=e*0.45;ctx.fillStyle=cols.shadow;
+      [[0.32,0.18,2.8],[-0.22,-0.3,3.5],[0.48,-0.12,2]].forEach(([dx,dy,cr])=>{ctx.beginPath();ctx.arc(cx+dx*bR,bodyY+dy*bR,cr,0,Math.PI*2);ctx.fill();});
+    } else {
+      ctx.globalAlpha=e*0.4;ctx.fillStyle=cols.shadow;
+      for(let i=0;i<6;i++){const a=(i/6)*Math.PI*2;ctx.beginPath();ctx.arc(cx+Math.cos(a)*bR*0.5,bodyY+Math.sin(a)*bR*0.42,1.5+Math.random()*2,0,Math.PI*2);ctx.fill();}
     }
     ctx.globalAlpha=1;
-
-    // ── Center label ──
-    const labels={'idle':'─── BaiNSTORM HUNTER ───','opening':'▲  TRAP OPENING  ▲',
-                  'capturing':'◈  CAPTURE MODE  ◈','closing':'●  SEALED  ●','done':'─── BaiNSTORM HUNTER ───'};
-    const lp=0.5+0.3*Math.sin(this.T*0.07);
-    ctx.globalAlpha=f>0?(0.82+0.18*lp):0.38;
-    ctx.fillStyle=f>0?'#ffd700':'#555';
-    ctx.font=`bold 8px monospace`; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText(labels[this.phase]||labels.idle, bx, by);
+    // Label
+    const icons={stern:'⭐',planet:'🪐',mond:'🌙',asteroid:'🪨'};
+    const names={stern:'STERN',planet:'PLANET',mond:'MOND',asteroid:'ASTEROID'};
+    const p3=0.6+0.3*Math.sin(T*0.08);
+    ctx.globalAlpha=e*p3;ctx.fillStyle=cols.core;ctx.font='bold 9px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(`${icons[this.bodyType]}  ${names[this.bodyType]}  ${icons[this.bodyType]}`,cx,bodyY-bR-16);
     ctx.globalAlpha=1;
+    if(this.em_e>=1){this.phase='done';if(this.doneCb)this.doneCb();}
   }
 
   _loop() {
     const ctx=this.ctx;
-    ctx.clearRect(0,0,this.W,this.H);
-    ctx.fillStyle='#060610'; ctx.fillRect(0,0,this.W,this.H);
-    if     (this.phase==='opening')   {this.openFrac=Math.min(1,this.openFrac+0.026);if(this.openFrac>=1){this.phase='capturing';this.capT=0;}}
-    else if(this.phase==='capturing') {this.capT++;}
-    else if(this.phase==='closing')   {this.openFrac=Math.max(0,this.openFrac-0.024);if(this.openFrac<=0){this.phase='done';if(this.doneCb)this.doneCb();}}
-    this._draw(ctx);
+    ctx.clearRect(0,0,this.W,this.H);ctx.fillStyle='#060610';ctx.fillRect(0,0,this.W,this.H);
+    const p=this.phase;
+    if(p==='idle')                  this._drawTrap(ctx,0.1+0.07*Math.sin(this.T*0.04),'idle');
+    else if(p==='merge'||p==='synth') this._drawMergeSynth(ctx);
+    else if(p==='absorb')             this._drawAbsorb(ctx);
+    else if(p==='blackhole')          this._drawBlackhole(ctx);
+    else if(p==='emerge')             this._drawEmerge(ctx);
     this.T++;
-    if(this.phase!=='done') this.raf=requestAnimationFrame(()=>this._loop());
+    if(p!=='done') this.raf=requestAnimationFrame(()=>this._loop());
   }
-  open()     { this.phase='opening'; }
-  seal(cb)   { this.doneCb=cb; this.phase='closing'; }
-  stop()     { if(this.raf) cancelAnimationFrame(this.raf); }
+
+  startMerge() { this._initMega(); this.trapOpenF=0; this.trapCapT=0; this.absorb_e=0; this.phase='merge'; this.T=0; }
+  startSynth() { if(this.phase==='merge') this.phase='synth'; }
+  startAbsorb(bodyType, cb) { this.bodyType=bodyType||'asteroid'; this.doneCb=cb; this.absorb_e=0; this.phase='absorb'; this.T=0; }
+  stop()       { if(this.raf) cancelAnimationFrame(this.raf); }
 }
 
-// ── BainstormHub: 4 WildTornados + GhostTrap ─────────────────────────────────
+// ── BainstormHub: 4 WildTornados + BainstormAnim ─────────────────────────────
 class BainstormHub {
   constructor(container, activeSet) {
     this.container  = container;
     this.activeSet  = new Set(activeSet);
     this.tornados   = {};
-    this.trap       = null;
+    this.anim       = null;
     this._build();
   }
 
   _build() {
-    // Grid of 4 KI columns
     const grid = document.createElement('div');
     grid.id = 'bs-grid';
     grid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:6px;';
@@ -1245,54 +1337,59 @@ class BainstormHub {
       const meta   = BS_META[p];
       const active = this.activeSet.has(p);
       const col    = meta.cols[0];
-
-      const cell = document.createElement('div');
+      const cell   = document.createElement('div');
       cell.id = `bs-cell-${p}`;
       cell.style.cssText = `display:flex;flex-direction:column;border:1px solid ${active?col+'55':'#1a1a1a'};border-radius:8px;overflow:hidden;background:#050510;`;
-
       const cv = document.createElement('canvas');
       cv.style.cssText = 'display:block;width:100%;flex-shrink:0;';
       cell.appendChild(cv);
-
       const tx = document.createElement('div');
       tx.id = `bs-tx-${p}`;
       tx.style.cssText = `font-size:0.67rem;line-height:1.5;padding:5px 7px;color:${active?'#bbb':'#2e2e2e'};min-height:48px;max-height:130px;overflow-y:auto;border-top:1px solid ${active?col+'22':'#0f0f0f'};white-space:pre-wrap;word-break:break-word;`;
       tx.textContent = active ? '…' : 'kein Key';
       cell.appendChild(tx);
       grid.appendChild(cell);
-
-      // Init tornado after layout (need real clientWidth)
       const self = this;
-      requestAnimationFrame(() => {
-        self.tornados[p] = new WildTornado(cv, meta.cols, meta.label, active);
-      });
+      requestAnimationFrame(() => { self.tornados[p] = new WildTornado(cv, meta.cols, meta.label, active); });
     }
 
-    // Ghost Trap below grid
-    const trapWrap = document.createElement('div');
-    trapWrap.style.cssText = 'margin-top:4px;border-radius:8px;overflow:hidden;';
-    const trapCv = document.createElement('canvas');
-    trapCv.style.cssText = 'display:block;width:100%;';
-    trapWrap.appendChild(trapCv);
-    this.container.appendChild(trapWrap);
-
+    // BainstormAnim canvas (full-width, tall)
+    const animWrap = document.createElement('div');
+    animWrap.style.cssText = 'margin-top:4px;border-radius:8px;overflow:hidden;';
+    const animCv = document.createElement('canvas');
+    animCv.style.cssText = 'display:block;width:100%;';
+    animWrap.appendChild(animCv);
+    this.container.appendChild(animWrap);
     const self = this;
-    requestAnimationFrame(() => { self.trap = new GhostTrap(trapCv); });
+    requestAnimationFrame(() => {
+      const activeCols = BS_PROVIDERS.filter(p=>self.activeSet.has(p)).map(p=>BS_META[p].cols);
+      self.anim = new BainstormAnim(animCv, activeCols);
+    });
   }
 
   setResponse(p, text)  { const el=document.getElementById(`bs-tx-${p}`); if(el) el.textContent=text||'–'; }
   setError(p, msg)      { const el=document.getElementById(`bs-tx-${p}`); if(el){el.textContent='✕ '+msg;el.style.color='#cc3333';} }
 
   merge() {
-    for (const p of BS_PROVIDERS) { if(this.tornados[p]?.active) this.tornados[p].fade(); }
-    setTimeout(() => { if(this.trap) this.trap.open(); }, 350);
+    for(const p of BS_PROVIDERS) { if(this.tornados[p]?.active) this.tornados[p].fade(); }
+    setTimeout(() => { if(this.anim) this.anim.startMerge(); }, 400);
   }
 
-  seal(cb) { if(this.trap) this.trap.seal(cb); else if(cb) cb(); }
-  stopAll() { for(const p of BS_PROVIDERS) this.tornados[p]?.stop(); this.trap?.stop(); }
+  startSynth()  { setTimeout(() => { if(this.anim) this.anim.startSynth(); }, 200); }
+  absorb(bodyType, cb) { if(this.anim) this.anim.startAbsorb(bodyType, cb); else if(cb) cb(); }
+  stopAll()     { for(const p of BS_PROVIDERS) this.tornados[p]?.stop(); this.anim?.stop(); }
 }
 
 // ─── BaiNSTORM send ───────────────────────────────────────────────────────────
+
+function classifyBody(text) {
+  if(!text) return 'asteroid';
+  const words = text.trim().split(/\s+/).length;
+  if(words>=2000) return 'stern';
+  if(words>=700)  return 'planet';
+  if(words>=200)  return 'mond';
+  return 'asteroid';
+}
 
 async function sendT() {
   const cfg  = getCfg();
@@ -1312,7 +1409,7 @@ async function sendT() {
   const hub = new BainstormHub(out, providers);
   let okCards = [], errCards = [], responses = [];
 
-  // Fire all providers in parallel
+  // Fire all LLM calls in parallel, show responses live
   const results = await Promise.allSettled(
     providers.map(p => callProvider(p, TORNADO_SYSTEM, text).then(r => ({provider:p,content:r})))
   );
@@ -1329,94 +1426,96 @@ async function sendT() {
     }
   }
 
-  // Fade tornados, open Ghost Trap, fire synthesis in parallel
+  // Start merge → big colorful tornado
   hub.merge();
-
+  // Fire synthesis in parallel (BainstormAnim now shows merge phase)
   const synthProvider = resolveSynthProvider();
   let synthRaw = null;
   if (responses.length >= 2 && synthProvider) {
     const synthPrompt = `Thema: "${text}"\n\n` +
-      responses.map(r => `=== ${r.provider} ===\n${r.content}`).join('\n\n');
-    try { synthRaw = await Promise.race([
-      callProvider(synthProvider, KINTEGRITY_SYSTEM, synthPrompt),
-      new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 60000))
-    ]); } catch(e) { synthRaw = null; }
+      responses.map(r=>`=== ${r.provider} ===\n${r.content}`).join('\n\n');
+    // Switch anim to 'synth' label after a short delay
+    setTimeout(() => hub.startSynth(), 1200);
+    try {
+      synthRaw = await Promise.race([
+        callProvider(synthProvider, KINTEGRITY_SYSTEM, synthPrompt),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),60000))
+      ]);
+    } catch(e) { synthRaw = null; }
   }
 
-  // Minimum animation time of 1.8s before sealing trap
-  await new Promise(r => setTimeout(r, 1800));
+  // Ensure minimum merge/synth animation time (3 seconds visible)
+  await new Promise(r => setTimeout(r, 3000));
 
-  hub.seal(() => {
-    // ── Show synthesis card below trap ──
-    if (!synthRaw) {
-      if (responses.length >= 2) {
-        const d = document.createElement('div');
-        d.className = 'tornado-card kreuzung reveal-card';
-        d.style.cssText = 'opacity:0.55;margin-top:0.5rem;';
-        d.innerHTML = `<div class="tornado-provider" style="color:var(--gold)">BaiNSTORM HUNTER</div>
-          <div style="color:var(--muted);font-size:.85rem">⚠ Kein Synthese-Provider konfiguriert → ⚙ Settings</div>`;
-        out.appendChild(d);
+  // Determine body type from synthesis word count
+  const bodyType = classifyBody(synthRaw);
+
+  // Start absorb → black hole → emerge sequence
+  hub.absorb(bodyType, () => {
+    // Show synthesis card after emerge animation completes
+    let html = '';
+    if (synthRaw) {
+      const titleMarker = '📌 Titel:';
+      const divMarker   = '⚡ Divergenzen:';
+      let bodyRaw = synthRaw.trim(), kTitle = '';
+      const titleIdx = bodyRaw.indexOf(titleMarker);
+      if (titleIdx > -1) {
+        const after = bodyRaw.substring(titleIdx+titleMarker.length);
+        const tEnd  = after.indexOf('\n');
+        kTitle  = (tEnd>-1?after.substring(0,tEnd):after).trim();
+        bodyRaw = (tEnd>-1?after.substring(tEnd):'').trim();
       }
-      btn.disabled = false; btn.textContent = '⚡ BaiNSTORM';
-      document.getElementById('tText').value = '';
-      return;
-    }
+      const divIdx = bodyRaw.indexOf(divMarker);
+      let fazitText=bodyRaw, divText='';
+      if(divIdx>-1){fazitText=bodyRaw.substring(0,divIdx).trim();divText=bodyRaw.substring(divIdx+divMarker.length).trim();}
+      const today   = new Date().toISOString().split('T')[0];
+      const rawSlug = kTitle||text.substring(0,50);
+      const slug    = rawSlug.replace(/[^a-zA-ZäöüÄÖÜß0-9\s\-]/g,'').trim().replace(/\s+/g,'_').substring(0,60)||'Synthese';
+      const displayTitle = kTitle||text.substring(0,60);
+      const icons   = {stern:'⭐',planet:'🪐',mond:'🌙',asteroid:'🪨'};
+      const bIcon   = icons[bodyType]||'🪨';
 
-    // ── Parse title + divergences ──────────────────────────────────
-    const titleMarker = '📌 Titel:';
-    const divMarker   = '⚡ Divergenzen:';
-    let bodyRaw = synthRaw.trim(), kTitle = '';
-    const titleIdx = bodyRaw.indexOf(titleMarker);
-    if (titleIdx > -1) {
-      const after  = bodyRaw.substring(titleIdx + titleMarker.length);
-      const tEnd   = after.indexOf('\n');
-      kTitle  = (tEnd>-1 ? after.substring(0,tEnd) : after).trim();
-      bodyRaw = (tEnd>-1 ? after.substring(tEnd) : '').trim();
-    }
-    const divIdx  = bodyRaw.indexOf(divMarker);
-    let fazitText = bodyRaw, divText = '';
-    if (divIdx > -1) { fazitText = bodyRaw.substring(0,divIdx).trim(); divText = bodyRaw.substring(divIdx+divMarker.length).trim(); }
-
-    const today   = new Date().toISOString().split('T')[0];
-    const rawSlug = kTitle || text.substring(0,50);
-    const slug    = rawSlug.replace(/[^a-zA-ZäöüÄÖÜß0-9\s\-]/g,'').trim().replace(/\s+/g,'_').substring(0,60) || 'Synthese';
-    const displayTitle = kTitle || text.substring(0,60);
-
-    const card = document.createElement('div');
-    card.className = 'tornado-card kreuzung reveal-card';
-    card.id = 'kintegrity-card';
-    card.style.cssText = 'margin-top:0.5rem;';
-    card.innerHTML = `
-      <div class="tornado-provider" style="color:var(--gold)" id="ki-prov-label">BaiNSTORM HUNTER · kiNTEGRiTY</div>
-      <div id="kintegrity-body">
-        ${kTitle ? `<div style="font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:0.8rem;letter-spacing:0.01em">${escHtml(kTitle)}</div>` : ''}
-        <div class="kreuzung-section"><p style="line-height:1.75;white-space:pre-wrap">${escHtml(fazitText)}</p></div>
-        <div class="kreuzung-section" style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem">
-          <div style="font-size:0.75rem;font-weight:700;color:var(--gold);letter-spacing:.1em;margin-bottom:.5rem">⚡ DIVERGENZEN &amp; INKOMMENSURABILITÄTEN</div>
-          <p style="line-height:1.75;white-space:pre-wrap;color:var(--muted)">${divText ? escHtml(divText) : '–– Keine wesentlichen Widersprüche oder Inkommensurabilitäten erkannt ––'}</p>
+      const card = document.createElement('div');
+      card.className = 'tornado-card kreuzung reveal-card';
+      card.id = 'kintegrity-card';
+      card.style.cssText = 'margin-top:0.5rem;';
+      card.innerHTML = `
+        <div class="tornado-provider" style="color:var(--gold)" id="ki-prov-label">BaiNSTORM HUNTER · kiNTEGRiTY  ${bIcon} ${bodyType.toUpperCase()}</div>
+        <div id="kintegrity-body">
+          ${kTitle?`<div style="font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:0.8rem;letter-spacing:0.01em">${escHtml(kTitle)}</div>`:''}
+          <div class="kreuzung-section"><p style="line-height:1.75;white-space:pre-wrap">${escHtml(fazitText)}</p></div>
+          <div class="kreuzung-section" style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem">
+            <div style="font-size:0.75rem;font-weight:700;color:var(--gold);letter-spacing:.1em;margin-bottom:.5rem">⚡ DIVERGENZEN &amp; INKOMMENSURABILITÄTEN</div>
+            <p style="line-height:1.75;white-space:pre-wrap;color:var(--muted)">${divText?escHtml(divText):'–– Keine wesentlichen Widersprüche oder Inkommensurabilitäten erkannt ––'}</p>
+          </div>
         </div>
-      </div>
-      <div style="display:flex;gap:0.5rem;margin-top:0.8rem;flex-wrap:wrap;">
-        <button onclick="bsCopy()"     style="font-size:0.72rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:none;color:var(--muted);border-radius:6px;cursor:pointer;" title="Als Markdown kopieren">📋 Kopieren</button>
-        <button onclick="bsShare()"    style="font-size:0.72rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:none;color:var(--muted);border-radius:6px;cursor:pointer;" title="Teilen (Apple Share Sheet)">↗ Teilen</button>
-        <button onclick="bsDownload()" style="font-size:0.72rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:none;color:var(--muted);border-radius:6px;cursor:pointer;" title="Als .md herunterladen">⬇ .md</button>
-      </div>`;
-    out.appendChild(card);
+        <div style="display:flex;gap:0.5rem;margin-top:0.8rem;flex-wrap:wrap;">
+          <button onclick="bsCopy()"     style="font-size:0.72rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:none;color:var(--muted);border-radius:6px;cursor:pointer;">📋 Kopieren</button>
+          <button onclick="bsShare()"    style="font-size:0.72rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:none;color:var(--muted);border-radius:6px;cursor:pointer;">↗ Teilen</button>
+          <button onclick="bsDownload()" style="font-size:0.72rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:none;color:var(--muted);border-radius:6px;cursor:pointer;">⬇ .md</button>
+        </div>`;
+      out.appendChild(card);
 
-    // Auto-export to vault
-    const path  = `Sterne/kiNTEGRiTY_${slug}_${today}.md`;
-    const plist = responses.map(r=>r.provider).join(', ');
-    let md = `---\ntyp: BaiNSTORM-HUNTER\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\n---\n\n# ${displayTitle}\n\n${fazitText}\n`;
-    if (divText) md += `\n## ⚡ Divergenzen\n\n${divText}\n`;
-    md += `\n---\n*BaiNSTORM HUNTER · kiNTEGRiTY · ${today} · ${plist}*\n`;
-    pushToVault(path, md, `BaiNSTORM: ${text.substring(0,60)}`)
-      .then(()  => { const el=document.getElementById('ki-prov-label'); if(el) el.textContent='BaiNSTORM HUNTER · ✓ Vault'; })
-      .catch(ve => { const el=document.getElementById('ki-prov-label'); if(el) el.textContent='BaiNSTORM HUNTER · ✕ '+ve.message.substring(0,30); });
-
+      // Vault push
+      const path  = `Sterne/kiNTEGRiTY_${slug}_${today}.md`;
+      const plist = responses.map(r=>r.provider).join(', ');
+      let md = `---\ntyp: BaiNSTORM-HUNTER\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\nkoerper: ${bodyType}\n---\n\n# ${displayTitle}\n\n${fazitText}\n`;
+      if(divText) md+=`\n## ⚡ Divergenzen\n\n${divText}\n`;
+      md+=`\n---\n*BaiNSTORM HUNTER · kiNTEGRiTY · ${today} · ${plist}*\n`;
+      pushToVault(path, md, `BaiNSTORM: ${text.substring(0,60)}`)
+        .then(()=>{const el=document.getElementById('ki-prov-label');if(el)el.textContent=`BaiNSTORM HUNTER · ✓ Vault  ${bIcon} ${bodyType.toUpperCase()}`;})
+        .catch(ve=>{const el=document.getElementById('ki-prov-label');if(el)el.textContent='BaiNSTORM HUNTER · ✕ '+ve.message.substring(0,30);});
+    } else if(responses.length >= 2) {
+      const d = document.createElement('div');
+      d.className='tornado-card kreuzung reveal-card';d.style.cssText='opacity:0.55;margin-top:0.5rem;';
+      d.innerHTML=`<div class="tornado-provider" style="color:var(--gold)">BaiNSTORM HUNTER</div><div style="color:var(--muted);font-size:.85rem">⚠ Kein Synthese-Provider konfiguriert → ⚙ Settings</div>`;
+      out.appendChild(d);
+    }
     btn.disabled = false; btn.textContent = '⚡ BaiNSTORM';
     document.getElementById('tText').value = '';
   });
 }
+
 
 // ─── Export & Share ──────────────────────────────────────────────────────────
 
