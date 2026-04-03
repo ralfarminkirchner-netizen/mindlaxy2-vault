@@ -54,16 +54,8 @@
     flex-wrap: wrap;
   }
   .count-item { text-align: center; }
-  .count-num {
-    font-size: 1.8rem;
-    font-weight: 300;
-  }
-  .count-label {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--muted);
-  }
+  .count-num { font-size: 1.8rem; font-weight: 300; }
+  .count-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
   .count-stern .count-num { color: var(--stern); }
   .count-planet .count-num { color: var(--planet); }
   .count-mond .count-num { color: var(--mond); }
@@ -76,16 +68,11 @@
     margin-top: 0.8rem;
     display: inline-block;
   }
-  .status-ok { background: #0a2a0a; color: #60c060; border: 1px solid #1a4a1a; }
-  .status-err { background: #2a0a0a; color: #c06060; border: 1px solid #4a1a1a; }
+  .status-ok   { background: #0a2a0a; color: #60c060; border: 1px solid #1a4a1a; }
+  .status-err  { background: #2a0a0a; color: #c06060; border: 1px solid #4a1a1a; }
   .status-warn { background: #2a1a00; color: #c09030; border: 1px solid #4a3000; }
 
-  main {
-    width: 100%;
-    max-width: 680px;
-    padding: 2rem 1rem;
-    flex: 1;
-  }
+  main { width: 100%; max-width: 680px; padding: 2rem 1rem; flex: 1; }
 
   .tabs {
     display: flex;
@@ -103,10 +90,7 @@
     margin-bottom: -1px;
     transition: all 0.2s;
   }
-  .tab.active {
-    color: var(--gold);
-    border-bottom-color: var(--gold);
-  }
+  .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
 
   .panel { display: none; }
   .panel.active { display: block; }
@@ -124,10 +108,7 @@
     font-family: inherit;
     line-height: 1.6;
   }
-  textarea:focus {
-    outline: none;
-    border-color: var(--accent);
-  }
+  textarea:focus { outline: none; border-color: var(--accent); }
 
   .btn {
     display: block;
@@ -145,6 +126,13 @@
   }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .btn:hover:not(:disabled) { opacity: 0.85; }
+  .btn-sm {
+    display: inline-block;
+    width: auto;
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
 
   .result {
     margin-top: 1.2rem;
@@ -153,43 +141,18 @@
     border: 1px solid var(--border);
     background: var(--surface);
   }
-  .result.stern { border-color: var(--stern); }
-  .result.planet { border-color: var(--planet); }
-  .result.mond { border-color: var(--mond); }
+  .result.stern    { border-color: var(--stern); }
+  .result.planet   { border-color: var(--planet); }
+  .result.mond     { border-color: var(--mond); }
   .result.asteroid { border-color: var(--asteroid); }
-  .result-typ {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    margin-bottom: 0.4rem;
-    font-weight: 600;
-  }
-  .result-titel {
-    font-size: 1.1rem;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-  }
-  .result-kern { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
-  .result-pfad {
-    font-size: 0.75rem;
-    color: var(--muted);
-    margin-top: 0.6rem;
-    font-family: monospace;
-  }
-  .result-andock {
-    font-size: 0.8rem;
-    color: var(--mond);
-    margin-top: 0.4rem;
-  }
-  .sync-status {
-    font-size: 0.75rem;
-    margin-top: 0.5rem;
-    padding: 0.3rem 0.6rem;
-    border-radius: 4px;
-    display: inline-block;
-  }
-  .sync-ok { background: #0a2a0a; color: #60c060; }
-  .sync-err { background: #2a0a0a; color: #c06060; }
+  .result-typ   { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.4rem; font-weight: 600; }
+  .result-titel { font-size: 1.1rem; font-weight: 500; margin-bottom: 0.5rem; }
+  .result-kern  { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+  .result-pfad  { font-size: 0.75rem; color: var(--muted); margin-top: 0.6rem; font-family: monospace; }
+  .result-provider { font-size: 0.7rem; color: var(--muted); margin-top: 0.3rem; }
+  .sync-status  { font-size: 0.75rem; margin-top: 0.5rem; padding: 0.3rem 0.6rem; border-radius: 4px; display: inline-block; }
+  .sync-ok      { background: #0a2a0a; color: #60c060; }
+  .sync-err     { background: #2a0a0a; color: #c06060; }
   .sync-pending { background: #1a1a2a; color: #8080c0; }
 
   .spinner {
@@ -204,18 +167,21 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Token setup */
-  .token-section {
-    margin-top: 1rem;
+  .key-section {
+    margin-top: 0.8rem;
     padding: 1rem;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 8px;
     font-size: 0.85rem;
   }
-  .token-section input {
+  .key-section:first-child { margin-top: 0; }
+  .key-title { font-weight: 600; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem; }
+  .key-title .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: inline-block; }
+  .key-title .dot.active { background: #60c060; }
+  .key-label { color: var(--muted); font-size: 0.75rem; margin-bottom: 0.3rem; margin-top: 0.5rem; }
+  .key-section input {
     width: 100%;
-    margin-top: 0.5rem;
     padding: 0.5rem 0.8rem;
     background: var(--bg);
     border: 1px solid var(--border);
@@ -224,8 +190,7 @@
     font-family: monospace;
     font-size: 0.8rem;
   }
-  .token-section input:focus { outline: none; border-color: var(--accent); }
-  .token-label { color: var(--muted); font-size: 0.75rem; margin-bottom: 0.3rem; }
+  .key-section input:focus { outline: none; border-color: var(--accent); }
 
   .tornado-card {
     margin-bottom: 1rem;
@@ -234,19 +199,23 @@
     border: 1px solid var(--border);
     background: var(--surface);
   }
-  .tornado-provider {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--muted);
-    margin-bottom: 0.6rem;
-  }
-  .tornado-content { line-height: 1.6; white-space: pre-wrap; }
-  .kreuzung { border-color: var(--gold); }
+  .tornado-provider { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.6rem; }
+  .tornado-content  { line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem; }
+  .kreuzung         { border-color: var(--gold); }
   .kreuzung-section { margin-top: 0.8rem; }
   .kreuzung-section h4 { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.3rem; }
   .kreuzung-section p, .kreuzung-section li { font-size: 0.9rem; line-height: 1.5; }
   .kreuzung-section ul { padding-left: 1.2rem; }
+
+  .provider-badges { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.6rem; }
+  .badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    background: var(--border);
+    color: var(--muted);
+  }
+  .badge.on { background: #1a1a3a; color: #8080e0; border: 1px solid #3030a0; }
 </style>
 </head>
 <body>
@@ -255,10 +224,10 @@
   <div class="logo">M i N D L A X Y</div>
   <div class="tagline">Du denkst. Ich strukturiere. Der Vault wächst.</div>
   <div class="counts" id="counts">
-    <div class="count-item count-stern"><div class="count-num" id="c-stern">0</div><div class="count-label">Sterne</div></div>
-    <div class="count-item count-planet"><div class="count-num" id="c-planet">0</div><div class="count-label">Planeten</div></div>
-    <div class="count-item count-mond"><div class="count-num" id="c-mond">0</div><div class="count-label">Monde</div></div>
-    <div class="count-item count-asteroid"><div class="count-num" id="c-asteroid">0</div><div class="count-label">Asteroiden</div></div>
+    <div class="count-item count-stern">   <div class="count-num" id="c-stern">–</div>   <div class="count-label">Sterne</div></div>
+    <div class="count-item count-planet">  <div class="count-num" id="c-planet">–</div>  <div class="count-label">Planeten</div></div>
+    <div class="count-item count-mond">    <div class="count-num" id="c-mond">–</div>    <div class="count-label">Monde</div></div>
+    <div class="count-item count-asteroid"><div class="count-num" id="c-asteroid">–</div><div class="count-label">Asteroiden</div></div>
   </div>
   <div id="sys-status" class="status-bar status-warn">Initialisiere...</div>
 </header>
@@ -279,55 +248,105 @@
 
   <!-- Tornado Panel -->
   <div class="panel" id="p-tornado">
-    <textarea id="tText" placeholder="Thema für den Tornado...&#10;&#10;Claude und ChatGPT denken gleichzeitig darüber nach. kiNTEGRiTY 1.0 synthetisiert die Unterschiede." rows="5"></textarea>
+    <textarea id="tText" placeholder="Thema für den Tornado...&#10;&#10;Alle konfigurierten AIs denken gleichzeitig darüber nach. kiNTEGRiTY 1.0 synthetisiert die Unterschiede." rows="5"></textarea>
     <button class="btn" id="tBtn" onclick="sendT()">Tornado</button>
     <div id="tOut"></div>
   </div>
 
   <!-- Settings Panel -->
   <div class="panel" id="p-settings">
-    <div class="token-section">
-      <div style="font-weight:500; margin-bottom:0.5rem;">🔑 GitHub Token</div>
-      <div class="token-label">Dein GitHub Personal Access Token (mit repo-Scope). Wird lokal gespeichert.</div>
-      <input type="password" id="ghToken" placeholder="ghp_..." oninput="saveToken()">
-      <div id="tokenStatus" style="margin-top:0.4rem; font-size:0.75rem; color: var(--muted);"></div>
+
+    <div class="key-section">
+      <div class="key-title"><span class="dot" id="dot-gh"></span> GitHub</div>
+      <div class="key-label">Personal Access Token (repo scope)</div>
+      <input type="password" id="ghToken" placeholder="ghp_..." oninput="saveKey('ghToken','mx_ghtoken')">
+      <div class="key-label" style="margin-top:0.6rem;">Vault Repo (owner/repo)</div>
+      <input type="text" id="vaultRepo" placeholder="user/repo" oninput="saveKey('vaultRepo','mx_vault')">
     </div>
-    <div class="token-section" style="margin-top:1rem;">
-      <div style="font-weight:500; margin-bottom:0.5rem;">⚙ Konfiguration</div>
-      <div class="token-label">Railway App URL</div>
-      <input type="text" id="railwayUrl" value="https://brainstorms-hunter-production.up.railway.app" oninput="saveCfg()">
-      <div class="token-label" style="margin-top:0.6rem;">GitHub Vault Repo (owner/repo)</div>
-      <input type="text" id="vaultRepo" value="ralfarminkirchner-netizen/mindlaxy2-vault" oninput="saveCfg()">
-      <div class="token-label" style="margin-top:0.6rem;">Auth Token (BH_AUTH_TOKEN)</div>
-      <input type="password" id="authToken" value="mindlaxy2025" oninput="saveCfg()">
-      <button class="btn" style="margin-top:0.8rem;" onclick="testConnection()">Verbindung testen</button>
+
+    <div class="key-section">
+      <div class="key-title"><span class="dot" id="dot-anthropic"></span> Anthropic · Claude</div>
+      <div class="key-label">API Key</div>
+      <input type="password" id="anthropicKey" placeholder="sk-ant-..." oninput="saveKey('anthropicKey','mx_anthropic')">
+      <div class="key-label">Modell (Standard: claude-sonnet-4-6)</div>
+      <input type="text" id="anthropicModel" placeholder="claude-sonnet-4-6" oninput="saveKey('anthropicModel','mx_anthropic_model')">
     </div>
+
+    <div class="key-section">
+      <div class="key-title"><span class="dot" id="dot-gemini"></span> Google · Gemini</div>
+      <div class="key-label">API Key</div>
+      <input type="password" id="geminiKey" placeholder="AIza..." oninput="saveKey('geminiKey','mx_gemini')">
+      <div class="key-label">Modell (Standard: gemini-2.0-flash)</div>
+      <input type="text" id="geminiModel" placeholder="gemini-2.0-flash" oninput="saveKey('geminiModel','mx_gemini_model')">
+    </div>
+
+    <div class="key-section">
+      <div class="key-title"><span class="dot" id="dot-deepseek"></span> DeepSeek</div>
+      <div class="key-label">API Key</div>
+      <input type="password" id="deepseekKey" placeholder="sk-..." oninput="saveKey('deepseekKey','mx_deepseek')">
+      <div class="key-label">Modell (Standard: deepseek-chat)</div>
+      <input type="text" id="deepseekModel" placeholder="deepseek-chat" oninput="saveKey('deepseekModel','mx_deepseek_model')">
+    </div>
+
+    <div class="key-section">
+      <div class="key-title"><span class="dot" id="dot-grok"></span> xAI · Grok</div>
+      <div class="key-label">API Key</div>
+      <input type="password" id="grokKey" placeholder="xai-..." oninput="saveKey('grokKey','mx_grok')">
+      <div class="key-label">Modell (Standard: grok-3-mini)</div>
+      <input type="text" id="grokModel" placeholder="grok-3-mini" oninput="saveKey('grokModel','mx_grok_model')">
+    </div>
+
+    <div class="key-section" style="margin-top:0.8rem;">
+      <div class="key-title">Klassifizierung</div>
+      <div class="key-label">Welcher AI soll für Gedanken-Klassifizierung genutzt werden?</div>
+      <select id="classifyProvider" onchange="saveKey('classifyProvider','mx_classify_provider')"
+        style="width:100%;margin-top:0.3rem;padding:0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);">
+        <option value="auto">Auto (erster verfügbarer)</option>
+        <option value="anthropic">Anthropic · Claude</option>
+        <option value="gemini">Google · Gemini</option>
+        <option value="deepseek">DeepSeek</option>
+        <option value="grok">xAI · Grok</option>
+      </select>
+      <div class="key-label" style="margin-top:0.6rem;">kiNTEGRiTY Synthese (Tornado)</div>
+      <select id="synthesisProvider" onchange="saveKey('synthesisProvider','mx_synthesis_provider')"
+        style="width:100%;margin-top:0.3rem;padding:0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);">
+        <option value="anthropic">Anthropic · Claude</option>
+        <option value="gemini">Google · Gemini</option>
+        <option value="deepseek">DeepSeek</option>
+        <option value="grok">xAI · Grok</option>
+      </select>
+    </div>
+
+    <button class="btn" style="margin-top:1rem;" onclick="testKeys()">Status prüfen</button>
+    <div id="testOut"></div>
   </div>
 </main>
 
 <script>
-const RAILWAY_DEFAULT = 'https://brainstorms-hunter-production.up.railway.app';
-const VAULT_DEFAULT   = 'ralfarminkirchner-netizen/mindlaxy2-vault';
+// ─── Config ────────────────────────────────────────────────────────────────
+const VAULT_DEFAULT = 'ralfarminkirchner-netizen/mindlaxy2-vault';
 
 function getCfg() {
   return {
-    railway: localStorage.getItem('mx_railway') || RAILWAY_DEFAULT,
-    vault:   localStorage.getItem('mx_vault')   || VAULT_DEFAULT,
-    auth:    localStorage.getItem('mx_auth')    || 'mindlaxy2025',
-    ghToken: localStorage.getItem('mx_ghtoken') || ''
+    vault:            localStorage.getItem('mx_vault')              || VAULT_DEFAULT,
+    ghToken:          localStorage.getItem('mx_ghtoken')            || '',
+    anthropic:        localStorage.getItem('mx_anthropic')          || '',
+    anthropicModel:   localStorage.getItem('mx_anthropic_model')    || 'claude-sonnet-4-6',
+    gemini:           localStorage.getItem('mx_gemini')             || '',
+    geminiModel:      localStorage.getItem('mx_gemini_model')       || 'gemini-2.0-flash',
+    deepseek:         localStorage.getItem('mx_deepseek')           || '',
+    deepseekModel:    localStorage.getItem('mx_deepseek_model')     || 'deepseek-chat',
+    grok:             localStorage.getItem('mx_grok')               || '',
+    grokModel:        localStorage.getItem('mx_grok_model')         || 'grok-3-mini',
+    classifyProvider: localStorage.getItem('mx_classify_provider')  || 'auto',
+    synthesisProvider:localStorage.getItem('mx_synthesis_provider') || 'anthropic',
   };
 }
 
-function saveCfg() {
-  localStorage.setItem('mx_railway', document.getElementById('railwayUrl').value);
-  localStorage.setItem('mx_vault',   document.getElementById('vaultRepo').value);
-  localStorage.setItem('mx_auth',    document.getElementById('authToken').value);
-}
-
-function saveToken() {
-  const t = document.getElementById('ghToken').value;
-  localStorage.setItem('mx_ghtoken', t);
-  document.getElementById('tokenStatus').textContent = t ? '✓ Token gespeichert' : '';
+function saveKey(inputId, storageKey) {
+  const val = document.getElementById(inputId)?.value || '';
+  localStorage.setItem(storageKey, val);
+  updateDots();
 }
 
 function sw(n) {
@@ -338,25 +357,166 @@ function sw(n) {
   document.getElementById('p-' + n).classList.add('active');
 }
 
-async function loadCounts() {
+function updateDots() {
   const cfg = getCfg();
+  const set = (id, on) => { const d = document.getElementById(id); if(d) d.className = 'dot' + (on ? ' active' : ''); };
+  set('dot-gh',        !!cfg.ghToken);
+  set('dot-anthropic', !!cfg.anthropic);
+  set('dot-gemini',    !!cfg.gemini);
+  set('dot-deepseek',  !!cfg.deepseek);
+  set('dot-grok',      !!cfg.grok);
+
   const el = document.getElementById('sys-status');
-  try {
-    const r = await fetch(cfg.railway + '/api/status');
-    const d = await r.json();
-    const c = d.counts || {};
-    document.getElementById('c-stern').textContent    = c.stern    || 0;
-    document.getElementById('c-planet').textContent   = c.planet   || 0;
-    document.getElementById('c-mond').textContent     = c.mond     || 0;
-    document.getElementById('c-asteroid').textContent = c.asteroid || 0;
+  const hasAI = cfg.anthropic || cfg.gemini || cfg.deepseek || cfg.grok;
+  if (hasAI && cfg.ghToken) {
     el.className = 'status-bar status-ok';
-    el.textContent = cfg.ghToken ? '● Online · Vault-Sync aktiv' : '● Online · Kein GitHub Token';
-    if (!cfg.ghToken) el.className = 'status-bar status-warn';
-  } catch(e) {
-    el.className = 'status-bar status-err';
-    el.textContent = '✕ Railway nicht erreichbar';
+    el.textContent = '● Online · Vault-Sync aktiv';
+  } else if (hasAI) {
+    el.className = 'status-bar status-warn';
+    el.textContent = '⚠ Kein GitHub Token';
+  } else {
+    el.className = 'status-bar status-warn';
+    el.textContent = '⚠ Kein AI-Key konfiguriert';
   }
 }
+
+// ─── Direct AI API calls ────────────────────────────────────────────────────
+
+async function callAnthropic(systemPrompt, userContent, apiKey, model) {
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: model || 'claude-sonnet-4-6',
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userContent }]
+    })
+  });
+  if (!r.ok) { const e = await r.text(); throw new Error('Anthropic ' + r.status + ': ' + e.substring(0,120)); }
+  const d = await r.json();
+  return d.content?.[0]?.text || '';
+}
+
+async function callGemini(prompt, apiKey, model) {
+  const m = model || 'gemini-2.0-flash';
+  const r = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    }
+  );
+  if (!r.ok) { const e = await r.text(); throw new Error('Gemini ' + r.status + ': ' + e.substring(0,120)); }
+  const d = await r.json();
+  return d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+async function callOAI(prompt, apiKey, baseUrl, model) {
+  const r = await fetch(baseUrl + '/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${apiKey}`, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 1024
+    })
+  });
+  if (!r.ok) { const e = await r.text(); throw new Error(baseUrl.split('/').pop() + ' ' + r.status + ': ' + e.substring(0,100)); }
+  const d = await r.json();
+  return d.choices?.[0]?.message?.content || '';
+}
+
+// Unified call: given provider name, call the right API
+async function callProvider(name, systemPrompt, userContent) {
+  const cfg = getCfg();
+  const fullPrompt = systemPrompt ? systemPrompt + '\n\n' + userContent : userContent;
+  switch(name) {
+    case 'anthropic':
+      if (!cfg.anthropic) throw new Error('Kein Anthropic Key');
+      return await callAnthropic(systemPrompt, userContent, cfg.anthropic, cfg.anthropicModel);
+    case 'gemini':
+      if (!cfg.gemini) throw new Error('Kein Gemini Key');
+      return await callGemini(fullPrompt, cfg.gemini, cfg.geminiModel);
+    case 'deepseek':
+      if (!cfg.deepseek) throw new Error('Kein DeepSeek Key');
+      return await callOAI(fullPrompt, cfg.deepseek, 'https://api.deepseek.com/v1', cfg.deepseekModel);
+    case 'grok':
+      if (!cfg.grok) throw new Error('Kein Grok Key');
+      return await callOAI(fullPrompt, cfg.grok, 'https://api.x.ai/v1', cfg.grokModel);
+    default:
+      throw new Error('Unbekannter Provider: ' + name);
+  }
+}
+
+function availableProviders() {
+  const cfg = getCfg();
+  const all = ['anthropic','gemini','deepseek','grok'];
+  return all.filter(p => cfg[p]);
+}
+
+// ─── Classification ─────────────────────────────────────────────────────────
+
+const CLASSIFY_SYSTEM = `Du bist Wissensklassifizierer für MiNDLAXY. Klassifiziere den Gedanken des Nutzers.
+
+STERN ⭐: Grundlegende Einsicht, philosophische Tiefe, weltanschauliche Reflexion — tiefster Kern
+PLANET 🪐: Ausgearbeitetes Konzept, Thema mit mehreren Aspekten, entwickelter Gedanke
+MOND 🌙: Ergänzung, Fortsetzung, Detailgedanke zu etwas Bestehendem, Ableitung
+ASTEROID 🪨: Flüchtiger Einfall, Beobachtung, Fragment, kurzer Impuls
+
+Antworte AUSSCHLIESSLICH mit gültigem JSON — kein Markdown, kein Text davor/danach:
+{"typ":"Stern","titel":"Prägnanter Titel max 50 Zeichen","kernaussage":"Ein Satz der den Kerngedanken erfasst","pfad":"Sterne/Dateiname_ohne_Leerzeichen.md"}
+
+Für pfad: Ordner = Sterne|Planeten|Monde|Asteroiden, Dateiname ohne Datum (wird automatisch ergänzt).`;
+
+async function classifyText(text) {
+  const cfg = getCfg();
+  const today = new Date().toISOString().split('T')[0];
+
+  // Determine which provider to use
+  let providerOrder = [];
+  if (cfg.classifyProvider === 'auto') {
+    providerOrder = availableProviders();
+  } else {
+    providerOrder = [cfg.classifyProvider, ...availableProviders().filter(p => p !== cfg.classifyProvider)];
+  }
+
+  if (providerOrder.length === 0) throw new Error('Kein AI-Key konfiguriert! → ⚙ Settings');
+
+  for (const p of providerOrder) {
+    try {
+      const raw = await callProvider(p, CLASSIFY_SYSTEM, text);
+      const match = raw.match(/\{[\s\S]*?\}/);
+      if (match) {
+        const d = JSON.parse(match[0]);
+        if (d.typ && d.titel && d.pfad) {
+          // Ensure date in filename
+          const parts = d.pfad.split('/');
+          const fname = parts[parts.length - 1].replace('.md', '');
+          parts[parts.length - 1] = fname + '_' + today + '.md';
+          d.pfad = parts.join('/');
+          d.provider = p;
+          d.typ = d.typ.charAt(0).toUpperCase() + d.typ.slice(1).toLowerCase();
+          return d;
+        }
+      }
+    } catch(e) {
+      console.warn(p + ' classify failed:', e.message);
+    }
+  }
+
+  // Fallback
+  const slug = text.substring(0, 40).replace(/[^a-zA-ZäöüÄÖÜß0-9\s]/g,'').trim().replace(/\s+/g,'_') || 'Gedanke';
+  return { typ: 'Stern', titel: slug, kernaussage: text.substring(0, 150) + '…', pfad: `Sterne/${slug}_${today}.md`, provider: 'fallback' };
+}
+
+// ─── Push to Vault ──────────────────────────────────────────────────────────
 
 async function pushToVault(typ, titel, kernaussage, pfad, originalText) {
   const cfg = getCfg();
@@ -365,19 +525,13 @@ async function pushToVault(typ, titel, kernaussage, pfad, originalText) {
 
   const now = new Date().toISOString();
   const dateStr = now.split('T')[0];
-
-  const typMap = {
-    'stern':    '⭐',
-    'planet':   '🪐',
-    'mond':     '🌙',
-    'asteroid': '🪨'
-  };
+  const typLow = typ.toLowerCase();
 
   const content = `---
-typ: ${typ}
+typ: ${typLow}
 titel: ${titel}
 datum: ${dateStr}
-schwerkraft: ${typ}
+schwerkraft: ${typLow}
 ---
 
 # ${titel}
@@ -387,222 +541,302 @@ ${kernaussage || ''}
 ---
 
 *Originalgedanke:*
-> ${originalText}
+
+${originalText}
 
 *Erstellt: ${now}*
 `;
 
   const encoded = btoa(unescape(encodeURIComponent(content)));
 
-  // Check if file exists (to get SHA for update)
+  // Check if file exists (for SHA)
   let sha = null;
   try {
     const chk = await fetch(
-      `https://api.github.com/repos/${cfg.vault}/contents/${pfad}`,
+      `https://api.github.com/repos/${cfg.vault}/contents/${encodeURIComponent(pfad)}`,
       { headers: { 'Authorization': `token ${cfg.ghToken}` } }
     );
-    if (chk.ok) {
-      const d = await chk.json();
-      sha = d.sha;
-    }
+    if (chk.ok) { const d = await chk.json(); sha = d.sha; }
   } catch(e) {}
 
-  const body = { message: `✨ ${typ}: ${titel}`, content: encoded };
+  const body = { message: `✨ ${typLow}: ${titel}`, content: encoded };
   if (sha) body.sha = sha;
 
   try {
     const resp = await fetch(
-      `https://api.github.com/repos/${cfg.vault}/contents/${pfad}`,
+      `https://api.github.com/repos/${cfg.vault}/contents/${encodeURIComponent(pfad)}`,
       {
         method: 'PUT',
-        headers: {
-          'Authorization': `token ${cfg.ghToken}`,
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Authorization': `token ${cfg.ghToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       }
     );
-
-    if (resp.ok) {
-      return { ok: true };
-    } else {
-      let msg = 'GitHub Fehler ' + resp.status;
-      try { const e = await resp.json(); msg = e.message || msg; } catch(e) {}
-      return { ok: false, err: msg };
-    }
+    if (resp.ok) return { ok: true };
+    let msg = 'GitHub ' + resp.status;
+    try { const e = await resp.json(); msg = e.message || msg; } catch(e) {}
+    return { ok: false, err: msg };
   } catch(e) {
     return { ok: false, err: 'Netzwerkfehler: ' + e.message };
   }
 }
 
-async function fetchWithRetry(url, options, maxRetries = 3) {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      // No AbortController/signal — Safari/iOS compatibility
-      const r = await fetch(url, options);
-      return r;
-    } catch(e) {
-      if (i === maxRetries - 1) throw e;
-      await new Promise(res => setTimeout(res, 2000 * (i + 1)));
-    }
-  }
-}
+// ─── Gedanke ────────────────────────────────────────────────────────────────
 
 function showStatus(msg, type) {
   const el = document.getElementById('gOut');
   const color = type === 'ok' ? '#60c060' : type === 'err' ? '#c06060' : '#8080c0';
-  el.innerHTML = `<div style="padding:0.8rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:${color};font-size:0.85rem;font-family:monospace;">${msg}</div>`;
+  el.innerHTML = `<div style="padding:0.8rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:${color};font-size:0.85rem;font-family:monospace;white-space:pre-wrap;">${msg}</div>`;
 }
 
 async function sendG() {
   const cfg = getCfg();
-  const t = document.getElementById('gText').value.trim();
-  if (!t) return;
-  const b = document.getElementById('gBtn');
-  b.disabled = true;
+  const text = document.getElementById('gText').value.trim();
+  if (!text) return;
+  const btn = document.getElementById('gBtn');
+  btn.disabled = true;
 
   try {
     if (!cfg.ghToken) {
-      showStatus('⚠ Kein GitHub Token! → Geh zu ⚙ Settings und trage dein Token ein.', 'err');
-      b.disabled = false; b.textContent = 'In den Vault';
+      showStatus('⚠ Kein GitHub Token! → ⚙ Settings', 'err');
+      return;
+    }
+    const providers = availableProviders();
+    if (providers.length === 0) {
+      showStatus('⚠ Kein AI-Key konfiguriert! → ⚙ Settings', 'err');
       return;
     }
 
-    const wordCount = t.split(/\s+/).length;
-    b.innerHTML = `<span class="spinner"></span>${wordCount > 100 ? 'Analysiere langen Text (' + wordCount + ' Wörter)...' : 'Klassifiziere...'}`;
-    showStatus('⟳ Schritt 1/2: Railway klassifiziert...', 'pending');
+    const wc = text.split(/\s+/).length;
+    btn.innerHTML = `<span class="spinner"></span>Klassifiziere${wc > 200 ? ' (' + wc + ' Wörter)' : ''}...`;
+    showStatus('⟳ Schritt 1/2: Klassifiziere mit ' + cfg.classifyProvider + '...', 'pending');
 
-    const r = await fetchWithRetry(cfg.railway + '/api/gedanke', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: t })
-    });
-
-    if (!r.ok) {
-      showStatus(`✕ Railway Fehler: HTTP ${r.status}`, 'err');
-      return;
-    }
-
-    const d = await r.json();
-    if (d.error) { showStatus('✕ Railway: ' + d.error, 'err'); return; }
-
-    const typ = (d.typ || 'asteroid').toLowerCase();
+    const d = await classifyText(text);
+    const typLow = d.typ.toLowerCase();
     const colorMap = { stern: 'var(--stern)', planet: 'var(--planet)', mond: 'var(--mond)', asteroid: 'var(--asteroid)' };
 
-    // Push to vault
-    showStatus('⟳ Schritt 2/2: Schreibe in GitHub Vault...', 'pending');
-    let syncHtml = '<div class="sync-status sync-pending">⟳ Schreibe in Vault...</div>';
+    showStatus('⟳ Schritt 2/2: Schreibe in Vault...', 'pending');
+
     document.getElementById('gOut').innerHTML = `
-      <div class="result ${typ}">
-        <div class="result-typ" style="color:${colorMap[typ]}">${d.typ}</div>
+      <div class="result ${typLow}">
+        <div class="result-typ" style="color:${colorMap[typLow] || 'var(--gold)'}">${d.typ}</div>
         <div class="result-titel">${d.titel}</div>
         <div class="result-kern">${d.kernaussage || ''}</div>
         <div class="result-pfad">${d.pfad}</div>
-        ${d.andockpunkte?.length ? '<div class="result-andock">→ ' + d.andockpunkte.join(', ') + '</div>' : ''}
-        <div id="syncStat">${syncHtml}</div>
+        <div class="result-provider">via ${d.provider}</div>
+        <div id="syncStat"><div class="sync-status sync-pending">⟳ Schreibe in Vault...</div></div>
       </div>`;
 
     document.getElementById('gText').value = '';
 
-    const sync = await pushToVault(d.typ, d.titel, d.kernaussage, d.pfad, t);
+    const sync = await pushToVault(d.typ, d.titel, d.kernaussage, d.pfad, text);
     const syncEl = document.getElementById('syncStat');
     if (sync.ok) {
-      syncEl.innerHTML = '<div class="sync-status sync-ok">✓ Im Vault gespeichert → Obsidian</div>';
+      syncEl.innerHTML = '<div class="sync-status sync-ok">✓ Im Vault gespeichert → Obsidian zieht in ≤5min</div>';
+      loadCounts();
     } else {
       syncEl.innerHTML = `<div class="sync-status sync-err">✕ Vault-Sync fehlgeschlagen: ${sync.err}</div>`;
     }
 
-    loadCounts();
   } catch(e) {
-    showStatus(`✕ Fehler: ${e.message}\n\nToken gesetzt: ${!!getCfg().ghToken}\nRailway: ${getCfg().railway}`, 'err');
+    showStatus('✕ ' + e.message, 'err');
   } finally {
-    b.disabled = false;
-    b.textContent = 'In den Vault';
+    btn.disabled = false;
+    btn.textContent = 'In den Vault';
   }
 }
+
+// ─── Tornado ────────────────────────────────────────────────────────────────
+
+const TORNADO_SYSTEM = `Du bist ein tiefgründiger Denker. Analysiere das gegebene Thema oder den Text.
+Biete eine originelle, präzise und philosophisch fundierte Perspektive.
+Geh in die Tiefe, identifiziere das Wesentliche, zeige Verbindungen auf.
+Antworte auf Deutsch, fließend, ohne Aufzählungen — reiner Gedankenfluss.`;
+
+const KINTEGRITY_SYSTEM = `Du bist kiNTEGRiTY 1.0 — ein Synthese-Denker. Du hast mehrere KI-Antworten auf das gleiche Thema bekommen.
+Deine Aufgabe: Synthetisiere die Antworten. Antworte NUR mit gültigem JSON:
+{
+  "gemeinsamer_kern": "Was alle Antworten gemein haben",
+  "unterschiede": ["Unterschied 1", "Unterschied 2"],
+  "spannungen": ["Spannung 1"],
+  "bruecken": ["Brücke 1"],
+  "verdichtung": "Das Destillat aller Perspektiven in einem prägnanten Absatz"
+}`;
 
 async function sendT() {
   const cfg = getCfg();
-  const t = document.getElementById('tText').value.trim();
-  if (!t) return;
-  const b = document.getElementById('tBtn');
-  b.disabled = true;
-  b.innerHTML = '<span class="spinner"></span>Tornados...';
-  const o = document.getElementById('tOut');
-  o.innerHTML = '';
+  const text = document.getElementById('tText').value.trim();
+  if (!text) return;
+  const btn = document.getElementById('tBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Tornado...';
+  const out = document.getElementById('tOut');
+  out.innerHTML = '';
+
+  const providers = availableProviders();
+  if (providers.length === 0) {
+    out.innerHTML = '<div style="color:var(--asteroid)">⚠ Kein AI-Key konfiguriert! → ⚙ Settings</div>';
+    btn.disabled = false; btn.textContent = 'Tornado';
+    return;
+  }
 
   try {
-    const r = await fetch(cfg.railway + '/api/tornado', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: t })
-    });
-    const d = await r.json();
-    let h = '';
-    for (const t of d.tornados || []) {
-      h += `<div class="tornado-card"><div class="tornado-provider">${t.provider}${t.model ? ' · ' + t.model : ''}</div><div class="tornado-content">${t.content || t.error || '—'}</div></div>`;
+    // Call all providers in parallel
+    const results = await Promise.allSettled(
+      providers.map(p => callProvider(p, TORNADO_SYSTEM, text).then(r => ({ provider: p, content: r })))
+    );
+
+    let html = '';
+    const providerLabels = { anthropic: 'ANTHROPIC · CLAUDE', gemini: 'GOOGLE · GEMINI', deepseek: 'DEEPSEEK', grok: 'XAI · GROK' };
+    const responses = [];
+
+    for (const r of results) {
+      if (r.status === 'fulfilled') {
+        const { provider, content } = r.value;
+        html += `<div class="tornado-card">
+          <div class="tornado-provider">${providerLabels[provider] || provider}</div>
+          <div class="tornado-content">${escHtml(content)}</div>
+        </div>`;
+        responses.push({ provider: providerLabels[provider] || provider, content });
+      } else {
+        const idx = results.indexOf(r);
+        html += `<div class="tornado-card">
+          <div class="tornado-provider">${providerLabels[providers[idx]] || providers[idx]}</div>
+          <div class="tornado-content" style="color:var(--asteroid)">✕ ${escHtml(r.reason?.message || 'Fehler')}</div>
+        </div>`;
+      }
     }
-    if (d.kreuzung) {
-      const k = d.kreuzung;
-      h += `<div class="tornado-card kreuzung">
-        <div class="tornado-provider" style="color:var(--gold)">kiNTEGRiTY 1.0</div>
-        ${k.gemeinsamer_kern ? '<div class="kreuzung-section"><h4>Gemeinsamer Kern</h4><p>' + k.gemeinsamer_kern + '</p></div>' : ''}
-        ${(k.unterschiede||[]).length ? '<div class="kreuzung-section"><h4>Unterschiede</h4><ul>' + k.unterschiede.map(u=>'<li>'+u+'</li>').join('') + '</ul></div>' : ''}
-        ${(k.spannungen||[]).length ? '<div class="kreuzung-section"><h4>Spannungen</h4><ul>' + k.spannungen.map(s=>'<li>'+s+'</li>').join('') + '</ul></div>' : ''}
-        ${(k.bruecken||[]).length ? '<div class="kreuzung-section"><h4>Brücken</h4><ul>' + k.bruecken.map(b=>'<li>'+b+'</li>').join('') + '</ul></div>' : ''}
-        ${k.verdichtung ? '<div class="kreuzung-section"><h4>Verdichtung</h4><p>' + k.verdichtung + '</p></div>' : ''}
-      </div>`;
+
+    out.innerHTML = html;
+
+    // kiNTEGRiTY synthesis (only if 2+ responses)
+    if (responses.length >= 2) {
+      const synthProvider = cfg.synthesisProvider;
+      if (cfg[synthProvider]) {
+        out.innerHTML += `<div class="tornado-card kreuzung" id="kintegrity-card">
+          <div class="tornado-provider" style="color:var(--gold)">kiNTEGRiTY 1.0 <span class="spinner"></span></div>
+          <div id="kintegrity-body" style="color:var(--muted)">Synthetisiere...</div>
+        </div>`;
+
+        const synthPrompt = `Hier sind ${responses.length} KI-Antworten auf das Thema: "${text}"\n\n` +
+          responses.map(r => `--- ${r.provider} ---\n${r.content}`).join('\n\n');
+
+        try {
+          const raw = await callProvider(synthProvider, KINTEGRITY_SYSTEM, synthPrompt);
+          const match = raw.match(/\{[\s\S]*\}/);
+          if (match) {
+            const k = JSON.parse(match[0]);
+            document.getElementById('kintegrity-body').innerHTML = `
+              ${k.gemeinsamer_kern ? `<div class="kreuzung-section"><h4>Gemeinsamer Kern</h4><p>${escHtml(k.gemeinsamer_kern)}</p></div>` : ''}
+              ${(k.unterschiede||[]).length ? `<div class="kreuzung-section"><h4>Unterschiede</h4><ul>${k.unterschiede.map(u=>'<li>'+escHtml(u)+'</li>').join('')}</ul></div>` : ''}
+              ${(k.spannungen||[]).length ? `<div class="kreuzung-section"><h4>Spannungen</h4><ul>${k.spannungen.map(s=>'<li>'+escHtml(s)+'</li>').join('')}</ul></div>` : ''}
+              ${(k.bruecken||[]).length ? `<div class="kreuzung-section"><h4>Brücken</h4><ul>${k.bruecken.map(b=>'<li>'+escHtml(b)+'</li>').join('')}</ul></div>` : ''}
+              ${k.verdichtung ? `<div class="kreuzung-section"><h4>Verdichtung</h4><p>${escHtml(k.verdichtung)}</p></div>` : ''}`;
+            document.querySelector('#kintegrity-card .tornado-provider').textContent = 'kiNTEGRiTY 1.0';
+          } else {
+            document.getElementById('kintegrity-body').textContent = raw;
+            document.querySelector('#kintegrity-card .tornado-provider').textContent = 'kiNTEGRiTY 1.0';
+          }
+        } catch(e) {
+          document.getElementById('kintegrity-body').innerHTML = `<span style="color:var(--asteroid)">✕ Synthese fehlgeschlagen: ${escHtml(e.message)}</span>`;
+          document.querySelector('#kintegrity-card .tornado-provider').textContent = 'kiNTEGRiTY 1.0';
+        }
+      }
     }
-    o.innerHTML = h;
+
     document.getElementById('tText').value = '';
+
   } catch(e) {
-    alert(e.message);
+    out.innerHTML = `<div style="color:var(--asteroid)">✕ ${escHtml(e.message)}</div>`;
   } finally {
-    b.disabled = false;
-    b.textContent = 'Tornado';
+    btn.disabled = false;
+    btn.textContent = 'Tornado';
   }
 }
 
-async function testConnection() {
+// ─── Status & Counts ────────────────────────────────────────────────────────
+
+async function loadCounts() {
   const cfg = getCfg();
-  const el = document.getElementById('sys-status');
-  el.className = 'status-bar status-warn';
-  el.textContent = '⟳ Teste...';
-  try {
-    const r = await fetch(cfg.railway + '/api/status');
-    const d = await r.json();
-    if (d.online) {
-      el.className = 'status-bar status-ok';
-      el.textContent = '✓ Railway verbunden';
-    }
-  } catch(e) {
-    el.className = 'status-bar status-err';
-    el.textContent = '✕ Nicht erreichbar: ' + e.message;
-  }
+  if (!cfg.ghToken || !cfg.vault) return;
+
+  const folders = ['Sterne','Planeten','Monde','Asteroiden'];
+  const ids = ['c-stern','c-planet','c-mond','c-asteroid'];
+
+  const results = await Promise.allSettled(
+    folders.map(f =>
+      fetch(`https://api.github.com/repos/${cfg.vault}/contents/${f}`, {
+        headers: { 'Authorization': `token ${cfg.ghToken}` }
+      }).then(r => r.ok ? r.json() : [])
+    )
+  );
+
+  results.forEach((r, i) => {
+    const files = r.status === 'fulfilled' ? (r.value || []).filter(f => f.name.endsWith('.md')) : [];
+    document.getElementById(ids[i]).textContent = files.length;
+  });
 }
 
-// Init — auto-set token from URL param ?t=ghp_...
+async function testKeys() {
+  const cfg = getCfg();
+  const out = document.getElementById('testOut');
+  out.innerHTML = '<div style="color:var(--muted);margin-top:0.8rem;">⟳ Teste alle Keys...</div>';
+
+  const lines = [];
+  const test = async (name, fn) => {
+    try { await fn(); lines.push(`✓ ${name}`); } catch(e) { lines.push(`✕ ${name}: ${e.message.substring(0,60)}`); }
+  };
+
+  if (cfg.ghToken) await test('GitHub', async () => {
+    const r = await fetch('https://api.github.com/user', { headers: { 'Authorization': `token ${cfg.ghToken}` } });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+  });
+
+  const tiny = 'Antworte mit: OK';
+  if (cfg.anthropic) await test('Anthropic', async () => { await callAnthropic('', tiny, cfg.anthropic, cfg.anthropicModel); });
+  if (cfg.gemini)    await test('Gemini',    async () => { await callGemini(tiny, cfg.gemini, cfg.geminiModel); });
+  if (cfg.deepseek)  await test('DeepSeek',  async () => { await callOAI(tiny, cfg.deepseek, 'https://api.deepseek.com/v1', cfg.deepseekModel); });
+  if (cfg.grok)      await test('Grok',      async () => { await callOAI(tiny, cfg.grok, 'https://api.x.ai/v1', cfg.grokModel); });
+
+  const html = lines.map(l => `<div style="font-size:0.85rem;margin:0.3rem 0;color:${l.startsWith('✓')?'#60c060':'#c06060'}">${l}</div>`).join('');
+  out.innerHTML = `<div style="margin-top:0.8rem;padding:0.8rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;">${html}</div>`;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+
 (function() {
+  // Auto-set GitHub token from URL param
   const params = new URLSearchParams(window.location.search);
   const urlToken = params.get('t');
   if (urlToken && urlToken.startsWith('ghp_')) {
     localStorage.setItem('mx_ghtoken', urlToken);
-    // Remove token from URL for security
-    const clean = window.location.pathname;
-    window.history.replaceState({}, '', clean);
+    window.history.replaceState({}, '', window.location.pathname);
   }
-  const cfg = getCfg();
-  if (document.getElementById('railwayUrl')) document.getElementById('railwayUrl').value = cfg.railway;
-  if (document.getElementById('vaultRepo'))  document.getElementById('vaultRepo').value  = cfg.vault;
-  if (document.getElementById('authToken'))  document.getElementById('authToken').value  = cfg.auth;
-  if (document.getElementById('ghToken') && cfg.ghToken) {
-    document.getElementById('ghToken').value = cfg.ghToken;
-    document.getElementById('tokenStatus').textContent = '✓ Token gespeichert';
-  }
-})();
 
-loadCounts();
-setInterval(loadCounts, 30000);
+  const cfg = getCfg();
+
+  // Populate settings fields
+  const set = (id, val) => { const el = document.getElementById(id); if(el && val) el.value = val; };
+  set('ghToken',          cfg.ghToken);
+  set('vaultRepo',        cfg.vault);
+  set('anthropicKey',     cfg.anthropic);
+  set('anthropicModel',   cfg.anthropicModel);
+  set('geminiKey',        cfg.gemini);
+  set('geminiModel',      cfg.geminiModel);
+  set('deepseekKey',      cfg.deepseek);
+  set('deepseekModel',    cfg.deepseekModel);
+  set('grokKey',          cfg.grok);
+  set('grokModel',        cfg.grokModel);
+  if (cfg.classifyProvider)  { const el = document.getElementById('classifyProvider');  if(el) el.value = cfg.classifyProvider; }
+  if (cfg.synthesisProvider) { const el = document.getElementById('synthesisProvider'); if(el) el.value = cfg.synthesisProvider; }
+
+  updateDots();
+  loadCounts();
+  setInterval(loadCounts, 60000);
+})();
 </script>
 </body>
 </html>
