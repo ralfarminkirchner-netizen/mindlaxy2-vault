@@ -23,25 +23,10 @@
     "id": "left",
     "type": "split",
     "direction": "horizontal",
-    "items": [
-      {
-        "id": "file-explorer",
-        "type": "leaf",
-        "state": {
-          "type": "file-explorer",
-          "state": {}
-        }
-      }
-    ],
+    "items": [{"id": "file-explorer","type": "leaf","state": {"type": "file-explorer","state": {}}}],
     "collapsed": false
   },
-  "right": {
-    "id": "right",
-    "type": "split",
-    "direction": "horizontal",
-    "items": [],
-    "collapsed": true
-  },
+  "right": {"id": "right","type": "split","direction": "horizontal","items": [],"collapsed": true},
   "active": "editor",
   "lastOpenFiles": []
 }
