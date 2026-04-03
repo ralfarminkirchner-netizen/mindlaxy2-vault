@@ -1526,56 +1526,115 @@ function escHtml(s) {
 
 const M_PROVIDERS = ['gemini','deepseek','grok','openai'];
 const M_LABELS    = { gemini:'GOOGLE · GEMINI', deepseek:'DEEPSEEK', grok:'XAI · GROK', openai:'OPENAI · CHATGPT' };
+const M_VAULT_DIR = { gemini:'Chats/Gemini', deepseek:'Chats/DeepSeek', grok:'Chats/Grok', openai:'Chats/ChatGPT' };
 const M_SYS       = {
   gemini:   'Du bist Google Gemini. Antworte direkt und prägnant auf Deutsch.',
   deepseek: 'Du bist DeepSeek. Antworte direkt und prägnant auf Deutsch.',
   grok:     'Du bist Grok von xAI. Antworte direkt und prägnant auf Deutsch.',
   openai:   'Du bist ChatGPT von OpenAI. Antworte direkt und prägnant auf Deutsch.',
 };
+const M_KEY = 'mx_matrix_v2';
 
-// Persist history in localStorage
-function mSaveHistory() {
-  try { localStorage.setItem('mx_matrix_history', JSON.stringify(mHistory)); } catch(e) {}
+// ── Conversation Store ───────────────────────────────────────────────────────
+// { gemini: { activeId, convs: { id: {id,title,msgs,created,vaultPath} } }, ... }
+
+function mGetStore()      { try { return JSON.parse(localStorage.getItem(M_KEY)||'{}'); } catch(e) { return {}; } }
+function mSaveStore(s)    { try { localStorage.setItem(M_KEY, JSON.stringify(s)); } catch(e) {} }
+function mEnsure(store,p) { if (!store[p]) store[p]={activeId:null,convs:{}}; return store[p]; }
+
+function mNewConv(p, title, msgs, id) {
+  const store = mGetStore();
+  mEnsure(store, p);
+  const cid = id || ('c_'+Date.now()+'_'+Math.random().toString(36).slice(2,5));
+  store[p].convs[cid] = { id:cid, title:title||'Neues Gespräch', msgs:msgs||[], created:Date.now() };
+  store[p].activeId = cid;
+  mSaveStore(store);
+  return cid;
 }
-function mLoadHistory() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('mx_matrix_history') || '{}');
-    for (const p of M_PROVIDERS) { if (Array.isArray(saved[p])) mHistory[p] = saved[p]; }
-  } catch(e) {}
+
+function mGetActive(p)     { const s=mGetStore(); return s[p]?.convs[s[p]?.activeId]||null; }
+function mGetActiveMsgs(p) { return mGetActive(p)?.msgs||[]; }
+
+function mSwitchConv(p, id) {
+  const store = mGetStore();
+  mEnsure(store, p).activeId = id;
+  mSaveStore(store);
+  const el = document.getElementById('mm-'+p);
+  if (el) { el.innerHTML=''; const c=store[p].convs[id]; if(c) for(const m of c.msgs) mRenderMsg(p,m.role,m.content); }
+  mScroll(p);
+  mUpdatePicker(p);
 }
 
-const mHistory = { gemini:[], deepseek:[], grok:[], openai:[] };
-mLoadHistory();
+function mAppendToStore(p, role, content) {
+  const store = mGetStore();
+  const ps = mEnsure(store, p);
+  if (!ps.activeId || !ps.convs[ps.activeId]) {
+    const cid = 'c_'+Date.now();
+    ps.convs[cid] = { id:cid, title:content.substring(0,50).replace(/\n/g,' '), msgs:[], created:Date.now() };
+    ps.activeId = cid;
+  }
+  const conv = ps.convs[ps.activeId];
+  conv.msgs.push({ role, content });
+  if (role==='user' && conv.msgs.filter(m=>m.role==='user').length===1)
+    conv.title = content.substring(0,55).replace(/\n/g,' ');
+  mSaveStore(store);
+  return conv;
+}
 
-// Gemini with full conversation history + system prompt
+function mRenderMsg(p, role, content) {
+  const el = document.getElementById('mm-'+p);
+  if (!el) return null;
+  const div = document.createElement('div');
+  div.className = 'matrix-msg ' + role;
+  div.textContent = content;
+  el.appendChild(div);
+  return div;
+}
+
+function mAddMsg(p, role, text) { // temp DOM-only (loading indicators)
+  const el = document.getElementById('mm-'+p);
+  if (!el) return null;
+  const div = document.createElement('div');
+  div.className = 'matrix-msg '+role;
+  div.textContent = text;
+  el.appendChild(div);
+  mScroll(p);
+  return div;
+}
+
+function mScroll(p)           { const el=document.getElementById('mm-'+p); if(el) el.scrollTop=el.scrollHeight; }
+function mSetLoading(p,active){ const c=document.getElementById('mc-'+p); if(c) c.style.opacity=active?'0.7':'1'; }
+
+function mUpdatePicker(p) {
+  const sel = document.getElementById('mcp-'+p);
+  if (!sel) return;
+  const store = mGetStore();
+  const ps = store[p] || {};
+  const convs = Object.values(ps.convs||{}).sort((a,b)=>b.created-a.created);
+  sel.innerHTML = convs.map(c=>`<option value="${c.id}" ${c.id===ps.activeId?'selected':''}>${c.title.substring(0,30)}</option>`).join('');
+}
+
+// ── API calls ────────────────────────────────────────────────────────────────
+
 async function callGeminiHistory(history, apiKey, model, sysPrompt) {
   const m = model || 'gemini-2.5-flash';
-  const contents = history.map(msg => ({
-    role: msg.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: msg.content }]
-  }));
+  const contents = history.map(msg => ({ role: msg.role==='assistant'?'model':'user', parts:[{text:msg.content}] }));
   const body = { contents };
-  if (sysPrompt) body.system_instruction = { parts: [{ text: sysPrompt }] };
-  const r = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`,
-    { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) }
-  );
-  if (!r.ok) { const e = await r.text(); throw new Error('Gemini ' + r.status + ': ' + e.substring(0,100)); }
+  if (sysPrompt) body.system_instruction = { parts:[{text:sysPrompt}] };
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`,
+    { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(body) });
+  if (!r.ok) { const e=await r.text(); throw new Error('Gemini '+r.status+': '+e.substring(0,100)); }
   const d = await r.json();
   return d.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
-// OAI-compatible with full conversation history + system prompt
 async function callOAIHistory(history, apiKey, baseUrl, model, sysPrompt) {
-  const messages = sysPrompt
-    ? [{ role: 'system', content: sysPrompt }, ...history]
-    : history;
-  const r = await fetch(baseUrl + '/chat/completions', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${apiKey}`, 'content-type': 'application/json' },
-    body: JSON.stringify({ model, messages, max_tokens: 1500 })
+  const messages = sysPrompt ? [{role:'system',content:sysPrompt},...history] : history;
+  const r = await fetch(baseUrl+'/chat/completions', {
+    method:'POST', headers:{'Authorization':`Bearer ${apiKey}`,'content-type':'application/json'},
+    body: JSON.stringify({ model, messages, max_tokens:1500 })
   });
-  if (!r.ok) { const e = await r.text(); throw new Error('v1 ' + r.status + ': ' + e.substring(0,100)); }
+  if (!r.ok) { const e=await r.text(); throw new Error('v1 '+r.status+': '+e.substring(0,100)); }
   const d = await r.json();
   return d.choices?.[0]?.message?.content || '';
 }
@@ -1584,155 +1643,265 @@ async function callMatrixProvider(p, history) {
   const cfg = getCfg();
   const sys = M_SYS[p] || '';
   switch(p) {
-    case 'gemini':   if (!cfg.gemini)   throw new Error('kein Key'); return await callGeminiHistory(history, cfg.gemini,   cfg.geminiModel,  sys);
-    case 'deepseek': if (!cfg.deepseek) throw new Error('kein Key'); return await callOAIHistory(history, cfg.deepseek, 'https://api.deepseek.com/v1',   cfg.deepseekModel, sys);
-    case 'grok':     if (!cfg.grok)     throw new Error('kein Key'); return await callOAIHistory(history, cfg.grok,     'https://api.x.ai/v1',            cfg.grokModel,     sys);
-    case 'openai':   if (!cfg.openai)   throw new Error('kein Key'); return await callOAIHistory(history, cfg.openai,   'https://api.openai.com/v1',      cfg.openaiModel,   sys);
+    case 'gemini':   if(!cfg.gemini)   throw new Error('kein Key'); return await callGeminiHistory(history,cfg.gemini,  cfg.geminiModel,  sys);
+    case 'deepseek': if(!cfg.deepseek) throw new Error('kein Key'); return await callOAIHistory(history,cfg.deepseek,'https://api.deepseek.com/v1',cfg.deepseekModel,sys);
+    case 'grok':     if(!cfg.grok)     throw new Error('kein Key'); return await callOAIHistory(history,cfg.grok,    'https://api.x.ai/v1',       cfg.grokModel,    sys);
+    case 'openai':   if(!cfg.openai)   throw new Error('kein Key'); return await callOAIHistory(history,cfg.openai,  'https://api.openai.com/v1', cfg.openaiModel,  sys);
     default: throw new Error('unknown');
   }
 }
 
-function mScroll(p) {
-  const el = document.getElementById('mm-' + p);
-  if (el) el.scrollTop = el.scrollHeight;
-}
+// ── Send actions ─────────────────────────────────────────────────────────────
 
-function mAddMsg(p, role, text) {
-  const el = document.getElementById('mm-' + p);
-  if (!el) return null;
-  const div = document.createElement('div');
-  div.className = 'matrix-msg ' + role;
-  div.textContent = text;
-  el.appendChild(div);
-  mScroll(p);
-  return div;
-}
-
-function mSetLoading(p, active) {
-  const col = document.getElementById('mc-' + p);
-  if (col) col.style.opacity = active ? '0.7' : '1';
-  // Show/hide spinner in header
-  const dot = col?.querySelector('.matrix-dot');
-  if (dot) dot.style.animation = active ? 'pulse 1s infinite' : 'none';
-}
-
-// Send one message to one specific provider
 async function sendMatrixOne(p) {
-  const inp = document.getElementById('mi-' + p);
+  const inp = document.getElementById('mi-'+p);
   const text = inp?.value?.trim();
   if (!text) return;
-  inp.value = '';
-  inp.style.height = '';
+  inp.value = ''; inp.style.height = '';
 
-  mHistory[p].push({ role:'user', content: text });
-  mAddMsg(p, 'user', text);
+  // Ensure active conv
+  const st = mGetStore(); const ps = mEnsure(st,p);
+  if (!ps.activeId || !ps.convs[ps.activeId]) { mNewConv(p); mUpdatePicker(p); }
+
+  mAppendToStore(p, 'user', text);
+  mRenderMsg(p, 'user', text);
+  mUpdatePicker(p);
   const loadEl = mAddMsg(p, 'assistant streaming', '⟳ …');
   mSetLoading(p, true);
 
   try {
-    const result = await callMatrixProvider(p, mHistory[p]);
-    mHistory[p].push({ role:'assistant', content: result });
-    if (loadEl) { loadEl.textContent = result; loadEl.className = 'matrix-msg assistant'; }
-    mSaveHistory();
+    const result = await callMatrixProvider(p, mGetActiveMsgs(p));
+    if (loadEl) loadEl.remove();
+    mAppendToStore(p, 'assistant', result);
+    mRenderMsg(p, 'assistant', result);
+    mScroll(p);
+    mAutoVaultSync(p);
   } catch(e) {
-    if (loadEl) { loadEl.textContent = '✕ ' + e.message; loadEl.className = 'matrix-msg error'; }
-    mHistory[p].pop();
+    if (loadEl) { loadEl.textContent='✕ '+e.message; loadEl.className='matrix-msg error'; }
+    // rollback user msg
+    const st2=mGetStore(); const c=st2[p]?.convs[st2[p]?.activeId];
+    if (c && c.msgs.at(-1)?.role==='user') { c.msgs.pop(); mSaveStore(st2); }
   }
   mSetLoading(p, false);
-  mScroll(p);
 }
 
-// Send one message to ALL providers simultaneously
 async function sendMatrixAll() {
-  const ta   = document.getElementById('mAllText');
+  const ta = document.getElementById('mAllText');
   const text = ta?.value?.trim();
   if (!text) return;
   ta.value = '';
-
   const btn = document.getElementById('mAllBtn');
   if (btn) btn.disabled = true;
 
-  // Add user msg + loading to all columns
   const loadEls = {};
   for (const p of M_PROVIDERS) {
-    mHistory[p].push({ role:'user', content: text });
-    mAddMsg(p, 'user', text);
-    loadEls[p] = mAddMsg(p, 'assistant streaming', '⟳ …');
-    mSetLoading(p, true);
+    const st=mGetStore(); const ps=mEnsure(st,p);
+    if (!ps.activeId || !ps.convs[ps.activeId]) { mNewConv(p); mUpdatePicker(p); }
+    mAppendToStore(p,'user',text); mRenderMsg(p,'user',text); mUpdatePicker(p);
+    loadEls[p] = mAddMsg(p,'assistant streaming','⟳ …');
+    mSetLoading(p,true);
   }
 
   await Promise.allSettled(M_PROVIDERS.map(async p => {
     try {
-      const result = await callMatrixProvider(p, mHistory[p]);
-      mHistory[p].push({ role:'assistant', content: result });
-      if (loadEls[p]) { loadEls[p].textContent = result; loadEls[p].className = 'matrix-msg assistant'; }
-      mSaveHistory();
+      const result = await callMatrixProvider(p, mGetActiveMsgs(p));
+      if (loadEls[p]) loadEls[p].remove();
+      mAppendToStore(p,'assistant',result); mRenderMsg(p,'assistant',result);
+      mScroll(p); mAutoVaultSync(p);
     } catch(e) {
-      if (loadEls[p]) { loadEls[p].textContent = '✕ ' + e.message; loadEls[p].className = 'matrix-msg error'; }
-      mHistory[p].pop();
+      if (loadEls[p]) { loadEls[p].textContent='✕ '+e.message; loadEls[p].className='matrix-msg error'; }
+      const st2=mGetStore(); const c=st2[p]?.convs[st2[p]?.activeId];
+      if (c && c.msgs.at(-1)?.role==='user') { c.msgs.pop(); mSaveStore(st2); }
     }
-    mSetLoading(p, false);
-    mScroll(p);
+    mSetLoading(p,false);
   }));
 
   if (btn) btn.disabled = false;
 }
 
-function mClearOne(p) {
-  mHistory[p] = [];
-  mSaveHistory();
-  const el = document.getElementById('mm-' + p);
+function mNewChat(p) {
+  mNewConv(p); mUpdatePicker(p);
+  const el = document.getElementById('mm-'+p);
   if (el) el.innerHTML = '';
+  document.getElementById('mi-'+p)?.focus();
+}
+
+function mClearOne(p) {
+  if (!confirm('Dieses Gespräch löschen?')) return;
+  const store = mGetStore(); const ps = store[p];
+  if (ps?.activeId) {
+    delete ps.convs[ps.activeId];
+    ps.activeId = Object.keys(ps.convs)[0] || null;
+    mSaveStore(store);
+  }
+  const el = document.getElementById('mm-'+p);
+  if (el) el.innerHTML = '';
+  const newC = mGetActive(p);
+  if (newC) for (const m of newC.msgs) mRenderMsg(p,m.role,m.content);
+  mUpdatePicker(p);
 }
 
 function mClearAll() {
-  M_PROVIDERS.forEach(p => { mHistory[p] = []; });
-  mSaveHistory();
-  M_PROVIDERS.forEach(p => { const el = document.getElementById('mm-' + p); if (el) el.innerHTML = ''; });
+  if (!confirm('Alle Gespräche aller LLMs löschen?')) return;
+  localStorage.removeItem(M_KEY);
+  M_PROVIDERS.forEach(p => { const el=document.getElementById('mm-'+p); if(el) el.innerHTML=''; mUpdatePicker(p); });
 }
+
+// ── Vault Sync ────────────────────────────────────────────────────────────────
+
+async function mAutoVaultSync(p) {
+  const conv = mGetActive(p);
+  if (!conv || conv.msgs.length < 2) return;
+  try { await mSyncConvToVault(p, conv); } catch(e) {}
+}
+
+async function mSyncConvToVault(p, conv) {
+  const cfg = getCfg();
+  if (!cfg.ghToken || !cfg.vault) return;
+  const today = new Date().toISOString().split('T')[0];
+  const slug = conv.title.replace(/[^a-zA-ZäöüÄÖÜß0-9\s\-]/g,'').trim().replace(/\s+/g,'_').substring(0,50) || 'Gespraech';
+  const dir = M_VAULT_DIR[p] || 'Chats';
+  // Use conv.id-based filename so updates overwrite the same file
+  const filename = `${today}_${slug}.md`;
+  const path = `${dir}/${filename}`;
+  const label = M_LABELS[p] || p;
+
+  let md = `---\nprovider: ${label}\ntitel: "${conv.title.replace(/"/g,"'")}"\ndatum: ${today}\n---\n\n# ${conv.title}\n\n`;
+  for (const msg of conv.msgs) {
+    md += msg.role==='user'
+      ? `**Du:** ${msg.content}\n\n`
+      : `**${label}:** ${msg.content}\n\n---\n\n`;
+  }
+  md += `*${label} · ${today}*\n`;
+
+  const existing = await fetch(`https://api.github.com/repos/${cfg.vault}/contents/${path}`,
+    { headers:{'Authorization':`token ${cfg.ghToken}`} }).then(r=>r.ok?r.json():null).catch(()=>null);
+
+  const payload = { message:`chat: ${label} — ${conv.title.substring(0,50)}`,
+    content: btoa(unescape(encodeURIComponent(md))) };
+  if (existing?.sha) payload.sha = existing.sha;
+
+  await fetch(`https://api.github.com/repos/${cfg.vault}/contents/${path}`, {
+    method:'PUT', headers:{'Authorization':`token ${cfg.ghToken}`,'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  });
+
+  // Flash sync indicator
+  const dot = document.querySelector(`#mc-${p} .matrix-dot`);
+  if (dot) { dot.style.boxShadow='0 0 6px currentColor'; setTimeout(()=>dot.style.boxShadow='',2000); }
+}
+
+// ── ChatGPT Import ────────────────────────────────────────────────────────────
+
+function mShowImport(p) {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json';
+  inp.onchange = async (ev) => {
+    const file = ev.target.files[0];
+    if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      const convs = parseChatGPTExport(data);
+      if (!convs.length) { alert('Keine Gespräche gefunden.\nBitte die conversations.json aus dem ChatGPT-Export verwenden.'); return; }
+      let imported = 0;
+      for (const conv of convs) {
+        if (conv.msgs.length > 0) { mNewConv(p, conv.title, conv.msgs, conv.id); imported++; }
+      }
+      // Switch to most recent
+      const store = mGetStore();
+      const latest = Object.values(store[p]?.convs||{}).sort((a,b)=>b.created-a.created)[0];
+      if (latest) mSwitchConv(p, latest.id);
+      mUpdatePicker(p);
+      alert(`✓ ${imported} Gespräche aus ChatGPT importiert!`);
+    } catch(err) {
+      alert('Fehler: '+err.message+'\nBitte conversations.json aus ChatGPT Settings → Data Controls → Export verwenden.');
+    }
+  };
+  inp.click();
+}
+
+function parseChatGPTExport(data) {
+  if (!Array.isArray(data)) data = [data];
+  return data.map(conv => {
+    const mapping = conv.mapping || {};
+    const nodes = Object.values(mapping)
+      .filter(n => ['user','assistant'].includes(n.message?.author?.role))
+      .filter(n => n.message?.content?.parts?.some(p => typeof p==='string' && p.trim()))
+      .sort((a,b) => (a.message.create_time||0)-(b.message.create_time||0));
+    const msgs = nodes.map(n => ({
+      role: n.message.author.role==='assistant' ? 'assistant' : 'user',
+      content: n.message.content.parts.filter(p=>typeof p==='string').join('').trim()
+    })).filter(m => m.content);
+    return {
+      id: 'gpt_'+Math.round(conv.create_time||Date.now()/1000),
+      title: conv.title || 'ChatGPT Gespräch',
+      msgs,
+      created: (conv.create_time||0)*1000 || Date.now()
+    };
+  }).filter(c => c.msgs.length > 0);
+}
+
+// ── initMatrix ────────────────────────────────────────────────────────────────
 
 function initMatrix() {
   const grid = document.getElementById('mGrid');
   if (!grid || grid.dataset.init) return;
   grid.dataset.init = '1';
-
   const cfg = getCfg();
+
+  // Migrate old flat history (one-time)
+  try {
+    const old = JSON.parse(localStorage.getItem('mx_matrix_history')||'{}');
+    for (const p of M_PROVIDERS) {
+      if (Array.isArray(old[p]) && old[p].length>0) {
+        const store=mGetStore(); const ps=mEnsure(store,p);
+        if (!Object.keys(ps.convs).length) { mSaveStore(store); mNewConv(p,'Ältere Gespräche',old[p]); }
+      }
+    }
+  } catch(e) {}
+
   grid.innerHTML = M_PROVIDERS.map(p => {
     const hasKey = !!cfg[p];
-    const cols   = PROVIDER_COLORS[M_LABELS[p]] || ['#888','#666','#aaa'];
-    const color  = cols[0];
+    const cols  = PROVIDER_COLORS[M_LABELS[p]] || ['#888','#666','#aaa'];
+    const color = cols[0];
+
+    // Ensure a conv exists
+    const store = mGetStore(); const ps = mEnsure(store,p);
+    if (hasKey && (!ps.activeId || !ps.convs[ps.activeId])) mNewConv(p);
+    const convs  = Object.values(ps.convs||{}).sort((a,b)=>b.created-a.created);
+    const opts   = convs.map(c=>`<option value="${c.id}" ${c.id===ps.activeId?'selected':''}>${c.title.substring(0,28)}</option>`).join('');
+
     return `<div class="matrix-col" id="mc-${p}" style="border-color:${color}22">
-      <div class="matrix-header" style="color:${color};border-bottom-color:${color}33">
-        <span class="matrix-dot" style="background:${hasKey ? color : '#444'}"></span>
-        ${M_LABELS[p]}
-        ${!hasKey ? '<span style="font-size:.6rem;opacity:.5">(kein Key)</span>' : ''}
-        <button onclick="mClearOne('${p}')" title="Chat löschen"
-          style="margin-left:auto;background:none;border:none;color:${color}66;cursor:pointer;font-size:0.7rem;padding:0 0.2rem;line-height:1"
-        >✕</button>
+      <div class="matrix-header" style="color:${color};border-bottom-color:${color}33;flex-wrap:wrap;gap:0.25rem;padding:0.35rem 0.5rem">
+        <span class="matrix-dot" style="background:${hasKey?color:'#444'}" title="${hasKey?'Key OK':'Kein Key'}"></span>
+        <span style="font-size:0.6rem;font-weight:700;letter-spacing:.08em">${M_LABELS[p]}</span>
+        <select id="mcp-${p}" onchange="mSwitchConv('${p}',this.value)"
+          style="flex:1;min-width:60px;background:#0a0a0f;border:1px solid ${color}33;color:${color};border-radius:4px;font-size:0.65rem;padding:0.15rem 0.2rem;cursor:pointer"
+          title="Gespräch wechseln">${opts}</select>
+        <button onclick="mNewChat('${p}')"     title="Neues Gespräch"         style="background:none;border:1px solid ${color}44;color:${color};cursor:pointer;font-size:0.7rem;padding:0.1rem 0.3rem;border-radius:4px" ${!hasKey?'disabled':''}>＋</button>
+        <button onclick="mShowImport('${p}')"  title="ChatGPT JSON importieren" style="background:none;border:1px solid ${color}44;color:${color};cursor:pointer;font-size:0.7rem;padding:0.1rem 0.3rem;border-radius:4px" ${!hasKey?'disabled':''}>↑</button>
+        <button onclick="mClearOne('${p}')"    title="Gespräch löschen"       style="background:none;border:none;color:${color}55;cursor:pointer;font-size:0.7rem;padding:0.1rem 0.2rem">✕</button>
       </div>
       <div class="matrix-messages" id="mm-${p}">
-        ${!hasKey ? `<div class="matrix-msg no-key">⚙ API Key in Settings eintragen</div>` : ''}
+        ${!hasKey?`<div class="matrix-msg no-key">⚙ API Key in Settings eintragen</div>`:''}
       </div>
       <div style="padding:0.4rem;border-top:1px solid ${color}22;display:flex;gap:0.3rem;align-items:flex-end">
-        <textarea id="mi-${p}" rows="1" placeholder="${M_LABELS[p]} direkt…"
+        <textarea id="mi-${p}" rows="1" placeholder="Frage an ${M_LABELS[p]}…"
           style="flex:1;resize:none;font-size:0.8rem;padding:0.35rem 0.5rem;min-height:32px;max-height:80px"
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMatrixOne('${p}')}"
           oninput="this.style.height='';this.style.height=Math.min(this.scrollHeight,80)+'px'"
-          ${!hasKey ? 'disabled' : ''}
-        ></textarea>
+          ${!hasKey?'disabled':''}></textarea>
         <button onclick="sendMatrixOne('${p}')"
           style="padding:0.3rem 0.6rem;background:${color}22;border:1px solid ${color}44;color:${color};border-radius:5px;cursor:pointer;font-size:0.85rem;height:32px;flex-shrink:0"
-          ${!hasKey ? 'disabled' : ''}
-        >→</button>
+          ${!hasKey?'disabled':''}>→</button>
       </div>
     </div>`;
   }).join('');
 
-  // Render saved history into columns
+  // Render active conversation messages
   for (const p of M_PROVIDERS) {
-    for (const msg of mHistory[p]) {
-      mAddMsg(p, msg.role === 'assistant' ? 'assistant' : 'user', msg.content);
-    }
+    const conv = mGetActive(p);
+    if (conv) { for (const m of conv.msgs) mRenderMsg(p, m.role, m.content); mScroll(p); }
   }
 }
 
