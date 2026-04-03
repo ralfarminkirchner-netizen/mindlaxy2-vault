@@ -372,6 +372,8 @@
   .tornado-provider { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.6rem; }
   .tornado-content  { line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem; }
   .kreuzung         { border-color: var(--gold); }
+  /* BaiNSTORM responsive grid */
+  @media (max-width: 520px) { #bs-grid { grid-template-columns: repeat(2,1fr) !important; } }
   .kreuzung-section { margin-top: 0.8rem; }
   .kreuzung-section h4 { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.3rem; }
   .kreuzung-section p, .kreuzung-section li { font-size: 0.9rem; line-height: 1.5; }
@@ -417,7 +419,7 @@
 <main>
   <div class="tabs">
     <div class="tab active" onclick="sw('gedanke')">Gedanke</div>
-    <div class="tab" onclick="sw('tornado')">Tornado</div>
+    <div class="tab" onclick="sw('tornado')">🌪 BaiNSTORM</div>
     <div class="tab" onclick="sw('matrix')">4×</div>
     <div class="tab" onclick="sw('settings')">⚙</div>
   </div>
@@ -429,10 +431,10 @@
     <div id="gOut"></div>
   </div>
 
-  <!-- Tornado Panel -->
+  <!-- BaiNSTORM Panel -->
   <div class="panel" id="p-tornado">
-    <textarea id="tText" placeholder="Thema für den Tornado...&#10;&#10;Gemini, DeepSeek und Grok denken gleichzeitig darüber nach.&#10;kiNTEGRiTY 1.0 (Claude) verdichtet alles zu einem Gesamtfazit — ohne Attribute, nur die Essenz. Echte Widersprüche landen im Divergenzen-Absatz." rows="5"></textarea>
-    <button class="btn" id="tBtn" onclick="sendT()">Tornado</button>
+    <textarea id="tText" placeholder="Thema für BaiNSTORM HUNTER…&#10;&#10;Gemini, DeepSeek, Grok und ChatGPT entfesseln ihre Tornados gleichzeitig.&#10;kiNTEGRiTY (Claude) fängt alles in der Ghost Trap — Gesamtfazit + Divergenzen." rows="5"></textarea>
+    <button class="btn" id="tBtn" onclick="sendT()">⚡ BaiNSTORM</button>
     <div id="tOut"></div>
   </div>
 
@@ -536,6 +538,17 @@
 
     <button class="btn" style="margin-top:1rem;" onclick="testKeys()">Status prüfen</button>
     <div id="testOut"></div>
+
+    <div class="key-section" style="margin-top:1.2rem;">
+      <div class="key-title">↗ Export &amp; Teilen</div>
+      <div class="key-label">Matrix-Chatverläufe exportieren</div>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.5rem;">
+        <button class="btn" style="flex:1;font-size:0.8rem;padding:0.4rem 0.8rem;" onclick="exportMatrixMd()">⬇ Alle Chats als .md</button>
+        <button class="btn" style="flex:1;font-size:0.8rem;padding:0.4rem 0.8rem;" onclick="exportMatrixJson()">⬇ Alle Chats als .json</button>
+      </div>
+      <div class="key-label" style="margin-top:0.8rem;">BaiNSTORM-Ergebnis teilen</div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem;">Die Teilen-Buttons erscheinen direkt unter dem BaiNSTORM HUNTER Ergebnis nach jeder Synthese (↗ Teilen öffnet den Apple Share Sheet in Safari).</div>
+    </div>
   </div>
 </main>
 
@@ -922,507 +935,572 @@ Exaktes Format deiner Antwort:
 
 ⚡ Divergenzen: [IMMER vorhanden]`;
 
-// ─── Tornado Visualization ──────────────────────────────────────────────────
+// ─── BaiNSTORM HUNTER Visualization ─────────────────────────────────────────
 
 const T_CHARS = 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩαβγδεζηθικλμνξοπρστυφχψω∞∫∑∏∂∇⊕⊗△▽○●◆◇⬡0123456789ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijklmnpqrstuvwxyz';
 
-const PROVIDER_COLORS = {
-  'GOOGLE · GEMINI':  ['#4285f4','#34a853','#a8c4ff'],
-  'DEEPSEEK':         ['#00d4a3','#0099cc','#7fffd4'],
-  'XAI · GROK':       ['#c060ff','#8820cc','#e8aaff'],
-  'OPENAI · CHATGPT': ['#10a37f','#0d7a60','#5dffc4'],
-  'ANTHROPIC · CLAUDE':['#e07b39','#d4571f','#f4a261'],
+const BS_PROVIDERS = ['gemini','deepseek','grok','openai'];
+const BS_META = {
+  gemini:   { cols:['#4285f4','#34a853','#a8c4ff'], label:'GEMINI',   pLabel:'GOOGLE · GEMINI' },
+  deepseek: { cols:['#00d4a3','#0099cc','#7fffd4'], label:'DEEPSEEK', pLabel:'DEEPSEEK' },
+  grok:     { cols:['#c060ff','#8820cc','#e8aaff'], label:'GROK',     pLabel:'XAI · GROK' },
+  openai:   { cols:['#10a37f','#0d7a60','#5dffc4'], label:'CHATGPT',  pLabel:'OPENAI · CHATGPT' },
 };
-// Always show exactly these 4 thinking providers
-const ALL_THINKING_LABELS = ['GOOGLE · GEMINI','DEEPSEEK','XAI · GROK','OPENAI · CHATGPT'];
+const PLABELS = { anthropic:'ANTHROPIC · CLAUDE', gemini:'GOOGLE · GEMINI', deepseek:'DEEPSEEK', grok:'XAI · GROK', openai:'OPENAI · CHATGPT' };
 
-class TornadoViz {
-  constructor(container, activeLabels) {
-    this.container = container;
-    this.active = new Set(activeLabels);
-    this.phase = 'spin';
-    this.T = 0;
-    this.groups = [];
-    this.mega = [];
-    this.synthRaw = null;
-    this.synthReady = false;
-    this.revealCb = null;
-    this.raf = null;
-
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.cssText = 'display:block;width:100%;border-radius:12px;background:#060610;';
-    this.container.innerHTML = '';
-    this.container.appendChild(this.canvas);
-    this.ctx = this.canvas.getContext('2d');
-
-    this._resize();
-    this._initGroups();
-    this._loop();
+// ── Wild Letter Tornado (per KI) ──────────────────────────────────────────────
+class WildTornado {
+  constructor(canvas, cols, label, active) {
+    this.canvas = canvas; this.ctx = canvas.getContext('2d');
+    this.cols = cols; this.label = label; this.active = active;
+    this.T = 0; this.parts = []; this.raf = null;
+    this.phase = 'spin'; this.fadeAlpha = 1;
+    this._resize(); this._init(); this._loop();
   }
 
   _resize() {
-    const W = this.container.clientWidth || 520;
-    const H = Math.max(460, Math.min(560, W * 0.85));
-    this.canvas.style.height = H + 'px';
-    const dpr = window.devicePixelRatio || 1;
-    this.canvas.width  = W * dpr;
-    this.canvas.height = H * dpr;
-    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const dpr = window.devicePixelRatio||1;
+    const W   = this.canvas.parentElement?.clientWidth || 100;
+    const H   = 190;
+    this.canvas.width  = W*dpr; this.canvas.height = H*dpr;
+    this.canvas.style.height = H+'px';
+    this.ctx.setTransform(dpr,0,0,dpr,0,0);
     this.W = W; this.H = H;
-    // BLACK HOLE BOX position (bottom center)
-    this.bhbX = W / 2;
-    this.bhbY = H - 36;
-    this.bhbW = 170; this.bhbH = 30;
+    this.cx = W/2; this.cy = H*0.42;
   }
 
-  // Diamond positions for 4 tornadoes — wide spread
-  _pos() {
-    const cx = this.W/2, cy = this.H/2 - 30;
-    const rx = Math.min(this.W * 0.34, 170);
-    const ry = Math.min(this.H * 0.26, 120);
-    // N, E, S, W — mapped to our 4 providers in order
-    return [
-      {x: cx,      y: cy - ry},   // top
-      {x: cx + rx, y: cy},         // right
-      {x: cx,      y: cy + ry},   // bottom
-      {x: cx - rx, y: cy},         // left
-    ];
-  }
-
-  _mkPart(cx, cy, cols, ph, active) {
+  _mkPart() {
+    const a = this.active;
+    const dir = Math.random() > 0.22 ? 1 : -1;   // ~22% go backwards — chaos!
     return {
-      a:   ph * Math.PI * 2 + Math.random() * 0.5,
-      h:   (Math.random() - 0.5) * 170,  // ±85px height span
-      r:   active ? (40 + Math.random() * 30) : (20 + Math.random() * 15),
-      spd: (0.03 + Math.random() * 0.025) * (Math.random() > 0.25 ? 1 : -1),
-      ch:  T_CHARS[Math.floor(Math.random() * T_CHARS.length)],
-      col: active ? cols[Math.floor(Math.random() * cols.length)] : '#444',
-      sz:  active ? (9 + Math.random() * 8) : (6 + Math.random() * 4),
-      op:  active ? (0.5 + Math.random() * 0.5) : (0.12 + Math.random() * 0.1),
-      hs:  -(0.4 + Math.random() * 0.3),  // rise speed (upward = negative h direction)
+      ang:  Math.random() * Math.PI * 2,
+      h:    (Math.random()-0.5) * 150,             // ±75 height
+      r:    a ? (4 + Math.random()*58) : (3+Math.random()*12),  // very wide radius spread
+      spd:  dir * (a ? (0.01+Math.random()*0.09) : (0.006+Math.random()*0.025)),
+      wA:   Math.random() * 14,                    // wobble amplitude on radius
+      wF:   0.013 + Math.random()*0.075,           // wobble frequency
+      wT:   Math.random() * Math.PI*2,
+      ch:   T_CHARS[Math.random()*T_CHARS.length|0],
+      life: (4 + Math.random()*28)|0,
+      age:  0,
+      col:  a ? this.cols[Math.random()*this.cols.length|0] : '#252525',
+      sz:   a ? (6+Math.random()*12) : (4+Math.random()*5),
+      op:   a ? (0.22+Math.random()*0.78) : (0.05+Math.random()*0.1),
+      hs:   -(0.18+Math.random()*0.65),            // rise speed (upward)
     };
   }
 
-  // TRUE funnel: WIDE at TOP (h = -85), NARROW at BOTTOM (h = +85) — real tornado shape
-  _updatePart(p, cx, cy) {
-    p.a += p.spd;
-    p.h += p.hs;
-    if (p.h < -86) {
-      p.h = 85;
-      p.ch = T_CHARS[Math.floor(Math.random() * T_CHARS.length)];
+  _init() {
+    const n = this.active ? 70 : 16;
+    this.parts = Array.from({length:n}, () => this._mkPart());
+  }
+
+  _step(p) {
+    p.ang += p.spd;
+    p.wT  += p.wF;
+    p.h   += p.hs;
+    p.age++;
+    if (p.age > p.life) {
+      p.ch  = T_CHARS[Math.random()*T_CHARS.length|0];
+      p.col = this.active ? this.cols[Math.random()*this.cols.length|0] : '#252525';
+      p.age = 0; p.life = (4+Math.random()*24)|0;
     }
-    // Funnel scale: 1.0 at top, ~0.04 at bottom tip
-    const norm = (p.h + 85) / 170;          // 0 = top (wide), 1 = bottom (tip)
-    const funnel = Math.max(0.04, 1 - norm * 0.96);
-    p.sx = cx + Math.cos(p.a) * p.r * funnel;
-    p.sy = cy + p.h + Math.sin(p.a) * p.r * funnel * 0.1; // very slight oval
+    if (p.h < -76) { p.h = 75; p.ch = T_CHARS[Math.random()*T_CHARS.length|0]; }
+    // Funnel: 0=top (wide), 1=bottom (narrow tip)
+    const norm   = (p.h + 75) / 150;
+    const funnel = Math.max(0.025, 1 - norm*0.975);
+    const effR   = (p.r + Math.sin(p.wT)*p.wA) * funnel;
+    // Wild jitter
+    const jx = (Math.random()-0.5) * (this.active ? 4 : 1);
+    const jy = (Math.random()-0.5) * (this.active ? 2.5 : 0.5);
+    p.sx = this.cx + Math.cos(p.ang)*effR + jx;
+    p.sy = this.cy + p.h + Math.sin(p.ang)*effR*0.06 + jy;
   }
 
-  _initGroups() {
-    const pos = this._pos();
-    this.groups = ALL_THINKING_LABELS.map((name, i) => {
-      const active = this.active.has(name);
-      const cols = PROVIDER_COLORS[name] || ['#666'];
-      const parts = Array.from({length: active ? 55 : 22},
-        (_, j) => this._mkPart(pos[i].x, pos[i].y, cols, j / (active ? 55 : 22), active));
-      return { name, pos: {...pos[i]}, startPos: {...pos[i]}, cols, parts, active };
-    });
-  }
-
-  _drawBHB(ctx, pulse = 1, openFrac = 0) {
-    const { bhbX: bx, bhbY: by, bhbW: bw, bhbH: bh } = this;
+  _draw(ctx) {
     ctx.save();
-    ctx.globalAlpha = 0.55 + 0.25 * pulse;
-    // Glow
-    if (openFrac > 0) {
-      const gg = ctx.createRadialGradient(bx, by, 0, bx, by, 100 * openFrac);
-      gg.addColorStop(0, `rgba(255,215,0,${0.35 * openFrac})`);
-      gg.addColorStop(1, 'transparent');
-      ctx.fillStyle = gg; ctx.fillRect(0, 0, this.W, this.H);
+    if (this.active) {
+      // Color glow halo
+      const g = ctx.createRadialGradient(this.cx,this.cy,0,this.cx,this.cy,56);
+      g.addColorStop(0,this.cols[0]+'20'); g.addColorStop(1,'transparent');
+      ctx.fillStyle=g; ctx.fillRect(0,0,this.W,this.H);
+      // Second smaller glow (inner intensity)
+      const g2 = ctx.createRadialGradient(this.cx,this.cy+30,0,this.cx,this.cy+30,30);
+      g2.addColorStop(0,this.cols[1]+'18'); g2.addColorStop(1,'transparent');
+      ctx.fillStyle=g2; ctx.fillRect(0,0,this.W,this.H);
     }
-    ctx.fillStyle = '#000';
-    ctx.strokeStyle = openFrac > 0 ? `rgba(255,215,0,${0.6+0.4*openFrac})` : '#3a3a2a';
-    ctx.lineWidth = openFrac > 0 ? 1.5 + openFrac : 1;
-    ctx.fillRect(bx - bw/2, by - bh/2, bw, bh);
-    ctx.strokeRect(bx - bw/2, by - bh/2, bw, bh);
-    ctx.fillStyle = openFrac > 0 ? `rgba(255,215,0,${0.7+0.3*openFrac})` : '#555';
-    ctx.font = `bold 8px monospace`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('▪  BLACK  HOLE  BOX  ▪', bx, by);
+    for (const p of this.parts) {
+      ctx.globalAlpha = p.op * this.fadeAlpha;
+      ctx.fillStyle   = p.col;
+      ctx.font        = `${p.sz}px monospace`;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.ch, p.sx, p.sy);
+    }
+    // Provider label at top
+    const lp = 0.55 + 0.22*Math.sin(this.T*0.055);
+    ctx.globalAlpha = (this.active ? lp : 0.2) * this.fadeAlpha;
+    ctx.fillStyle   = this.active ? this.cols[0] : '#3a3a3a';
+    ctx.font        = `bold 7px monospace`;
+    ctx.textAlign   = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(this.label, this.cx, 10);
+    // Ground dot
+    ctx.globalAlpha = (this.active ? 0.6 : 0.08) * this.fadeAlpha;
+    ctx.fillStyle   = this.active ? this.cols[0] : '#2a2a2a';
+    ctx.beginPath(); ctx.arc(this.cx, this.cy+76, 2.5, 0, Math.PI*2); ctx.fill();
     ctx.restore();
-  }
-
-  _drawSpin(ctx) {
-    const bhPulse = 0.4 + 0.15 * Math.sin(this.T * 0.05);
-    this._drawBHB(ctx, bhPulse);
-
-    for (const g of this.groups) {
-      for (const p of g.parts) this._updatePart(p, g.pos.x, g.pos.y);
-
-      if (g.active) {
-        // Color glow behind active tornado
-        const grd = ctx.createRadialGradient(g.pos.x, g.pos.y, 0, g.pos.x, g.pos.y, 65);
-        grd.addColorStop(0, g.cols[0] + '22'); grd.addColorStop(1, 'transparent');
-        ctx.fillStyle = grd; ctx.fillRect(0, 0, this.W, this.H);
-      }
-
-      for (const p of g.parts) {
-        ctx.globalAlpha = p.op;
-        ctx.fillStyle = p.col;
-        ctx.font = `${p.sz}px monospace`;
-        ctx.textBaseline = 'middle';
-        ctx.fillText(p.ch, p.sx, p.sy);
-      }
-
-      // Provider label above cloud top
-      const labelY = g.pos.y - 95;
-      ctx.globalAlpha = g.active ? 0.9 : 0.28;
-      ctx.fillStyle = g.active ? g.cols[0] : '#444';
-      ctx.font = `bold ${g.active ? 9 : 8}px monospace`;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(g.name, g.pos.x, labelY);
-      if (!g.active) {
-        ctx.globalAlpha = 0.2;
-        ctx.fillStyle = '#666';
-        ctx.font = '7px monospace';
-        ctx.fillText('kein key', g.pos.x, labelY + 12);
-      }
-      // Ground touch-point dot
-      ctx.globalAlpha = g.active ? 0.5 : 0.1;
-      ctx.fillStyle = g.active ? g.cols[0] : '#333';
-      ctx.beginPath();
-      ctx.arc(g.pos.x, g.pos.y + 86, g.active ? 3 : 2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    const pulse = 0.3 + 0.2 * Math.sin(this.T * 0.07);
-    ctx.globalAlpha = pulse; ctx.fillStyle = '#444';
-    ctx.font = '9px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('analysieren · · ·', this.W / 2, this.bhbY - 22);
-    ctx.globalAlpha = 1;
-  }
-
-  _ease(t) { return t < 0.5 ? 2*t*t : -1 + (4 - 2*t)*t; }
-  _easeIn3(t) { return t * t * t; }
-
-  _drawMerge(ctx) {
-    const prog = Math.min(1, this.T / 65);
-    const e = this._ease(prog);
-    const cx = this.W / 2, cy = this.H / 2 - 20;
-    this._drawBHB(ctx, 0.4 + e * 0.3);
-
-    for (const g of this.groups) {
-      if (!g.active) continue;
-      const tx = g.startPos.x + (cx - g.startPos.x) * e;
-      const ty = g.startPos.y + (cy - g.startPos.y) * e;
-      g.pos.x = tx; g.pos.y = ty;
-      for (const p of g.parts) this._updatePart(p, tx, ty);
-      for (const p of g.parts) {
-        ctx.globalAlpha = p.op * (1 - e * 0.35);
-        ctx.fillStyle = p.col;
-        ctx.font = `${p.sz * (1 + e * 0.4)}px monospace`;
-        ctx.textBaseline = 'middle';
-        ctx.fillText(p.ch, p.sx, p.sy);
-      }
-      ctx.globalAlpha = 0.8 * (1 - e);
-      ctx.fillStyle = g.cols[0];
-      ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(g.name, tx, ty - 95 * (1 - e * 0.6));
-    }
-    // Converging sparks
-    if (prog > 0.25) {
-      const sparkOp = ((prog - 0.25) / 0.75) * 0.5;
-      ctx.globalAlpha = sparkOp; ctx.strokeStyle = '#ffd70055'; ctx.lineWidth = 0.6;
-      const active = this.groups.filter(g => g.active);
-      for (let i = 0; i < active.length; i++) {
-        for (let j = i + 1; j < active.length; j++) {
-          ctx.beginPath();
-          ctx.moveTo(active[i].pos.x, active[i].pos.y);
-          ctx.lineTo(active[j].pos.x, active[j].pos.y);
-          ctx.stroke();
-        }
-      }
-    }
-    ctx.globalAlpha = 1;
-    if (prog >= 1) this._startMega();
-  }
-
-  _startMega() {
-    const allCols = Object.values(PROVIDER_COLORS).flat().concat(['#ffd700','#ffffff','#ffaaff']);
-    this.mega = Array.from({length: 140}, () => ({
-      a:   Math.random() * Math.PI * 2,
-      h:   (Math.random() - 0.5) * 230,   // ±115px — massive
-      r:   25 + Math.random() * 75,
-      spd: (0.05 + Math.random() * 0.045) * (Math.random() > 0.18 ? 1 : -1),
-      ch:  T_CHARS[Math.floor(Math.random() * T_CHARS.length)],
-      col: allCols[Math.floor(Math.random() * allCols.length)],
-      sz:  10 + Math.random() * 11,
-      op:  0.4 + Math.random() * 0.6,
-      hs:  -(0.5 + Math.random() * 0.4),
-    }));
-    this.phase = 'mega'; this.T = 0;
-  }
-
-  _drawMega(ctx) {
-    const cx = this.W / 2, cy = this.H / 2 - 30;
-    const scale = Math.min(1.7, 1 + this.T / 90);
-    this._drawBHB(ctx, 0.6 + 0.2 * Math.sin(this.T * 0.08));
-
-    const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, 130 * scale);
-    grd.addColorStop(0, 'rgba(255,215,0,0.12)'); grd.addColorStop(1, 'transparent');
-    ctx.fillStyle = grd; ctx.fillRect(0, 0, this.W, this.H);
-
-    for (const p of this.mega) {
-      p.a += p.spd * (0.85 + scale * 0.45);
-      p.h += p.hs;
-      if (p.h < -116) { p.h = 115; p.ch = T_CHARS[Math.floor(Math.random() * T_CHARS.length)]; }
-      // Mega funnel: wide at top, tip at bottom
-      const norm = (p.h + 115) / 230;
-      const funnel = Math.max(0.04, 1 - norm * 0.96);
-      const sx = cx + Math.cos(p.a) * p.r * scale * funnel;
-      const sy = cy + p.h + Math.sin(p.a) * p.r * scale * funnel * 0.06;
-      ctx.globalAlpha = p.op;
-      ctx.fillStyle = p.col;
-      ctx.font = `bold ${p.sz}px monospace`;
-      ctx.textBaseline = 'middle';
-      ctx.fillText(p.ch, sx, sy);
-    }
-    const pulse = 0.75 + 0.25 * Math.sin(this.T * 0.13);
-    ctx.globalAlpha = pulse; ctx.fillStyle = '#ffd700';
-    ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('kiNTEGRiTY 1.0', cx, cy - 130);
-    ctx.globalAlpha = pulse * 0.5; ctx.fillStyle = '#aaa';
-    ctx.font = '9px monospace';
-    ctx.fillText('synthetisiert · · ·', cx, this.bhbY - 22);
-    ctx.globalAlpha = 1;
-
-    if (this.synthReady) { this.phase = 'absorb'; this.T = 0; }
-  }
-
-  _drawAbsorb(ctx) {
-    const prog = Math.min(1, this.T / 80);
-    const e = this._easeIn3(prog);
-    const cx = this.W / 2;
-    const targetY = this.bhbY; // suck into BLACK HOLE BOX
-
-    // BHB opens and glows brighter as tornado pours in
-    this._drawBHB(ctx, 1, e);
-
-    for (const p of this.mega) {
-      p.a += p.spd * (1 + e * 6);
-      const pullFac = 1 - e;
-      const norm = (p.h + 115) / 230;
-      const funnel = Math.max(0.04, 1 - norm * 0.96) * pullFac;
-      // Tornado tip → BHB position
-      const tornadoCy = this.H / 2 - 30;
-      const currentCy = tornadoCy + (targetY - tornadoCy) * e;
-      const sx = cx + Math.cos(p.a) * p.r * funnel;
-      const sy = currentCy + p.h * pullFac;
-      ctx.globalAlpha = p.op * (1 - e * 0.9);
-      ctx.fillStyle = p.col;
-      ctx.font = `bold ${p.sz * (1 - e * 0.5)}px monospace`;
-      ctx.textBaseline = 'middle';
-      ctx.fillText(p.ch, sx, sy);
-    }
-
-    // "Spaghettification" streaks toward BHB
-    if (e > 0.4) {
-      const streakOp = (e - 0.4) / 0.6;
-      ctx.globalAlpha = streakOp * 0.4;
-      ctx.strokeStyle = '#ffd700';
-      ctx.lineWidth = 0.5;
-      for (let i = 0; i < 20; i++) {
-        const a = (i / 20) * Math.PI * 2 + this.T * 0.05;
-        const r = 60 * (1 - e);
-        ctx.beginPath();
-        ctx.moveTo(cx + Math.cos(a) * r, this.H / 2 - 30 + Math.sin(a) * r * 0.3);
-        ctx.lineTo(cx, targetY);
-        ctx.stroke();
-      }
-    }
-
-    // Final flash inside BHB
-    if (prog > 0.88) {
-      const flash = (prog - 0.88) / 0.12;
-      ctx.globalAlpha = flash * 0.8;
-      ctx.fillStyle = '#ffd700';
-      ctx.fillRect(cx - this.bhbW/2 + 2, targetY - this.bhbH/2 + 2, this.bhbW - 4, this.bhbH - 4);
-    }
-    ctx.globalAlpha = 1;
-
-    if (prog >= 1 && this.revealCb) {
-      cancelAnimationFrame(this.raf);
-      this.phase = 'done';
-      const cb = this.revealCb; this.revealCb = null;
-      cb(this.synthRaw);
-    }
   }
 
   _loop() {
     const ctx = this.ctx;
-    ctx.clearRect(0, 0, this.W, this.H);
-    ctx.fillStyle = '#060610'; ctx.fillRect(0, 0, this.W, this.H);
-
-    if      (this.phase === 'spin')   this._drawSpin(ctx);
-    else if (this.phase === 'merge')  this._drawMerge(ctx);
-    else if (this.phase === 'mega')   this._drawMega(ctx);
-    else if (this.phase === 'absorb') this._drawAbsorb(ctx);
-
+    ctx.clearRect(0,0,this.W,this.H);
+    ctx.fillStyle='#060610'; ctx.fillRect(0,0,this.W,this.H);
+    for (const p of this.parts) this._step(p);
+    this._draw(ctx);
+    if (this.phase === 'fade') {
+      this.fadeAlpha = Math.max(0, this.fadeAlpha - 0.022);
+      if (this.fadeAlpha <= 0) { this.phase='done'; return; }
+    }
     this.T++;
-    if (this.phase !== 'done') this.raf = requestAnimationFrame(() => this._loop());
+    this.raf = requestAnimationFrame(() => this._loop());
   }
 
-  notifyResponsesReady() { this.phase = 'merge'; this.T = 0; }
-
-  notifySynthReady(raw) {
-    this.synthRaw = raw; this.synthReady = true;
-    if (this.phase === 'mega') { this.phase = 'absorb'; this.T = 0; }
-  }
-
-  startReveal(cb) {
-    this.revealCb = cb;
-    if (this.phase === 'done') cb(this.synthRaw);
-  }
+  fade() { this.phase = 'fade'; }
+  stop() { if(this.raf) cancelAnimationFrame(this.raf); }
 }
 
-// ─── Tornado send ────────────────────────────────────────────────────────────
+// ── Ghost Trap (Geisterfalle) ─────────────────────────────────────────────────
+class GhostTrap {
+  constructor(canvas) {
+    this.canvas = canvas; this.ctx = canvas.getContext('2d');
+    this.T = 0; this.openFrac = 0; this.capT = 0;
+    this.phase = 'idle'; this.doneCb = null; this.raf = null;
+    this._resize(); this._loop();
+  }
+
+  _resize() {
+    const dpr = window.devicePixelRatio||1;
+    const W   = this.canvas.parentElement?.clientWidth || 400;
+    const H   = 74;
+    this.canvas.width  = W*dpr; this.canvas.height = H*dpr;
+    this.canvas.style.height = H+'px';
+    this.ctx.setTransform(dpr,0,0,dpr,0,0);
+    this.W = W; this.H = H;
+  }
+
+  _draw(ctx) {
+    const {W,H} = this;
+    const f   = this.openFrac;
+    const bx  = W/2, by = H/2;
+    const bw  = Math.min(W*0.82, 400);
+    const jaw = 20;          // half-height of each jaw
+    const gap = f * 18;      // max gap = 18px
+
+    // ── Background halo ──
+    if (f > 0.05) {
+      const halo = ctx.createRadialGradient(bx,by,0,bx,by,120*f);
+      halo.addColorStop(0,`rgba(255,140,0,${0.2*f})`);
+      halo.addColorStop(1,'transparent');
+      ctx.fillStyle=halo; ctx.fillRect(0,0,W,H);
+    }
+
+    // ── Capture beam (upward from gap) ──
+    if ((this.phase==='capturing'||this.phase==='closing') && this.capT > 8) {
+      const bOp = Math.min(1,(this.capT-8)/18) * (0.42+0.28*Math.sin(this.T*0.26));
+      const bW2 = bw * 0.52 * f;
+      const bg = ctx.createLinearGradient(bx,by-gap,bx,0);
+      bg.addColorStop(0,`rgba(255,190,0,${bOp*0.9})`);
+      bg.addColorStop(0.45,`rgba(255,100,0,${bOp*0.4})`);
+      bg.addColorStop(1,'transparent');
+      ctx.fillStyle=bg; ctx.fillRect(bx-bW2/2,0,bW2,by-gap);
+      // Sparks in beam
+      ctx.globalAlpha=bOp*0.75;
+      const sparks=['∴','✦','◈','⬡','⊕','∞','Ψ','Ω'];
+      for(let i=0;i<9;i++){
+        const a=(i/9)*Math.PI*2+this.T*0.1;
+        const sr=(8+14*Math.sin(this.T*0.09+i))*f;
+        ctx.fillStyle=i%2?'#ffd700':'#ff9900';
+        ctx.font='9px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(sparks[i%sparks.length], bx+Math.cos(a)*sr, by-gap-sr*0.35);
+      }
+      ctx.globalAlpha=1;
+    }
+
+    // ── TOP JAW ──
+    const topY = by - jaw - gap;
+    ctx.fillStyle='#070710';
+    ctx.strokeStyle = f>0 ? `rgba(255,145,0,${0.55+0.45*f})` : '#252218';
+    ctx.lineWidth   = f>0 ? 1.5 : 1;
+    ctx.fillRect(bx-bw/2, topY, bw, jaw);
+    ctx.strokeRect(bx-bw/2, topY, bw, jaw);
+    // Diagonal hazard stripes on top jaw
+    ctx.save(); ctx.beginPath(); ctx.rect(bx-bw/2+2,topY+2,bw-4,jaw-4); ctx.clip();
+    ctx.globalAlpha=f>0?0.2:0.05; ctx.strokeStyle=f>0?'#ff7700':'#443300'; ctx.lineWidth=3.5;
+    for(let i=-3;i<bw/7+3;i++){ctx.beginPath();ctx.moveTo(bx-bw/2+i*7,topY);ctx.lineTo(bx-bw/2+i*7+jaw,topY+jaw);ctx.stroke();}
+    ctx.restore();
+
+    // ── BOTTOM JAW ──
+    const botY = by + gap;
+    ctx.fillStyle='#070710';
+    ctx.strokeStyle = f>0 ? `rgba(255,145,0,${0.55+0.45*f})` : '#252218';
+    ctx.lineWidth   = f>0 ? 1.5 : 1;
+    ctx.fillRect(bx-bw/2, botY, bw, jaw);
+    ctx.strokeRect(bx-bw/2, botY, bw, jaw);
+    ctx.save(); ctx.beginPath(); ctx.rect(bx-bw/2+2,botY+2,bw-4,jaw-4); ctx.clip();
+    ctx.globalAlpha=f>0?0.2:0.05; ctx.strokeStyle=f>0?'#ff7700':'#443300'; ctx.lineWidth=3.5;
+    for(let i=-3;i<bw/7+3;i++){ctx.beginPath();ctx.moveTo(bx-bw/2+i*7,botY);ctx.lineTo(bx-bw/2+i*7+jaw,botY+jaw);ctx.stroke();}
+    ctx.restore();
+
+    // ── Inner energy glow between jaws ──
+    if(f>0.08){
+      ctx.globalAlpha=Math.min(1,f)*0.75;
+      const ig=ctx.createLinearGradient(0,topY+jaw,0,botY);
+      ig.addColorStop(0,'#ff5500'); ig.addColorStop(0.5,'#ffd700'); ig.addColorStop(1,'#ff5500');
+      ctx.fillStyle=ig; ctx.fillRect(bx-bw/2+2,topY+jaw,bw-4,gap*2);
+      ctx.globalAlpha=1;
+    }
+
+    // ── Corner rivets ──
+    const rv=[[bx-bw/2+5,topY+5],[bx+bw/2-5,topY+5],[bx-bw/2+5,topY+jaw-5],[bx+bw/2-5,topY+jaw-5],
+              [bx-bw/2+5,botY+5],[bx+bw/2-5,botY+5],[bx-bw/2+5,botY+jaw-5],[bx+bw/2-5,botY+jaw-5]];
+    for(const[rx,ry]of rv){
+      ctx.beginPath(); ctx.arc(rx,ry,2.5,0,Math.PI*2);
+      ctx.fillStyle=f>0?'#bb3300':'#2e2200'; ctx.fill();
+      ctx.strokeStyle=f>0?'#ff7700':'#443300'; ctx.lineWidth=0.5; ctx.stroke();
+    }
+
+    // ── Warning lights (blinking LEDs) ──
+    const fast = this.phase==='capturing';
+    const blink = Math.sin(this.T*(fast?0.42:0.08)) > 0;
+    for(const dx of [-bw/2+17, bw/2-17]){
+      ctx.beginPath(); ctx.arc(bx+dx,by,5,0,Math.PI*2);
+      ctx.fillStyle=blink?(fast?'#ff1100':'#ff3300'):'#2a0000'; ctx.fill();
+      if(blink){ctx.globalAlpha=0.3;ctx.beginPath();ctx.arc(bx+dx,by,9,0,Math.PI*2);ctx.fillStyle='#ff2200';ctx.fill();ctx.globalAlpha=1;}
+    }
+
+    // ── Ghostbusters ghost icon (idle, fades as trap opens) ──
+    if(f<0.35){
+      ctx.globalAlpha=(1-f/0.35)*0.28;
+      ctx.font='bold 18px serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#777';
+      ctx.fillText('👻',bx,by);
+      ctx.globalAlpha=1;
+    }
+
+    // ── Side detail lines (mechanical look) ──
+    ctx.globalAlpha=f>0?0.35:0.12;
+    ctx.strokeStyle=f>0?'#664400':'#333';
+    ctx.lineWidth=0.8;
+    for(const[jy2,side] of [[topY,1],[botY,-1]]){
+      for(let i=1;i<=3;i++){
+        const lx=bx+(side*(bw/2-8-i*12));
+        ctx.beginPath(); ctx.moveTo(lx,jy2+4); ctx.lineTo(lx,jy2+jaw-4); ctx.stroke();
+      }
+    }
+    ctx.globalAlpha=1;
+
+    // ── Center label ──
+    const labels={'idle':'─── BaiNSTORM HUNTER ───','opening':'▲  TRAP OPENING  ▲',
+                  'capturing':'◈  CAPTURE MODE  ◈','closing':'●  SEALED  ●','done':'─── BaiNSTORM HUNTER ───'};
+    const lp=0.5+0.3*Math.sin(this.T*0.07);
+    ctx.globalAlpha=f>0?(0.82+0.18*lp):0.38;
+    ctx.fillStyle=f>0?'#ffd700':'#555';
+    ctx.font=`bold 8px monospace`; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(labels[this.phase]||labels.idle, bx, by);
+    ctx.globalAlpha=1;
+  }
+
+  _loop() {
+    const ctx=this.ctx;
+    ctx.clearRect(0,0,this.W,this.H);
+    ctx.fillStyle='#060610'; ctx.fillRect(0,0,this.W,this.H);
+    if     (this.phase==='opening')   {this.openFrac=Math.min(1,this.openFrac+0.026);if(this.openFrac>=1){this.phase='capturing';this.capT=0;}}
+    else if(this.phase==='capturing') {this.capT++;}
+    else if(this.phase==='closing')   {this.openFrac=Math.max(0,this.openFrac-0.024);if(this.openFrac<=0){this.phase='done';if(this.doneCb)this.doneCb();}}
+    this._draw(ctx);
+    this.T++;
+    if(this.phase!=='done') this.raf=requestAnimationFrame(()=>this._loop());
+  }
+  open()     { this.phase='opening'; }
+  seal(cb)   { this.doneCb=cb; this.phase='closing'; }
+  stop()     { if(this.raf) cancelAnimationFrame(this.raf); }
+}
+
+// ── BainstormHub: 4 WildTornados + GhostTrap ─────────────────────────────────
+class BainstormHub {
+  constructor(container, activeSet) {
+    this.container  = container;
+    this.activeSet  = new Set(activeSet);
+    this.tornados   = {};
+    this.trap       = null;
+    this._build();
+  }
+
+  _build() {
+    // Grid of 4 KI columns
+    const grid = document.createElement('div');
+    grid.id = 'bs-grid';
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:6px;';
+    this.container.appendChild(grid);
+
+    for (const p of BS_PROVIDERS) {
+      const meta   = BS_META[p];
+      const active = this.activeSet.has(p);
+      const col    = meta.cols[0];
+
+      const cell = document.createElement('div');
+      cell.id = `bs-cell-${p}`;
+      cell.style.cssText = `display:flex;flex-direction:column;border:1px solid ${active?col+'55':'#1a1a1a'};border-radius:8px;overflow:hidden;background:#050510;`;
+
+      const cv = document.createElement('canvas');
+      cv.style.cssText = 'display:block;width:100%;flex-shrink:0;';
+      cell.appendChild(cv);
+
+      const tx = document.createElement('div');
+      tx.id = `bs-tx-${p}`;
+      tx.style.cssText = `font-size:0.67rem;line-height:1.5;padding:5px 7px;color:${active?'#bbb':'#2e2e2e'};min-height:48px;max-height:130px;overflow-y:auto;border-top:1px solid ${active?col+'22':'#0f0f0f'};white-space:pre-wrap;word-break:break-word;`;
+      tx.textContent = active ? '…' : 'kein Key';
+      cell.appendChild(tx);
+      grid.appendChild(cell);
+
+      // Init tornado after layout (need real clientWidth)
+      const self = this;
+      requestAnimationFrame(() => {
+        self.tornados[p] = new WildTornado(cv, meta.cols, meta.label, active);
+      });
+    }
+
+    // Ghost Trap below grid
+    const trapWrap = document.createElement('div');
+    trapWrap.style.cssText = 'margin-top:4px;border-radius:8px;overflow:hidden;';
+    const trapCv = document.createElement('canvas');
+    trapCv.style.cssText = 'display:block;width:100%;';
+    trapWrap.appendChild(trapCv);
+    this.container.appendChild(trapWrap);
+
+    const self = this;
+    requestAnimationFrame(() => { self.trap = new GhostTrap(trapCv); });
+  }
+
+  setResponse(p, text)  { const el=document.getElementById(`bs-tx-${p}`); if(el) el.textContent=text||'–'; }
+  setError(p, msg)      { const el=document.getElementById(`bs-tx-${p}`); if(el){el.textContent='✕ '+msg;el.style.color='#cc3333';} }
+
+  merge() {
+    for (const p of BS_PROVIDERS) { if(this.tornados[p]?.active) this.tornados[p].fade(); }
+    setTimeout(() => { if(this.trap) this.trap.open(); }, 350);
+  }
+
+  seal(cb) { if(this.trap) this.trap.seal(cb); else if(cb) cb(); }
+  stopAll() { for(const p of BS_PROVIDERS) this.tornados[p]?.stop(); this.trap?.stop(); }
+}
+
+// ─── BaiNSTORM send ───────────────────────────────────────────────────────────
 
 async function sendT() {
-  const cfg = getCfg();
+  const cfg  = getCfg();
   const text = document.getElementById('tText').value.trim();
   if (!text) return;
   const btn = document.getElementById('tBtn');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Tornado...';
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>BaiNSTORM…';
   const out = document.getElementById('tOut');
   out.innerHTML = '';
-
-  const PLABELS = { anthropic:'ANTHROPIC · CLAUDE', gemini:'GOOGLE · GEMINI', deepseek:'DEEPSEEK', grok:'XAI · GROK', openai:'OPENAI · CHATGPT' };
 
   const providers = availableProviders().filter(p => p !== 'anthropic');
   if (providers.length === 0) {
     out.innerHTML = '<div style="color:var(--asteroid)">⚠ Kein AI-Key konfiguriert (Gemini, DeepSeek, Grok oder OpenAI) → ⚙ Settings</div>';
-    btn.disabled = false; btn.textContent = 'Tornado'; return;
+    btn.disabled = false; btn.textContent = '⚡ BaiNSTORM'; return;
   }
 
-  // Start animation immediately
-  const viz = new TornadoViz(out, providers.map(p => PLABELS[p]||p));
-
+  const hub = new BainstormHub(out, providers);
   let okCards = [], errCards = [], responses = [];
 
-  try {
-    // Fire all providers in parallel
-    const results = await Promise.allSettled(
-      providers.map(p => callProvider(p, TORNADO_SYSTEM, text).then(r => ({provider:p, content:r})))
-    );
+  // Fire all providers in parallel
+  const results = await Promise.allSettled(
+    providers.map(p => callProvider(p, TORNADO_SYSTEM, text).then(r => ({provider:p,content:r})))
+  );
 
-    for (let i=0; i<results.length; i++) {
-      const r = results[i];
-      if (r.status==='fulfilled') {
-        okCards.push(r.value);
-        responses.push({ provider: PLABELS[r.value.provider]||r.value.provider, content: r.value.content });
-      } else {
-        errCards.push({ provider: providers[i], error: r.reason?.message||'Fehler' });
-      }
+  for (let i=0; i<results.length; i++) {
+    const r = results[i];
+    if (r.status==='fulfilled') {
+      okCards.push(r.value);
+      responses.push({ provider: PLABELS[r.value.provider]||r.value.provider, content: r.value.content });
+      hub.setResponse(r.value.provider, r.value.content);
+    } else {
+      errCards.push({ provider: providers[i], error: r.reason?.message||'Fehler' });
+      hub.setError(providers[i], r.reason?.message||'Fehler');
     }
-  } catch(e) {
-    errCards.push({ provider: '?', error: e.message });
   }
 
-  // Trigger merge animation
-  viz.notifyResponsesReady();
+  // Fade tornados, open Ghost Trap, fire synthesis in parallel
+  hub.merge();
 
-  // Start synthesis in parallel with merge animation
   const synthProvider = resolveSynthProvider();
+  let synthRaw = null;
   if (responses.length >= 2 && synthProvider) {
     const synthPrompt = `Thema: "${text}"\n\n` +
       responses.map(r => `=== ${r.provider} ===\n${r.content}`).join('\n\n');
-    callProvider(synthProvider, KINTEGRITY_SYSTEM, synthPrompt)
-      .then(raw  => viz.notifySynthReady(raw))
-      .catch(err => viz.notifySynthReady(null));
-  } else {
-    setTimeout(() => viz.notifySynthReady(null), 900);
+    try { synthRaw = await Promise.race([
+      callProvider(synthProvider, KINTEGRITY_SYSTEM, synthPrompt),
+      new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 60000))
+    ]); } catch(e) { synthRaw = null; }
   }
 
-  // Reveal callback — runs after full absorption animation
-  viz.startReveal((synthRaw) => {
-    let html = '';
+  // Minimum animation time of 1.8s before sealing trap
+  await new Promise(r => setTimeout(r, 1800));
 
-    for (const c of okCards) {
-      html += `<div class="tornado-card reveal-card" style="animation-delay:${okCards.indexOf(c)*140}ms">
-        <div class="tornado-provider">${escHtml(PLABELS[c.provider]||c.provider)}</div>
-        <div class="tornado-content">${escHtml(c.content)}</div>
-      </div>`;
-    }
-    for (const c of errCards) {
-      html += `<div class="tornado-card reveal-card" style="animation-delay:${(okCards.length+errCards.indexOf(c))*140}ms">
-        <div class="tornado-provider">${escHtml(PLABELS[c.provider]||c.provider)}</div>
-        <div class="tornado-content" style="color:var(--asteroid)">✕ ${escHtml(c.error)}</div>
-      </div>`;
-    }
-
-    if (synthRaw) {
-      // ── Parse title ──────────────────────────────────────────────
-      const titleMarker = '📌 Titel:';
-      const divMarker   = '⚡ Divergenzen:';
-      let bodyRaw = synthRaw.trim();
-      let kTitle  = '';
-
-      const titleIdx = bodyRaw.indexOf(titleMarker);
-      if (titleIdx > -1) {
-        const afterTitle = bodyRaw.substring(titleIdx + titleMarker.length);
-        const titleEnd   = afterTitle.indexOf('\n');
-        kTitle  = (titleEnd > -1 ? afterTitle.substring(0, titleEnd) : afterTitle).trim();
-        bodyRaw = (titleEnd > -1 ? afterTitle.substring(titleEnd) : '').trim();
+  hub.seal(() => {
+    // ── Show synthesis card below trap ──
+    if (!synthRaw) {
+      if (responses.length >= 2) {
+        const d = document.createElement('div');
+        d.className = 'tornado-card kreuzung reveal-card';
+        d.style.cssText = 'opacity:0.55;margin-top:0.5rem;';
+        d.innerHTML = `<div class="tornado-provider" style="color:var(--gold)">BaiNSTORM HUNTER</div>
+          <div style="color:var(--muted);font-size:.85rem">⚠ Kein Synthese-Provider konfiguriert → ⚙ Settings</div>`;
+        out.appendChild(d);
       }
+      btn.disabled = false; btn.textContent = '⚡ BaiNSTORM';
+      document.getElementById('tText').value = '';
+      return;
+    }
 
-      // ── Parse divergences ─────────────────────────────────────────
-      const divIdx  = bodyRaw.indexOf(divMarker);
-      let fazitText = bodyRaw, divText = '';
-      if (divIdx > -1) {
-        fazitText = bodyRaw.substring(0, divIdx).trim();
-        divText   = bodyRaw.substring(divIdx + divMarker.length).trim();
-      }
+    // ── Parse title + divergences ──────────────────────────────────
+    const titleMarker = '📌 Titel:';
+    const divMarker   = '⚡ Divergenzen:';
+    let bodyRaw = synthRaw.trim(), kTitle = '';
+    const titleIdx = bodyRaw.indexOf(titleMarker);
+    if (titleIdx > -1) {
+      const after  = bodyRaw.substring(titleIdx + titleMarker.length);
+      const tEnd   = after.indexOf('\n');
+      kTitle  = (tEnd>-1 ? after.substring(0,tEnd) : after).trim();
+      bodyRaw = (tEnd>-1 ? after.substring(tEnd) : '').trim();
+    }
+    const divIdx  = bodyRaw.indexOf(divMarker);
+    let fazitText = bodyRaw, divText = '';
+    if (divIdx > -1) { fazitText = bodyRaw.substring(0,divIdx).trim(); divText = bodyRaw.substring(divIdx+divMarker.length).trim(); }
 
-      // ── Build slug from AI-generated title ───────────────────────
-      const today   = new Date().toISOString().split('T')[0];
-      const rawSlug = kTitle || text.substring(0, 50);
-      const slug    = rawSlug.replace(/[^a-zA-ZäöüÄÖÜß0-9\s\-]/g,'').trim().replace(/\s+/g,'_').substring(0,60) || 'Synthese';
-      const displayTitle = kTitle || text.substring(0,60);
+    const today   = new Date().toISOString().split('T')[0];
+    const rawSlug = kTitle || text.substring(0,50);
+    const slug    = rawSlug.replace(/[^a-zA-ZäöüÄÖÜß0-9\s\-]/g,'').trim().replace(/\s+/g,'_').substring(0,60) || 'Synthese';
+    const displayTitle = kTitle || text.substring(0,60);
 
-      const totalCards = okCards.length + errCards.length;
-      html += `<div class="tornado-card kreuzung reveal-card" id="kintegrity-card" style="animation-delay:${totalCards*140+120}ms">
-        <div class="tornado-provider" style="color:var(--gold)">kiNTEGRiTY 1.0</div>
-        <div id="kintegrity-body">
-          ${kTitle ? `<div style="font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:0.8rem;letter-spacing:0.01em">${escHtml(kTitle)}</div>` : ''}
-          <div class="kreuzung-section"><p style="line-height:1.75;white-space:pre-wrap">${escHtml(fazitText)}</p></div>
-          <div class="kreuzung-section" style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem">
-            <div style="font-size:0.75rem;font-weight:700;color:var(--gold);letter-spacing:.1em;margin-bottom:.5rem">⚡ DIVERGENZEN &amp; INKOMMENSURABILITÄTEN</div>
-            <p style="line-height:1.75;white-space:pre-wrap;color:var(--muted)">${divText ? escHtml(divText) : '–– Keine wesentlichen Widersprüche oder Inkommensurabilitäten erkannt ––'}</p>
-          </div>
+    const card = document.createElement('div');
+    card.className = 'tornado-card kreuzung reveal-card';
+    card.id = 'kintegrity-card';
+    card.style.cssText = 'margin-top:0.5rem;';
+    card.innerHTML = `
+      <div class="tornado-provider" style="color:var(--gold)" id="ki-prov-label">BaiNSTORM HUNTER · kiNTEGRiTY</div>
+      <div id="kintegrity-body">
+        ${kTitle ? `<div style="font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:0.8rem;letter-spacing:0.01em">${escHtml(kTitle)}</div>` : ''}
+        <div class="kreuzung-section"><p style="line-height:1.75;white-space:pre-wrap">${escHtml(fazitText)}</p></div>
+        <div class="kreuzung-section" style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--gold);letter-spacing:.1em;margin-bottom:.5rem">⚡ DIVERGENZEN &amp; INKOMMENSURABILITÄTEN</div>
+          <p style="line-height:1.75;white-space:pre-wrap;color:var(--muted)">${divText ? escHtml(divText) : '–– Keine wesentlichen Widersprüche oder Inkommensurabilitäten erkannt ––'}</p>
         </div>
+      </div>
+      <div style="display:flex;gap:0.5rem;margin-top:0.8rem;flex-wrap:wrap;">
+        <button onclick="bsCopy()"     style="font-size:0.72rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:none;color:var(--muted);border-radius:6px;cursor:pointer;" title="Als Markdown kopieren">📋 Kopieren</button>
+        <button onclick="bsShare()"    style="font-size:0.72rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:none;color:var(--muted);border-radius:6px;cursor:pointer;" title="Teilen (Apple Share Sheet)">↗ Teilen</button>
+        <button onclick="bsDownload()" style="font-size:0.72rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:none;color:var(--muted);border-radius:6px;cursor:pointer;" title="Als .md herunterladen">⬇ .md</button>
       </div>`;
+    out.appendChild(card);
 
-      // Auto-export to vault
-      const path  = `Sterne/kiNTEGRiTY_${slug}_${today}.md`;
-      const plist = responses.map(r=>r.provider).join(', ');
-      let md = `---\ntyp: kiNTEGRiTY\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\n---\n\n# ${displayTitle}\n\n${fazitText}\n`;
-      if (divText) md += `\n## ⚡ Divergenzen\n\n${divText}\n`;
-      md += `\n---\n*kiNTEGRiTY 1.0 · ${today} · ${plist}*\n`;
-      pushToVault(path, md, `kiNTEGRiTY: ${text.substring(0,60)}`)
-        .then(()  => { const el=document.querySelector('#kintegrity-card .tornado-provider'); if(el) el.textContent='kiNTEGRiTY 1.0 · ✓ Vault'; })
-        .catch(ve => { const el=document.querySelector('#kintegrity-card .tornado-provider'); if(el) el.textContent='kiNTEGRiTY 1.0 · ✕ '+ve.message.substring(0,30); });
-    } else if (responses.length >= 2) {
-      html += `<div class="tornado-card kreuzung reveal-card" style="opacity:0.5;animation-delay:${(okCards.length+errCards.length)*140}ms">
-        <div class="tornado-provider" style="color:var(--gold)">kiNTEGRiTY 1.0</div>
-        <div style="color:var(--muted);font-size:.85rem">⚠ Kein Synthese-Provider konfiguriert → ⚙ Settings</div>
-      </div>`;
-    }
+    // Auto-export to vault
+    const path  = `Sterne/kiNTEGRiTY_${slug}_${today}.md`;
+    const plist = responses.map(r=>r.provider).join(', ');
+    let md = `---\ntyp: BaiNSTORM-HUNTER\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\n---\n\n# ${displayTitle}\n\n${fazitText}\n`;
+    if (divText) md += `\n## ⚡ Divergenzen\n\n${divText}\n`;
+    md += `\n---\n*BaiNSTORM HUNTER · kiNTEGRiTY · ${today} · ${plist}*\n`;
+    pushToVault(path, md, `BaiNSTORM: ${text.substring(0,60)}`)
+      .then(()  => { const el=document.getElementById('ki-prov-label'); if(el) el.textContent='BaiNSTORM HUNTER · ✓ Vault'; })
+      .catch(ve => { const el=document.getElementById('ki-prov-label'); if(el) el.textContent='BaiNSTORM HUNTER · ✕ '+ve.message.substring(0,30); });
 
-    out.innerHTML = html;
+    btn.disabled = false; btn.textContent = '⚡ BaiNSTORM';
     document.getElementById('tText').value = '';
-    btn.disabled = false; btn.textContent = 'Tornado';
   });
+}
+
+// ─── Export & Share ──────────────────────────────────────────────────────────
+
+// Universal share: tries Web Share API (Apple share sheet on Safari/iOS/Mac),
+// falls back to clipboard copy, also offers file download.
+async function shareOrCopy(title, text, filename) {
+  const file = filename || (title.replace(/[^a-zA-ZäöüÄÖÜß0-9\-]/g,'_').substring(0,40)||'export') + '.md';
+  // Try native Web Share API (works in Safari — shows Apple share sheet)
+  if (navigator.share) {
+    try {
+      await navigator.share({ title, text });
+      return;
+    } catch(e) { /* user cancelled or not supported, fall through */ }
+  }
+  // Fallback: copy to clipboard
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('📋 In Zwischenablage kopiert');
+  } catch(e) {
+    // Last resort: prompt
+    prompt('Inhalt (Strg+A, Strg+C zum Kopieren):', text);
+  }
+}
+
+function downloadFile(filename, content, mime) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], {type: mime||'text/markdown;charset=utf-8'}));
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function showToast(msg) {
+  let t = document.getElementById('mx-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'mx-toast';
+    t.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1e1e2e;color:#ddd;padding:0.5rem 1.2rem;border-radius:20px;font-size:0.82rem;border:1px solid #333;z-index:9999;transition:opacity 0.3s;pointer-events:none;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg; t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity='0'; }, 2200);
+}
+
+// Build markdown from BaiNSTORM card
+function bsCardToMd() {
+  const title  = document.querySelector('#kintegrity-body > div')?.textContent?.trim() || 'BaiNSTORM';
+  const fazit  = document.querySelector('#kintegrity-body .kreuzung-section p')?.textContent?.trim() || '';
+  const divEl  = document.querySelectorAll('#kintegrity-body .kreuzung-section p');
+  const divText = divEl.length > 1 ? divEl[1].textContent.trim() : '';
+  const today  = new Date().toISOString().split('T')[0];
+  let md = `# ${title}\n\n${fazit}\n`;
+  if (divText) md += `\n## ⚡ Divergenzen\n\n${divText}\n`;
+  md += `\n---\n*BaiNSTORM HUNTER · ${today}*\n`;
+  return { title, md };
+}
+
+function bsShare()    { const {title,md}=bsCardToMd(); shareOrCopy(title, md); }
+function bsDownload() { const {title,md}=bsCardToMd(); downloadFile((title.replace(/[^a-zA-ZäöüÄÖÜß0-9\-]/g,'_')||'BaiNSTORM')+'.md', md); }
+function bsCopy()     { const {title,md}=bsCardToMd(); navigator.clipboard?.writeText(md).then(()=>showToast('📋 Kopiert!')); }
+
+// Export all Matrix conversations as one markdown file
+function exportMatrixMd() {
+  let md = `# MiNDLAXY Matrix Export\n\n_Exportiert: ${new Date().toLocaleString('de')}_\n\n`;
+  const store = mGetStore();
+  for (const [p, ps] of Object.entries(store)) {
+    if (!ps?.convs) continue;
+    md += `\n---\n\n## ${(BS_META[p]?.label||p).toUpperCase()}\n\n`;
+    for (const conv of Object.values(ps.convs)) {
+      md += `### ${conv.title||'Gespräch'} _(${conv.created?.split('T')[0]||''})_\n\n`;
+      for (const m of conv.msgs||[]) {
+        md += `**${m.role==='user'?'Du':'AI'}:** ${m.content}\n\n`;
+      }
+    }
+  }
+  downloadFile(`MiNDLAXY_Matrix_${new Date().toISOString().split('T')[0]}.md`, md);
+  showToast('⬇ Matrix-Export heruntergeladen');
+}
+
+function exportMatrixJson() {
+  const store = mGetStore();
+  downloadFile(`MiNDLAXY_Matrix_${new Date().toISOString().split('T')[0]}.json`, JSON.stringify(store, null, 2), 'application/json');
+  showToast('⬇ JSON-Export heruntergeladen');
 }
 
 // ─── Status & Counts ────────────────────────────────────────────────────────
