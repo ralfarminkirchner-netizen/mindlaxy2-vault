@@ -95,6 +95,106 @@
   .panel { display: none; }
   .panel.active { display: block; }
 
+  /* ── MiND MATRIX ─────────────────────────────────────────────── */
+  main.matrix-mode { max-width: 100%; padding: 0.5rem 0.75rem; }
+  #p-matrix.active { display: flex; flex-direction: column; height: calc(100vh - 150px); }
+  .matrix-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+  }
+  @media (max-width: 900px) {
+    .matrix-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  .matrix-col {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .matrix-col.active-provider { border-color: currentColor; }
+  .matrix-header {
+    padding: 0.45rem 0.6rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+  .matrix-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .matrix-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    scroll-behavior: smooth;
+    min-height: 0;
+  }
+  .matrix-messages::-webkit-scrollbar { width: 3px; }
+  .matrix-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .matrix-msg {
+    font-size: 0.82rem;
+    line-height: 1.55;
+    padding: 0.45rem 0.6rem;
+    border-radius: 6px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .matrix-msg.user {
+    background: #1a1a2e;
+    color: var(--muted);
+    font-style: italic;
+    font-size: 0.75rem;
+    border-left: 2px solid var(--border);
+    padding-left: 0.5rem;
+  }
+  .matrix-msg.assistant { background: transparent; color: var(--text); }
+  .matrix-msg.streaming { color: var(--muted); }
+  .matrix-msg.error { color: var(--asteroid); font-size: 0.75rem; }
+  .matrix-msg.no-key { color: var(--muted); font-size: 0.75rem; opacity: 0.5; text-align: center; padding: 1rem; }
+  .matrix-input-area {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.6rem 0;
+    flex-shrink: 0;
+    align-items: flex-end;
+  }
+  .matrix-input-area textarea {
+    flex: 1;
+    resize: none;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.7rem;
+    min-height: 42px;
+    max-height: 120px;
+  }
+  .matrix-send-btn {
+    padding: 0.5rem 1rem;
+    background: var(--accent);
+    color: var(--text);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    height: 42px;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+  .matrix-send-btn:hover { background: #5555dd; }
+  .matrix-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
   textarea {
     width: 100%;
     background: var(--surface);
@@ -241,6 +341,7 @@
   <div class="tabs">
     <div class="tab active" onclick="sw('gedanke')">Gedanke</div>
     <div class="tab" onclick="sw('tornado')">Tornado</div>
+    <div class="tab" onclick="sw('matrix')">4×</div>
     <div class="tab" onclick="sw('settings')">⚙</div>
   </div>
 
@@ -256,6 +357,24 @@
     <textarea id="tText" placeholder="Thema für den Tornado...&#10;&#10;Gemini, DeepSeek und Grok denken gleichzeitig darüber nach.&#10;kiNTEGRiTY 1.0 (Claude) verdichtet alles zu einem Gesamtfazit — ohne Attribute, nur die Essenz. Echte Widersprüche landen im Divergenzen-Absatz." rows="5"></textarea>
     <button class="btn" id="tBtn" onclick="sendT()">Tornado</button>
     <div id="tOut"></div>
+  </div>
+
+  <!-- Matrix Panel -->
+  <div class="panel" id="p-matrix">
+    <!-- Broadcast bar: one input → all LLMs -->
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.6rem;align-items:flex-end">
+      <div style="flex:1">
+        <div style="font-size:0.65rem;color:var(--muted);letter-spacing:.1em;margin-bottom:0.3rem;text-transform:uppercase">↓ Alle gleichzeitig &nbsp;·&nbsp; kiNTEGRiTY</div>
+        <textarea id="mAllText" rows="2"
+          placeholder="Frage an alle 4 LLMs gleichzeitig… (Shift+Enter = neue Zeile)"
+          style="width:100%;resize:none;font-size:0.9rem"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMatrixAll()}"
+        ></textarea>
+      </div>
+      <button class="matrix-send-btn" id="mAllBtn" onclick="sendMatrixAll()" title="An alle senden">→ Alle</button>
+    </div>
+    <!-- 4 columns -->
+    <div class="matrix-grid" id="mGrid"></div>
   </div>
 
   <!-- Settings Panel -->
@@ -373,10 +492,12 @@ function saveKey(inputId, storageKey) {
 
 function sw(n) {
   document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active', ['gedanke','tornado','settings'][i] === n);
+    t.classList.toggle('active', ['gedanke','tornado','matrix','settings'][i] === n);
   });
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('p-' + n).classList.add('active');
+  document.querySelector('main').classList.toggle('matrix-mode', n === 'matrix');
+  if (n === 'matrix') initMatrix();
 }
 
 function updateDots() {
@@ -1277,6 +1398,170 @@ async function testKeys() {
 
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── MiND MATRIX ─────────────────────────────────────────────────────────────
+
+const M_PROVIDERS = ['gemini','deepseek','grok','openai'];
+const M_LABELS    = { gemini:'GOOGLE · GEMINI', deepseek:'DEEPSEEK', grok:'XAI · GROK', openai:'OPENAI · CHATGPT' };
+const mHistory    = { gemini:[], deepseek:[], grok:[], openai:[] };
+
+// Gemini with full conversation history
+async function callGeminiHistory(history, apiKey, model) {
+  const m = model || 'gemini-2.5-flash';
+  const contents = history.map(msg => ({
+    role: msg.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: msg.content }]
+  }));
+  const r = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`,
+    { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ contents }) }
+  );
+  if (!r.ok) { const e = await r.text(); throw new Error('Gemini ' + r.status + ': ' + e.substring(0,100)); }
+  const d = await r.json();
+  return d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+// OAI-compatible with full conversation history
+async function callOAIHistory(history, apiKey, baseUrl, model) {
+  const r = await fetch(baseUrl + '/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${apiKey}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ model, messages: history, max_tokens: 1500 })
+  });
+  if (!r.ok) { const e = await r.text(); throw new Error('v1 ' + r.status + ': ' + e.substring(0,100)); }
+  const d = await r.json();
+  return d.choices?.[0]?.message?.content || '';
+}
+
+async function callMatrixProvider(p, history) {
+  const cfg = getCfg();
+  switch(p) {
+    case 'gemini':   if (!cfg.gemini)   throw new Error('kein Key'); return await callGeminiHistory(history, cfg.gemini,   cfg.geminiModel);
+    case 'deepseek': if (!cfg.deepseek) throw new Error('kein Key'); return await callOAIHistory(history, cfg.deepseek, 'https://api.deepseek.com/v1',   cfg.deepseekModel);
+    case 'grok':     if (!cfg.grok)     throw new Error('kein Key'); return await callOAIHistory(history, cfg.grok,     'https://api.x.ai/v1',            cfg.grokModel);
+    case 'openai':   if (!cfg.openai)   throw new Error('kein Key'); return await callOAIHistory(history, cfg.openai,   'https://api.openai.com/v1',      cfg.openaiModel);
+    default: throw new Error('unknown');
+  }
+}
+
+function mScroll(p) {
+  const el = document.getElementById('mm-' + p);
+  if (el) el.scrollTop = el.scrollHeight;
+}
+
+function mAddMsg(p, role, text) {
+  const el = document.getElementById('mm-' + p);
+  if (!el) return null;
+  const div = document.createElement('div');
+  div.className = 'matrix-msg ' + role;
+  div.textContent = text;
+  el.appendChild(div);
+  mScroll(p);
+  return div;
+}
+
+function mSetLoading(p, active) {
+  const col = document.getElementById('mc-' + p);
+  if (col) col.style.opacity = active ? '0.7' : '1';
+  // Show/hide spinner in header
+  const dot = col?.querySelector('.matrix-dot');
+  if (dot) dot.style.animation = active ? 'pulse 1s infinite' : 'none';
+}
+
+// Send one message to one specific provider
+async function sendMatrixOne(p) {
+  const inp = document.getElementById('mi-' + p);
+  const text = inp?.value?.trim();
+  if (!text) return;
+  inp.value = '';
+  inp.style.height = '';
+
+  mHistory[p].push({ role:'user', content: text });
+  mAddMsg(p, 'user', text);
+  const loadEl = mAddMsg(p, 'assistant streaming', '⟳ …');
+  mSetLoading(p, true);
+
+  try {
+    const result = await callMatrixProvider(p, mHistory[p]);
+    mHistory[p].push({ role:'assistant', content: result });
+    if (loadEl) { loadEl.textContent = result; loadEl.className = 'matrix-msg assistant'; }
+  } catch(e) {
+    if (loadEl) { loadEl.textContent = '✕ ' + e.message; loadEl.className = 'matrix-msg error'; }
+    mHistory[p].pop();
+  }
+  mSetLoading(p, false);
+  mScroll(p);
+}
+
+// Send one message to ALL providers simultaneously
+async function sendMatrixAll() {
+  const ta   = document.getElementById('mAllText');
+  const text = ta?.value?.trim();
+  if (!text) return;
+  ta.value = '';
+
+  const btn = document.getElementById('mAllBtn');
+  if (btn) btn.disabled = true;
+
+  // Add user msg + loading to all columns
+  const loadEls = {};
+  for (const p of M_PROVIDERS) {
+    mHistory[p].push({ role:'user', content: text });
+    mAddMsg(p, 'user', text);
+    loadEls[p] = mAddMsg(p, 'assistant streaming', '⟳ …');
+    mSetLoading(p, true);
+  }
+
+  await Promise.allSettled(M_PROVIDERS.map(async p => {
+    try {
+      const result = await callMatrixProvider(p, mHistory[p]);
+      mHistory[p].push({ role:'assistant', content: result });
+      if (loadEls[p]) { loadEls[p].textContent = result; loadEls[p].className = 'matrix-msg assistant'; }
+    } catch(e) {
+      if (loadEls[p]) { loadEls[p].textContent = '✕ ' + e.message; loadEls[p].className = 'matrix-msg error'; }
+      mHistory[p].pop();
+    }
+    mSetLoading(p, false);
+    mScroll(p);
+  }));
+
+  if (btn) btn.disabled = false;
+}
+
+function initMatrix() {
+  const grid = document.getElementById('mGrid');
+  if (!grid || grid.dataset.init) return;
+  grid.dataset.init = '1';
+
+  const cfg = getCfg();
+  grid.innerHTML = M_PROVIDERS.map(p => {
+    const hasKey = !!cfg[p];
+    const cols   = PROVIDER_COLORS[M_LABELS[p]] || ['#888','#666','#aaa'];
+    const color  = cols[0];
+    return `<div class="matrix-col" id="mc-${p}" style="border-color:${color}22">
+      <div class="matrix-header" style="color:${color};border-bottom-color:${color}33">
+        <span class="matrix-dot" style="background:${hasKey ? color : '#444'}"></span>
+        ${M_LABELS[p]}
+        ${!hasKey ? '<span style="font-size:.6rem;opacity:.5">(kein Key)</span>' : ''}
+      </div>
+      <div class="matrix-messages" id="mm-${p}">
+        ${!hasKey ? `<div class="matrix-msg no-key">⚙ API Key in Settings eintragen</div>` : ''}
+      </div>
+      <div style="padding:0.4rem;border-top:1px solid ${color}22;display:flex;gap:0.3rem;align-items:flex-end">
+        <textarea id="mi-${p}" rows="1" placeholder="${M_LABELS[p]} direkt…"
+          style="flex:1;resize:none;font-size:0.8rem;padding:0.35rem 0.5rem;min-height:32px;max-height:80px"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMatrixOne('${p}')}"
+          oninput="this.style.height='';this.style.height=Math.min(this.scrollHeight,80)+'px'"
+          ${!hasKey ? 'disabled' : ''}
+        ></textarea>
+        <button onclick="sendMatrixOne('${p}')"
+          style="padding:0.3rem 0.6rem;background:${color}22;border:1px solid ${color}44;color:${color};border-radius:5px;cursor:pointer;font-size:0.85rem;height:32px;flex-shrink:0"
+          ${!hasKey ? 'disabled' : ''}
+        >→</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ─── Init ────────────────────────────────────────────────────────────────────
