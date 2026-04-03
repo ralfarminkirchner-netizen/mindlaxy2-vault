@@ -696,22 +696,32 @@ Antworte auf Deutsch, fließend, ohne Aufzählungen — reiner Gedankenfluss.`;
 const KINTEGRITY_SYSTEM = `Du bist kiNTEGRiTY 1.0 — Orchestrator und Verdichter. Du bekommst die Antworten von Gemini, DeepSeek, Grok und ChatGPT (oder einer Auswahl davon) auf dasselbe Thema.
 
 DEINE AUFGABE:
-Schreibe einen einzigen, fließenden Gesamtfazit-Text auf Deutsch — ohne Aufzählungen, ohne Bullet Points, ohne irgendeine Nennung wer etwas gesagt hat. Dieser Text soll ALLE wesentlichen Gedanken, Aspekte und Erkenntnisse aus allen drei Antworten so dicht und vollständig wie möglich verdichten. Fließend, direkt, als würde eine einzige Stimme sprechen.
 
-Du selbst DENKST NICHT über das Thema nach. Du kondensierst ausschließlich, was Gemini, DeepSeek und Grok gesagt haben — nichts hinzufügen, nichts weglassen, was wichtig ist.
+SCHRITT 1 — TITEL:
+Beginne mit exakt diesem Marker, gefolgt von einem prägnanten, thematisch treffenden Titel:
 
-DANACH — IMMER, ohne Ausnahme — füge einen zweiten Absatz hinzu, der beginnt mit exakt diesem Marker:
+📌 Titel: [max. 6 Wörter — trifft das Wesen des Themas — wird als Dateiname verwendet, also keine Sonderzeichen außer Bindestrich]
+
+SCHRITT 2 — GESAMTFAZIT:
+Schreibe einen einzigen, fließenden Gesamtfazit-Text auf Deutsch — ohne Aufzählungen, ohne Bullet Points, ohne irgendeine Nennung wer etwas gesagt hat. Dieser Text soll ALLE wesentlichen Gedanken, Aspekte und Erkenntnisse aus allen Antworten so dicht und vollständig wie möglich verdichten. Fließend, direkt, als würde eine einzige Stimme sprechen.
+
+Du selbst DENKST NICHT über das Thema nach. Du kondensierst ausschließlich, was die anderen KIs gesagt haben.
+
+SCHRITT 3 — DIVERGENZEN (IMMER, ohne Ausnahme):
+Füge danach einen Absatz hinzu, der beginnt mit exakt diesem Marker:
 
 ⚡ Divergenzen:
 
-In diesem Divergenzen-Absatz analysierst du Widersprüche, Unvereinbarkeiten oder wesentliche Unterschiede zwischen den KIs. Wenn echte Divergenzen existieren, nennst du explizit welche KI (Gemini, DeepSeek, Grok, ChatGPT) welche abweichende Position vertritt. Wenn es keine wesentlichen Divergenzen gibt, schreibst du kurz warum die KIs weitgehend übereinstimmen.
+Analysiere Widersprüche, Unvereinbarkeiten oder wesentliche Unterschiede. Wenn echte Divergenzen existieren, nenne explizit welche KI (Gemini, DeepSeek, Grok, ChatGPT) welche abweichende Position vertritt. Wenn keine wesentlichen Divergenzen vorliegen, erkläre kurz warum die KIs übereinstimmen.
 
 Dieser Absatz darf NIEMALS weggelassen werden.
 
-Format deiner Antwort:
-[Gesamtfazit — fließender Fließtext, alle wichtigen Punkte aller KIs, keine Attributionen]
+Exaktes Format deiner Antwort:
+📌 Titel: [prägnanter Titel, max 6 Wörter]
 
-⚡ Divergenzen: [IMMER vorhanden — entweder Widersprüche mit Nennung der KI, oder kurze Übereinstimmungsnotiz]`;
+[Gesamtfazit — fließender Fließtext, keine Attributionen]
+
+⚡ Divergenzen: [IMMER vorhanden]`;
 
 // ─── Tornado Visualization ──────────────────────────────────────────────────
 
@@ -1153,17 +1163,39 @@ async function sendT() {
     }
 
     if (synthRaw) {
-      const divMarker = '⚡ Divergenzen:';
-      const divIdx = synthRaw.indexOf(divMarker);
-      let fazitText = synthRaw.trim(), divText = '';
-      if (divIdx > -1) {
-        fazitText = synthRaw.substring(0, divIdx).trim();
-        divText   = synthRaw.substring(divIdx + divMarker.length).trim();
+      // ── Parse title ──────────────────────────────────────────────
+      const titleMarker = '📌 Titel:';
+      const divMarker   = '⚡ Divergenzen:';
+      let bodyRaw = synthRaw.trim();
+      let kTitle  = '';
+
+      const titleIdx = bodyRaw.indexOf(titleMarker);
+      if (titleIdx > -1) {
+        const afterTitle = bodyRaw.substring(titleIdx + titleMarker.length);
+        const titleEnd   = afterTitle.indexOf('\n');
+        kTitle  = (titleEnd > -1 ? afterTitle.substring(0, titleEnd) : afterTitle).trim();
+        bodyRaw = (titleEnd > -1 ? afterTitle.substring(titleEnd) : '').trim();
       }
+
+      // ── Parse divergences ─────────────────────────────────────────
+      const divIdx  = bodyRaw.indexOf(divMarker);
+      let fazitText = bodyRaw, divText = '';
+      if (divIdx > -1) {
+        fazitText = bodyRaw.substring(0, divIdx).trim();
+        divText   = bodyRaw.substring(divIdx + divMarker.length).trim();
+      }
+
+      // ── Build slug from AI-generated title ───────────────────────
+      const today   = new Date().toISOString().split('T')[0];
+      const rawSlug = kTitle || text.substring(0, 50);
+      const slug    = rawSlug.replace(/[^a-zA-ZäöüÄÖÜß0-9\s\-]/g,'').trim().replace(/\s+/g,'_').substring(0,60) || 'Synthese';
+      const displayTitle = kTitle || text.substring(0,60);
+
       const totalCards = okCards.length + errCards.length;
       html += `<div class="tornado-card kreuzung reveal-card" id="kintegrity-card" style="animation-delay:${totalCards*140+120}ms">
         <div class="tornado-provider" style="color:var(--gold)">kiNTEGRiTY 1.0</div>
         <div id="kintegrity-body">
+          ${kTitle ? `<div style="font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:0.8rem;letter-spacing:0.01em">${escHtml(kTitle)}</div>` : ''}
           <div class="kreuzung-section"><p style="line-height:1.75;white-space:pre-wrap">${escHtml(fazitText)}</p></div>
           <div class="kreuzung-section" style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem">
             <div style="font-size:0.75rem;font-weight:700;color:var(--gold);letter-spacing:.1em;margin-bottom:.5rem">⚡ DIVERGENZEN &amp; INKOMMENSURABILITÄTEN</div>
@@ -1173,11 +1205,9 @@ async function sendT() {
       </div>`;
 
       // Auto-export to vault
-      const today = new Date().toISOString().split('T')[0];
-      const slug = text.substring(0,50).replace(/[^a-zA-ZäöüÄÖÜß0-9\s]/g,'').trim().replace(/\s+/g,'_') || 'Synthese';
-      const path = `Sterne/kiNTEGRiTY_${slug}_${today}.md`;
+      const path  = `Sterne/kiNTEGRiTY_${slug}_${today}.md`;
       const plist = responses.map(r=>r.provider).join(', ');
-      let md = `---\ntyp: kiNTEGRiTY\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\n---\n\n# kiNTEGRiTY · ${text.substring(0,60)}\n\n${fazitText}\n`;
+      let md = `---\ntyp: kiNTEGRiTY\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\n---\n\n# ${displayTitle}\n\n${fazitText}\n`;
       if (divText) md += `\n## ⚡ Divergenzen\n\n${divText}\n`;
       md += `\n---\n*kiNTEGRiTY 1.0 · ${today} · ${plist}*\n`;
       pushToVault(path, md, `kiNTEGRiTY: ${text.substring(0,60)}`)
