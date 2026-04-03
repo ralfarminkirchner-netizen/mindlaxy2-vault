@@ -372,6 +372,7 @@
         ></textarea>
       </div>
       <button class="matrix-send-btn" id="mAllBtn" onclick="sendMatrixAll()" title="An alle senden">→ Alle</button>
+      <button class="matrix-send-btn" onclick="mClearAll()" title="Alle Chats löschen" style="background:#1a1a2e;font-size:0.8rem;padding:0.5rem 0.6rem">🗑</button>
     </div>
     <!-- 4 columns -->
     <div class="matrix-grid" id="mGrid"></div>
@@ -1404,30 +1405,54 @@ function escHtml(s) {
 
 const M_PROVIDERS = ['gemini','deepseek','grok','openai'];
 const M_LABELS    = { gemini:'GOOGLE · GEMINI', deepseek:'DEEPSEEK', grok:'XAI · GROK', openai:'OPENAI · CHATGPT' };
-const mHistory    = { gemini:[], deepseek:[], grok:[], openai:[] };
+const M_SYS       = {
+  gemini:   'Du bist Google Gemini. Antworte direkt und prägnant auf Deutsch.',
+  deepseek: 'Du bist DeepSeek. Antworte direkt und prägnant auf Deutsch.',
+  grok:     'Du bist Grok von xAI. Antworte direkt und prägnant auf Deutsch.',
+  openai:   'Du bist ChatGPT von OpenAI. Antworte direkt und prägnant auf Deutsch.',
+};
 
-// Gemini with full conversation history
-async function callGeminiHistory(history, apiKey, model) {
+// Persist history in localStorage
+function mSaveHistory() {
+  try { localStorage.setItem('mx_matrix_history', JSON.stringify(mHistory)); } catch(e) {}
+}
+function mLoadHistory() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('mx_matrix_history') || '{}');
+    for (const p of M_PROVIDERS) { if (Array.isArray(saved[p])) mHistory[p] = saved[p]; }
+  } catch(e) {}
+}
+
+const mHistory = { gemini:[], deepseek:[], grok:[], openai:[] };
+mLoadHistory();
+
+// Gemini with full conversation history + system prompt
+async function callGeminiHistory(history, apiKey, model, sysPrompt) {
   const m = model || 'gemini-2.5-flash';
   const contents = history.map(msg => ({
     role: msg.role === 'assistant' ? 'model' : 'user',
     parts: [{ text: msg.content }]
   }));
+  const body = { contents };
+  if (sysPrompt) body.system_instruction = { parts: [{ text: sysPrompt }] };
   const r = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`,
-    { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ contents }) }
+    { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) }
   );
   if (!r.ok) { const e = await r.text(); throw new Error('Gemini ' + r.status + ': ' + e.substring(0,100)); }
   const d = await r.json();
   return d.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
-// OAI-compatible with full conversation history
-async function callOAIHistory(history, apiKey, baseUrl, model) {
+// OAI-compatible with full conversation history + system prompt
+async function callOAIHistory(history, apiKey, baseUrl, model, sysPrompt) {
+  const messages = sysPrompt
+    ? [{ role: 'system', content: sysPrompt }, ...history]
+    : history;
   const r = await fetch(baseUrl + '/chat/completions', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${apiKey}`, 'content-type': 'application/json' },
-    body: JSON.stringify({ model, messages: history, max_tokens: 1500 })
+    body: JSON.stringify({ model, messages, max_tokens: 1500 })
   });
   if (!r.ok) { const e = await r.text(); throw new Error('v1 ' + r.status + ': ' + e.substring(0,100)); }
   const d = await r.json();
@@ -1436,11 +1461,12 @@ async function callOAIHistory(history, apiKey, baseUrl, model) {
 
 async function callMatrixProvider(p, history) {
   const cfg = getCfg();
+  const sys = M_SYS[p] || '';
   switch(p) {
-    case 'gemini':   if (!cfg.gemini)   throw new Error('kein Key'); return await callGeminiHistory(history, cfg.gemini,   cfg.geminiModel);
-    case 'deepseek': if (!cfg.deepseek) throw new Error('kein Key'); return await callOAIHistory(history, cfg.deepseek, 'https://api.deepseek.com/v1',   cfg.deepseekModel);
-    case 'grok':     if (!cfg.grok)     throw new Error('kein Key'); return await callOAIHistory(history, cfg.grok,     'https://api.x.ai/v1',            cfg.grokModel);
-    case 'openai':   if (!cfg.openai)   throw new Error('kein Key'); return await callOAIHistory(history, cfg.openai,   'https://api.openai.com/v1',      cfg.openaiModel);
+    case 'gemini':   if (!cfg.gemini)   throw new Error('kein Key'); return await callGeminiHistory(history, cfg.gemini,   cfg.geminiModel,  sys);
+    case 'deepseek': if (!cfg.deepseek) throw new Error('kein Key'); return await callOAIHistory(history, cfg.deepseek, 'https://api.deepseek.com/v1',   cfg.deepseekModel, sys);
+    case 'grok':     if (!cfg.grok)     throw new Error('kein Key'); return await callOAIHistory(history, cfg.grok,     'https://api.x.ai/v1',            cfg.grokModel,     sys);
+    case 'openai':   if (!cfg.openai)   throw new Error('kein Key'); return await callOAIHistory(history, cfg.openai,   'https://api.openai.com/v1',      cfg.openaiModel,   sys);
     default: throw new Error('unknown');
   }
 }
@@ -1486,6 +1512,7 @@ async function sendMatrixOne(p) {
     const result = await callMatrixProvider(p, mHistory[p]);
     mHistory[p].push({ role:'assistant', content: result });
     if (loadEl) { loadEl.textContent = result; loadEl.className = 'matrix-msg assistant'; }
+    mSaveHistory();
   } catch(e) {
     if (loadEl) { loadEl.textContent = '✕ ' + e.message; loadEl.className = 'matrix-msg error'; }
     mHistory[p].pop();
@@ -1518,6 +1545,7 @@ async function sendMatrixAll() {
       const result = await callMatrixProvider(p, mHistory[p]);
       mHistory[p].push({ role:'assistant', content: result });
       if (loadEls[p]) { loadEls[p].textContent = result; loadEls[p].className = 'matrix-msg assistant'; }
+      mSaveHistory();
     } catch(e) {
       if (loadEls[p]) { loadEls[p].textContent = '✕ ' + e.message; loadEls[p].className = 'matrix-msg error'; }
       mHistory[p].pop();
@@ -1527,6 +1555,19 @@ async function sendMatrixAll() {
   }));
 
   if (btn) btn.disabled = false;
+}
+
+function mClearOne(p) {
+  mHistory[p] = [];
+  mSaveHistory();
+  const el = document.getElementById('mm-' + p);
+  if (el) el.innerHTML = '';
+}
+
+function mClearAll() {
+  M_PROVIDERS.forEach(p => { mHistory[p] = []; });
+  mSaveHistory();
+  M_PROVIDERS.forEach(p => { const el = document.getElementById('mm-' + p); if (el) el.innerHTML = ''; });
 }
 
 function initMatrix() {
@@ -1544,6 +1585,9 @@ function initMatrix() {
         <span class="matrix-dot" style="background:${hasKey ? color : '#444'}"></span>
         ${M_LABELS[p]}
         ${!hasKey ? '<span style="font-size:.6rem;opacity:.5">(kein Key)</span>' : ''}
+        <button onclick="mClearOne('${p}')" title="Chat löschen"
+          style="margin-left:auto;background:none;border:none;color:${color}66;cursor:pointer;font-size:0.7rem;padding:0 0.2rem;line-height:1"
+        >✕</button>
       </div>
       <div class="matrix-messages" id="mm-${p}">
         ${!hasKey ? `<div class="matrix-msg no-key">⚙ API Key in Settings eintragen</div>` : ''}
@@ -1562,6 +1606,13 @@ function initMatrix() {
       </div>
     </div>`;
   }).join('');
+
+  // Render saved history into columns
+  for (const p of M_PROVIDERS) {
+    for (const msg of mHistory[p]) {
+      mAddMsg(p, msg.role === 'assistant' ? 'assistant' : 'user', msg.content);
+    }
+  }
 }
 
 // ─── Init ────────────────────────────────────────────────────────────────────
