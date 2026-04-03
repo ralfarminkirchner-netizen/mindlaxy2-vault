@@ -11,10 +11,14 @@
             "id": "a3594f0b586c9bc7",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph-Ansicht"
+              "type": "markdown",
+              "state": {
+                "file": "Sterne/Flow_vs_Hyperfokus_Analyse.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Flow_vs_Hyperfokus_Analyse"
             }
           }
         ]
@@ -212,6 +216,10 @@
   },
   "active": "a3594f0b586c9bc7",
   "lastOpenFiles": [
+    "docs/index.html",
+    "docs",
+    "Sterne/Flow_vs_Hyperfokus_Analyse.md",
+    "Sterne/Die_Stille_als_Bewusstseinsstruktur.md",
     "Willkommen.md",
     "Unbenannt.canvas",
     "Sterne/MiNDLAXY.md",
@@ -235,7 +243,6 @@
     "Asteroiden",
     "Monde",
     "Planeten",
-    "Sterne",
-    "_BLACK-HOLE-BOX/_verarbeitung"
+    "Sterne"
   ]
 }
