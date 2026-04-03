@@ -66,4 +66,24 @@ Letztendlich wirft dies Fragen auf über die Essenz des Seins, die Rolle von Bew
 
 ---
 
+**Du:** A) Den Prototyp tatsächlich benutzen — einen echten SPiRAL-Lauf machen, Handoff exportieren, durch die Pipeline jagen, schauen ob das Ergebnis im Vault sinnvoll aussieht.
+
+**OPENAI · CHATGPT:** Um den Prototyp tatsächlich zu nutzen und einen echten SPiRAL-Lauf durchzuführen, kannst du folgende Schritte in Betracht ziehen:
+
+1. **Prototyp Implementierung**: Stelle sicher, dass der Prototyp korrekt implementiert und einsatzbereit ist. Alle erforderlichen Abhängigkeiten und Umgebungen müssen eingerichtet sein.
+
+2. **Echten SPiRAL-Lauf starten**: Führe einen SPiRAL-Lauf durch, indem du reale Daten oder Szenarien verwendest, um die Funktionalität zu testen. Achte darauf, dass alle Parameter und Eingaben richtig definiert sind.
+
+3. **Handoff durchführen**: Exportiere die Ergebnisse des SPiRAL-Laufs in die jeweilige Pipeline. Stelle sicher, dass der Datenexport reibungslos funktioniert und alle erforderlichen Formate eingehalten werden.
+
+4. **Pipeline Prozesse überwachen**: Überprüfe die Pipeline auf mögliche Fehler oder Probleme während des Verarbeitungsprozesses. Achte auf Logs und Hinweismeldungen.
+
+5. **Ergebnisse im Vault prüfen**: Schaue dir die exportierten Ergebnisse im Vault an. Analysiere, ob die Daten sinnvoll sind und den erwarteten Ergebnissen entsprechen. Vergleiche sie mit den ursprünglichen Zielen und Hypothesen.
+
+6. **Feedback und Optimierung**: Basierend auf den Ergebnissen und Erfahrungen, sammle Feedback für mögliche Anpassungen oder Verbesserungen des Prototyps oder der Pipeline.
+
+Diese Schritte helfen dir, den Prototyp effektiv zu nutzen und die Funktionalitäten umfassend zu testen.
+
+---
+
 *OPENAI · CHATGPT · 2026-04-03*
