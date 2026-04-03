@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BRaiNSTORM SPiRAL</title>
+<title>BRaiNSTORM SPiRAL — MiNDLAXY</title>
 <style>
   :root {
     --bg: #0a0a0f;
@@ -207,8 +207,7 @@
     border: 1.5px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
-    background: rgba(15, 15, 25, 0.4);
-    backdrop-filter: blur(12px);
+    background: rgba(12, 12, 22, 0.85);
     transition: all 0.3s ease;
   }
   .matrix-col.active-provider {
@@ -479,13 +478,35 @@
   svg.icon:hover {
     filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
   }
+
+  /* SPiRALiNG button pulse */
+  @keyframes spiralBtnPulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(240,192,64,0.3); }
+    50% { box-shadow: 0 0 24px rgba(240,192,64,0.7), 0 0 48px rgba(192,64,160,0.3); }
+  }
+
+  /* Floating glassy text cards */
+  .matrix-col {
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  .matrix-col:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+
+  /* Per-LLM glow on hover */
+  .matrix-col[data-provider="gemini"]:hover { box-shadow: 0 0 20px rgba(66,133,244,0.25), 0 8px 32px rgba(0,0,0,0.5); }
+  .matrix-col[data-provider="deepseek"]:hover { box-shadow: 0 0 20px rgba(0,212,163,0.25), 0 8px 32px rgba(0,0,0,0.5); }
+  .matrix-col[data-provider="grok"]:hover { box-shadow: 0 0 20px rgba(192,96,255,0.25), 0 8px 32px rgba(0,0,0,0.5); }
+  .matrix-col[data-provider="openai"]:hover { box-shadow: 0 0 20px rgba(16,163,127,0.25), 0 8px 32px rgba(0,0,0,0.5); }
 </style>
 </head>
 <body>
 
 <header>
   <div class="logo">B R a i N S T O R M &nbsp; S P i R A L</div>
-  <div class="tagline">Web Prototype · 4 LLMs · 1 Synthese · Dein Wurmloch zur MiNDLAXY</div>
+  <div class="tagline">4 LLMs · 1 Synthese · Dein Wurmloch zur MiNDLAXY</div>
   <div class="counts" id="counts">
     <div class="count-item count-stern"    onclick="showVaultPopup('Sterne')">   <div class="count-num" id="c-stern">–</div>   <div class="count-label">Sterne</div></div>
     <div class="count-item count-planet"   onclick="showVaultPopup('Planeten')"> <div class="count-num" id="c-planet">–</div>  <div class="count-label">Planeten</div></div>
@@ -509,38 +530,37 @@
 
 <main>
   <div class="tabs">
-    <div class="tab active" onclick="sw('gedanke')"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><circle cx="9" cy="10" r="1"></circle><circle cx="12" cy="10" r="1"></circle><circle cx="15" cy="10" r="1"></circle></svg>Gedanke</div>
-    <div class="tab" onclick="sw('tornado')"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"></circle><path d="M12 8 L 13 5 L 12 6 L 11 5 L 12 8"></path><path d="M12 16 L 14 20 L 12.5 17 L 11 20 L 12 16"></path><path d="M8 12 L 4 11 L 7 12 L 5 13 L 8 12"></path><path d="M16 12 L 20 13 L 17 12 L 19 11 L 16 12"></path></svg>SPiRAL</div>
-    <div class="tab" onclick="sw('vault')"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L 22 8 L 22 16 C 22 20.4 17.5 23 12 23 C 6.5 23 2 20.4 2 16 L 2 8 L 12 2"></path><path d="M12 12.5 C 14.5 12.5 16.5 10.5 16.5 8"></path></svg>MiNDLAXY</div>
-    <div class="tab" onclick="sw('settings')"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"></path></svg>Settings</div>
+    <div class="tab active" onclick="sw('tornado')"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 3c-1.5 2-5 3-7 3.5C6.5 9 10 10.5 14 9c-3 2.5-7 3-9.5 2.8C6 14.5 10 15.5 15 14c-3.5 2-8 3-10 2.5C7 19 11 20.5 16 19c-2.5 1.5-5.5 2.5-8 2"/></svg>BRaiNSTORMiNG</div>
+    <div class="tab" onclick="sw('vault')"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" opacity="0.5"/><circle cx="8" cy="7" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="9" r="0.7" fill="currentColor" stroke="none"/><circle cx="14" cy="17" r="0.8" fill="currentColor" stroke="none"/><circle cx="6" cy="14" r="0.6" fill="currentColor" stroke="none"/><path d="M12 8c3 0 5.5 1.5 5.5 4s-2.5 4-5.5 4-5.5-1.5-5.5-4S9 8 12 8" opacity="0.3"/></svg>MiNDLAXY</div>
+    <div class="tab" onclick="sw('settings')"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>Einstellungen</div>
   </div>
 
-  <!-- Gedanke Panel -->
-  <div class="panel active" id="p-gedanke">
-    <textarea id="gText" placeholder="Dein Gedanke...&#10;&#10;BRaiNSTORM SPiRAL klassifiziert ihn als Stern, Planet, Mond oder Asteroid — und schickt ihn durch das Wurmloch in deinen MiNDLAXY-Vault." rows="5"></textarea>
+  <!-- Gedanke Panel (hidden, kept for API compat) -->
+  <div class="panel" id="p-gedanke" style="display:none">
+    <textarea id="gText"></textarea>
     <button class="btn" id="gBtn" onclick="sendG()">In den Vault</button>
     <div id="gOut"></div>
   </div>
 
-  <!-- BRaiNSTORM SPiRAL Panel — Broadcast → 4 Panes → kiNTEGRiTY → BLACK-HOLE-BOX → Objekt → Export -->
-  <div class="panel" id="p-tornado">
+  <!-- BRaiNSTORMiNG Panel — Broadcast → 4 Panes → SPiRALiNG → kiNTEGRiTY → BLACK-HOLE-BOX → Export -->
+  <div class="panel active" id="p-tornado">
 
-    <!-- ① Globales Broadcast-Feld -->
+    <!-- ① Broadcast-Feld -->
     <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;align-items:flex-end">
       <div style="flex:1">
         <div style="font-size:0.62rem;color:var(--muted);letter-spacing:.1em;margin-bottom:0.3rem;text-transform:uppercase">
-          ↓ Broadcast · alle 4 gleichzeitig &nbsp;·&nbsp; Shift+Enter = neue Zeile
+          Dein Gedanke an alle 4 LLMs &nbsp;·&nbsp; Shift+Enter = neue Zeile
         </div>
         <textarea id="mAllText" rows="3"
-          placeholder="Thema oder Frage an alle 4 LLMs gleichzeitig…&#10;&#10;→ Alle: Antworten in die Panes schicken&#10;⚡ SPiRAL: Tornados + kiNTEGRiTY-Synthese + BLACK-HOLE-BOX"
-          style="width:100%;resize:none;font-size:0.9rem"
+          placeholder="Thema oder Frage…&#10;&#10;BRaiNSTORMiNG startet die 4 LLM-Tornados.&#10;SPiRALiNG verdichtet alles zur Synthese."
+          style="width:100%;resize:none;font-size:0.9rem;background:rgba(15,15,30,0.6);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:0.8rem;"
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMatrixAll()}"
         ></textarea>
       </div>
       <div style="display:flex;flex-direction:column;gap:0.35rem;flex-shrink:0">
-        <button class="matrix-send-btn" id="mAllBtn" onclick="sendMatrixAll()" title="Antworten in alle 4 Panes">→ Alle</button>
-        <button class="btn" id="tBtn" onclick="sendT()" title="Tornados + kiNTEGRiTY-Synthese + BLACK-HOLE-BOX starten" style="font-size:0.8rem;padding:0.45rem 0.8rem;white-space:nowrap">⚡ SPiRAL</button>
-        <button class="matrix-send-btn" onclick="mClearAll()" title="Alle Chatverläufe löschen" style="background:#1a1a2e;font-size:0.8rem;padding:0.45rem 0.6rem">Clear</button>
+        <button class="matrix-send-btn" id="mAllBtn" onclick="sendMatrixAll()" title="BRaiNSTORMiNG starten" style="background:linear-gradient(135deg,#4040c0,#6060dd);border:none;border-radius:8px;color:#fff;padding:0.5rem 1rem;font-weight:600;letter-spacing:0.05em;transition:all 0.2s;cursor:pointer;">BRaiNSTORMiNG</button>
+        <button class="btn" id="tBtn" onclick="sendT()" title="SPiRALiNG — Synthese starten" style="font-size:0.8rem;padding:0.45rem 0.8rem;white-space:nowrap;background:linear-gradient(135deg,#c040a0,#f0c040);border:none;border-radius:8px;color:#fff;font-weight:600;letter-spacing:0.05em;display:none;">SPiRALiNG</button>
+        <button class="matrix-send-btn" onclick="mClearAll()" title="Alle Chatverläufe löschen" style="background:rgba(30,20,40,0.6);font-size:0.75rem;padding:0.35rem 0.6rem;border:1px solid #2a2a3a;border-radius:6px;color:var(--muted);cursor:pointer;">Leeren</button>
       </div>
     </div>
 
@@ -714,7 +734,7 @@ function saveKey(inputId, storageKey) {
 
 function sw(n) {
   document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active', ['gedanke','tornado','vault','settings'][i] === n);
+    t.classList.toggle('active', ['tornado','vault','settings'][i] === n);
   });
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('p-' + n).classList.add('active');
@@ -2352,7 +2372,7 @@ async function sendT() {
   const text = document.getElementById('mAllText').value.trim();
   if (!text) return;
   const btn = document.getElementById('tBtn');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>SPiRAL…';
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>SPiRALiNG…'; btn.style.animation = 'none';
   const out = document.getElementById('tOut');
   out.innerHTML = '';
 
@@ -2363,7 +2383,7 @@ async function sendT() {
   const providers = availableProviders().filter(p => p !== 'anthropic');
   if (providers.length === 0) {
     out.innerHTML = '<div style="color:var(--asteroid)">⚠ Kein AI-Key konfiguriert (Gemini, DeepSeek, Grok oder OpenAI) → ⚙ Settings</div>';
-    btn.disabled = false; btn.textContent = '⚡ SPiRAL';
+    btn.disabled = false; btn.textContent = 'SPiRALiNG'; btn.style.display = 'none';
     main.classList.remove('spiral-mode');
     return;
   }
@@ -2539,7 +2559,7 @@ async function sendT() {
       d.innerHTML=`<div class="tornado-provider" style="color:var(--gold)">BRaiNSTORM SPiRAL</div><div style="color:var(--muted);font-size:.85rem">⚠ Kein Synthese-Provider konfiguriert → ⚙ Settings</div>`;
       outputTarget.appendChild(d);
     }
-    btn.disabled = false; btn.textContent = '⚡ SPiRAL';
+    btn.disabled = false; btn.textContent = 'SPiRALiNG'; btn.style.display = 'none';
     document.getElementById('mAllText').value = '';
     // Remove spiral mode when done
     const main = document.querySelector('main');
@@ -3114,6 +3134,12 @@ async function sendMatrixAll() {
   }));
 
   if (btn) btn.disabled = false;
+  // Show SPiRALiNG button after all LLMs responded
+  const spiralBtn = document.getElementById('tBtn');
+  if (spiralBtn) {
+    spiralBtn.style.display = 'block';
+    spiralBtn.style.animation = 'spiralBtnPulse 1.5s ease-in-out infinite';
+  }
 }
 
 function mNewChat(p) {
@@ -3345,7 +3371,7 @@ function initMatrix() {
     const convs  = Object.values(ps.convs||{}).sort((a,b)=>b.created-a.created);
     const opts   = convs.map(c=>`<option value="${c.id}" ${c.id===ps.activeId?'selected':''}>${c.title.substring(0,28)}</option>`).join('');
 
-    return `<div class="matrix-col" id="mc-${p}" style="border-color:${color}22">
+    return `<div class="matrix-col" id="mc-${p}" data-provider="${p}" style="border-color:${color}33;background:rgba(12,12,22,0.7);border-left:3px solid ${color}">
       <div class="matrix-header" style="color:${color};border-bottom-color:${color}33;flex-wrap:wrap;gap:0.25rem;padding:0.35rem 0.5rem">
         <span class="matrix-dot" style="background:${hasKey?color:'#444'}" title="${hasKey?'Key OK':'Kein Key'}"></span>
         <span style="font-size:0.6rem;font-weight:700;letter-spacing:.08em">${M_LABELS[p]}</span>
@@ -3457,7 +3483,8 @@ function initMatrix() {
   loadCounts();
   setInterval(loadCounts, 60000);
 
-  // Pre-populate 4 panes on page load (not deferred to tab click)
+  // Pre-populate 4 panes on page load — BRaiNSTORMiNG is default tab
+  document.querySelector('main').classList.add('matrix-mode');
   initMatrix();
   renderRunHistory();
 })();
