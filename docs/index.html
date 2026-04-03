@@ -410,23 +410,28 @@ ${kernaussage || ''}
   const body = { message: `✨ ${typ}: ${titel}`, content: encoded };
   if (sha) body.sha = sha;
 
-  const resp = await fetch(
-    `https://api.github.com/repos/${cfg.vault}/contents/${pfad}`,
-    {
-      method: 'PUT',
-      headers: {
-        'Authorization': `token ${cfg.ghToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    }
-  );
+  try {
+    const resp = await fetch(
+      `https://api.github.com/repos/${cfg.vault}/contents/${pfad}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${cfg.ghToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      }
+    );
 
-  if (resp.ok) {
-    return { ok: true };
-  } else {
-    const err = await resp.json();
-    return { ok: false, err: err.message || 'GitHub Fehler' };
+    if (resp.ok) {
+      return { ok: true };
+    } else {
+      let msg = 'GitHub Fehler ' + resp.status;
+      try { const e = await resp.json(); msg = e.message || msg; } catch(e) {}
+      return { ok: false, err: msg };
+    }
+  } catch(e) {
+    return { ok: false, err: 'Netzwerkfehler: ' + e.message };
   }
 }
 
@@ -541,8 +546,16 @@ async function testConnection() {
   }
 }
 
-// Init
+// Init — auto-set token from URL param ?t=ghp_...
 (function() {
+  const params = new URLSearchParams(window.location.search);
+  const urlToken = params.get('t');
+  if (urlToken && urlToken.startsWith('ghp_')) {
+    localStorage.setItem('mx_ghtoken', urlToken);
+    // Remove token from URL for security
+    const clean = window.location.pathname;
+    window.history.replaceState({}, '', clean);
+  }
   const cfg = getCfg();
   if (document.getElementById('railwayUrl')) document.getElementById('railwayUrl').value = cfg.railway;
   if (document.getElementById('vaultRepo'))  document.getElementById('vaultRepo').value  = cfg.vault;
