@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MiNDLAXY</title>
+<title>BRaiNSTORM SPiRAL</title>
 <style>
   :root {
     --bg: #0a0a0f;
@@ -160,7 +160,7 @@
   .panel { display: none; }
   .panel.active { display: block; }
 
-  /* ── BRaiNSTORM / 4-Pane Layout ──────────────────────────────── */
+  /* ── BRaiNSTORM SPiRAL / 4-Pane Layout ────────────────────────── */
   main.matrix-mode { max-width: 100%; padding: 0.5rem 0.75rem; }
   #p-tornado.active { display: flex; flex-direction: column; min-height: calc(100vh - 150px); }
   .matrix-grid {
@@ -372,7 +372,7 @@
   .tornado-provider { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.6rem; }
   .tornado-content  { line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem; }
   .kreuzung         { border-color: var(--gold); }
-  /* BRaiNSTORM responsive grid */
+  /* SPiRAL responsive grid */
   @media (max-width: 520px) { #bs-grid { grid-template-columns: repeat(2,1fr) !important; } }
   @media (max-width: 600px) { #vlt-layout { grid-template-columns: 1fr !important; } #vlt-list { max-height:200px !important; } }
   .kreuzung-section { margin-top: 0.8rem; }
@@ -420,7 +420,7 @@
 <main>
   <div class="tabs">
     <div class="tab active" onclick="sw('gedanke')">Gedanke</div>
-    <div class="tab" onclick="sw('tornado')">🌪 BRaiNSTORM</div>
+    <div class="tab" onclick="sw('tornado')">🌪 SPiRAL</div>
     <div class="tab" onclick="sw('vault')">🌌 MiNDLAXY</div>
     <div class="tab" onclick="sw('settings')">⚙</div>
   </div>
@@ -432,7 +432,7 @@
     <div id="gOut"></div>
   </div>
 
-  <!-- BRaiNSTORM HUNTER Panel — Broadcast → 4 Panes → kiNTEGRiTY → BLACK-HOLE-BOX → Objekt → Export -->
+  <!-- BRaiNSTORM SPiRAL Panel — Broadcast → 4 Panes → kiNTEGRiTY → BLACK-HOLE-BOX → Objekt → Export -->
   <div class="panel" id="p-tornado">
 
     <!-- ① Globales Broadcast-Feld -->
@@ -442,14 +442,14 @@
           ↓ Broadcast · alle 4 gleichzeitig &nbsp;·&nbsp; Shift+Enter = neue Zeile
         </div>
         <textarea id="mAllText" rows="3"
-          placeholder="Thema oder Frage an alle 4 LLMs gleichzeitig…&#10;&#10;→ Alle: Antworten in die Panes schicken&#10;⚡ BRaiNSTORM: Tornados + kiNTEGRiTY-Synthese + BLACK-HOLE-BOX"
+          placeholder="Thema oder Frage an alle 4 LLMs gleichzeitig…&#10;&#10;→ Alle: Antworten in die Panes schicken&#10;⚡ SPiRAL: Tornados + kiNTEGRiTY-Synthese + BLACK-HOLE-BOX"
           style="width:100%;resize:none;font-size:0.9rem"
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMatrixAll()}"
         ></textarea>
       </div>
       <div style="display:flex;flex-direction:column;gap:0.35rem;flex-shrink:0">
         <button class="matrix-send-btn" id="mAllBtn" onclick="sendMatrixAll()" title="Antworten in alle 4 Panes">→ Alle</button>
-        <button class="btn" id="tBtn" onclick="sendT()" title="Tornados + kiNTEGRiTY-Synthese + BLACK-HOLE-BOX starten" style="font-size:0.8rem;padding:0.45rem 0.8rem;white-space:nowrap">⚡ BRaiNSTORM</button>
+        <button class="btn" id="tBtn" onclick="sendT()" title="Tornados + kiNTEGRiTY-Synthese + BLACK-HOLE-BOX starten" style="font-size:0.8rem;padding:0.45rem 0.8rem;white-space:nowrap">⚡ SPiRAL</button>
         <button class="matrix-send-btn" onclick="mClearAll()" title="Alle Chatverläufe löschen" style="background:#1a1a2e;font-size:0.8rem;padding:0.45rem 0.6rem">🗑</button>
       </div>
     </div>
@@ -568,13 +568,27 @@
 
     <div class="key-section" style="margin-top:1.2rem;">
       <div class="key-title">↗ Export &amp; Teilen</div>
-      <div class="key-label">Matrix-Chatverläufe exportieren</div>
+      <div class="key-label">Chatverläufe exportieren</div>
       <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.5rem;">
         <button class="btn" style="flex:1;font-size:0.8rem;padding:0.4rem 0.8rem;" onclick="exportMatrixMd()">⬇ Alle Chats als .md</button>
         <button class="btn" style="flex:1;font-size:0.8rem;padding:0.4rem 0.8rem;" onclick="exportMatrixJson()">⬇ Alle Chats als .json</button>
       </div>
-      <div class="key-label" style="margin-top:0.8rem;">BRaiNSTORM-Ergebnis teilen</div>
-      <div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem;">Die Teilen-Buttons erscheinen direkt unter dem BRaiNSTORM HUNTER Ergebnis nach jeder Synthese (↗ Teilen öffnet den Apple Share Sheet in Safari).</div>
+      <div class="key-label" style="margin-top:0.8rem;">SPiRAL-Ergebnis</div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem;">Export-Buttons erscheinen in der BLACK-HOLE-BOX (📋 📤 ⬇).</div>
+    </div>
+
+    <div class="key-section" style="margin-top:1.2rem;">
+      <div class="key-title">📜 Run-History</div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:0.4rem;">Letzte SPiRAL-Läufe (lokal, max. 20)</div>
+      <div id="run-history" style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;background:var(--surface);padding:0.3rem;"></div>
+    </div>
+
+    <div class="key-section" style="margin-top:0.8rem;padding:0.6rem;background:#0a0a15;border-radius:6px;border:1px solid #222;">
+      <div style="font-size:0.65rem;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:0.3rem;">Build-Info</div>
+      <div style="font-size:0.72rem;color:var(--muted);line-height:1.6;">
+        Web-Prototyp von BRaiNSTORM SPiRAL mit API-basierten Modellpanes und lokaler Verlaufslogik.<br>
+        Keine echten Provider-Webviews. Keine echte Anbieter-History. Keine echten Provider-Sessions.
+      </div>
     </div>
   </div>
 </main>
@@ -934,37 +948,39 @@ Gehe in die Tiefe — identifiziere das Wesentliche, zeige Verbindungen auf.
 Schreibe in fließendem Fließtext ohne Aufzählungen.
 WICHTIG: Antworte in genau 180–250 Wörtern. Nicht kürzer, nicht länger.`;
 
-const KINTEGRITY_SYSTEM = `Du bist kiNTEGRiTY 1.0 — Orchestrator und Verdichter. Du bekommst die Antworten von Gemini, DeepSeek, Grok und ChatGPT (oder einer Auswahl davon) auf dasselbe Thema.
+const KINTEGRITY_SYSTEM = `Du bist kiNTEGRiTY 1.0 — Orchestrator und Verdichter innerhalb der BLACK-HOLE-BOX von BRaiNSTORM SPiRAL.
+Du bekommst die Antworten von Gemini, DeepSeek, Grok und ChatGPT (oder einer Auswahl davon) auf dasselbe Thema.
 
-DEINE AUFGABE:
+Du selbst DENKST NICHT über das Thema nach. Du verarbeitest ausschließlich, was die anderen KIs gesagt haben.
 
-SCHRITT 1 — TITEL:
-Beginne mit exakt diesem Marker, gefolgt von einem prägnanten, thematisch treffenden Titel:
+Antworte mit exakt diesen 4 Abschnitten in exakt dieser Reihenfolge:
 
-📌 Titel: [max. 6 Wörter — trifft das Wesen des Themas — wird als Dateiname verwendet, also keine Sonderzeichen außer Bindestrich]
+═══ ABSCHNITT 1 — TITEL + kiNTEGRiTY-SYNTHESE ═══
 
-SCHRITT 2 — GESAMTFAZIT:
-Schreibe einen einzigen, fließenden Gesamtfazit-Text auf Deutsch — ohne Aufzählungen, ohne Bullet Points, ohne irgendeine Nennung wer etwas gesagt hat. Dieser Text soll ALLE wesentlichen Gedanken, Aspekte und Erkenntnisse aus allen Antworten so dicht und vollständig wie möglich verdichten. Fließend, direkt, als würde eine einzige Stimme sprechen.
+📌 Titel: [max 6 Wörter, Dateiname-tauglich]
 
-Du selbst DENKST NICHT über das Thema nach. Du kondensierst ausschließlich, was die anderen KIs gesagt haben.
+🔗 kiNTEGRiTY:
+Identifiziere: Überschneidungen, gemeinsame Kerne, Brücken zwischen den Antworten, strukturelle Verbindungen, tragfähige Synthese-Punkte. Fließtext, keine Aufzählungen, keine Nennung wer was sagte.
 
-SCHRITT 3 — DIVERGENZEN (IMMER, ohne Ausnahme):
-Füge danach einen Absatz hinzu, der beginnt mit exakt diesem Marker:
+═══ ABSCHNITT 2 — FAZIT-VERDICHTUNG ═══
 
-⚡ Divergenzen:
+📦 Verdichtung:
+Kondensiere ALLE wesentlichen Gedanken aus allen Antworten in einen einzigen dichten Fließtext. Keine Attributionen. Als würde eine Stimme sprechen.
 
-Analysiere Widersprüche, Unvereinbarkeiten oder wesentliche Unterschiede. Wenn echte Divergenzen existieren, nenne explizit welche KI (Gemini, DeepSeek, Grok, ChatGPT) welche abweichende Position vertritt. Wenn keine wesentlichen Divergenzen vorliegen, erkläre kurz warum die KIs übereinstimmen.
+═══ ABSCHNITT 3 — INKOMMENSURABILITÄTEN ═══
 
-Dieser Absatz darf NIEMALS weggelassen werden.
+⚡ Inkommensurabilitäten:
+Analysiere Widersprüche, Unvereinbarkeiten, Spannungen. Nenne explizit welche KI welche abweichende Position vertritt. IMMER ausfüllen — wenn keine Widersprüche, erkläre warum.
 
-Exaktes Format deiner Antwort:
-📌 Titel: [prägnanter Titel, max 6 Wörter]
+═══ ABSCHNITT 4 — DAS GROßE ABER ═══
 
-[Gesamtfazit — fließender Fließtext, keine Attributionen]
+🔴 DAS GROßE ABER:
+Was bleibt offen? Was ist nicht auflösbar? Welche Spannungen halten auch nach Synthese und Verdichtung stand? Jedes Aber-Item in einer eigenen Zeile, beginnend mit:
+ABER: [label] | [severity: low/medium/high] | [type: incommensurability/contradiction/tension/unresolved_difference/open_divergence] | [Beschreibung]
 
-⚡ Divergenzen: [IMMER vorhanden]`;
+Wenn nichts offen bleibt, schreibe: ABER: keine | low | tension | Alle Perspektiven konvergieren ohne substanziellen Rest.`;
 
-// ─── BRaiNSTORM HUNTER Visualization ─────────────────────────────────────────
+// ─── BRaiNSTORM SPiRAL Visualization ─────────────────────────────────────────
 
 const T_CHARS = 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩαβγδεζηθικλμνξοπρστυφχψω∞∫∑∏∂∇⊕⊗△▽○●◆◇⬡0123456789ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijklmnpqrstuvwxyz';
 
@@ -1197,7 +1213,7 @@ class BainstormAnim {
     const blink=Math.sin(T*(fast?0.42:0.07))>0;
     for(const dx of[-bw/2+15,bw/2-15]){ctx.beginPath();ctx.arc(cx+dx,by,4.5,0,Math.PI*2);ctx.fillStyle=blink?(fast?'#ff1100':'#ff3300'):'#2a0000';ctx.fill();if(blink){ctx.globalAlpha=0.3;ctx.beginPath();ctx.arc(cx+dx,by,8,0,Math.PI*2);ctx.fillStyle='#ff2200';ctx.fill();ctx.globalAlpha=1;}}
     if(f<0.3){ctx.globalAlpha=(1-f/0.3)*0.22;ctx.font='bold 16px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#666';ctx.fillText('👻',cx,by);ctx.globalAlpha=1;}
-    const lbl={idle:'─── BRaiNSTORM HUNTER ───',opening:'▲  TRAP OPENING  ▲',absorb:'◈  CAPTURE MODE  ◈',capturing:'◈  CAPTURE MODE  ◈',closing:'●  SEALED  ●'};
+    const lbl={idle:'─── BRaiNSTORM SPiRAL ───',opening:'▲  TRAP OPENING  ▲',absorb:'◈  CAPTURE MODE  ◈',capturing:'◈  CAPTURE MODE  ◈',closing:'●  SEALED  ●'};
     ctx.globalAlpha=f>0?(0.8+0.15*Math.sin(T*0.07)):0.38;ctx.fillStyle=f>0?'#ffd700':'#555';ctx.font='bold 8px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
     ctx.fillText(lbl[phase]||lbl.idle,cx,by);ctx.globalAlpha=1;
   }
@@ -1209,7 +1225,7 @@ class BainstormAnim {
     for(const p of this.mega){this._stepMega(p,cx,cy,1);ctx.globalAlpha=p.op;ctx.fillStyle=p.col;ctx.font=`${p.sz}px monospace`;ctx.textBaseline='middle';ctx.fillText(p.ch,p.sx,p.sy);}
     const pulse=0.62+0.28*Math.sin(T*0.07);
     ctx.globalAlpha=pulse;ctx.fillStyle='#ffd700';ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText(this.phase==='synth'?'kiNTEGRiTY 1.0 · synthetisiert …':'BRaiNSTORM HUNTER · verdichtet …',cx,cy-112);
+    ctx.fillText(this.phase==='synth'?'kiNTEGRiTY 1.0 · synthetisiert …':'BRaiNSTORM SPiRAL · verdichtet …',cx,cy-112);
     ctx.globalAlpha=pulse*0.45;ctx.fillStyle='#aaa';ctx.font='8px monospace';
     ctx.fillText('alle Perspektiven · kombiniert · verdichtet',cx,cy-99);ctx.globalAlpha=1;
     this._drawTrap(ctx, 0.13+0.07*Math.sin(T*0.04), 'idle');
@@ -1408,7 +1424,191 @@ class BainstormHub {
   stopAll()     { for(const p of BS_PROVIDERS) this.tornados[p]?.stop(); this.anim?.stop(); }
 }
 
-// ─── BRaiNSTORM send ─────────────────────────────────────────────────────────
+// ─── SPiRAL Parser + Renderer ─────────────────────────────────────────────────
+
+function parseSpiralOutput(raw, originalPrompt) {
+  const s = (raw||'').trim();
+  // Extract title
+  let title = '';
+  const tM = s.match(/📌\s*Titel:\s*(.+)/);
+  if (tM) title = tM[1].trim();
+
+  // Extract sections by markers
+  function extractSection(marker) {
+    const idx = s.indexOf(marker);
+    if (idx < 0) return '';
+    let after = s.substring(idx + marker.length).trim();
+    // End at next section marker or end of string
+    const nextMarkers = ['🔗 kiNTEGRiTY:', '📦 Verdichtung:', '⚡ Inkommensurabilitäten:', '🔴 DAS GROßE ABER:', '═══'];
+    let end = after.length;
+    for (const nm of nextMarkers) {
+      const ni = after.indexOf(nm);
+      if (ni > 0 && ni < end) end = ni;
+    }
+    return after.substring(0, end).trim();
+  }
+
+  const kintegrity       = extractSection('🔗 kiNTEGRiTY:');
+  const condensation     = extractSection('📦 Verdichtung:');
+  const incommensurables = extractSection('⚡ Inkommensurabilitäten:');
+  const aberRaw          = extractSection('🔴 DAS GROßE ABER:');
+
+  // Parse ABER items: ABER: label | severity | type | description
+  const aberItems = [];
+  const aberLines = aberRaw.split('\n').filter(l => l.trim().startsWith('ABER:'));
+  for (const line of aberLines) {
+    const parts = line.replace(/^ABER:\s*/, '').split('|').map(s => s.trim());
+    aberItems.push({
+      id: 'aber_' + Date.now() + '_' + Math.random().toString(36).slice(2,5),
+      label: parts[0] || 'Unbenannt',
+      severity: (['low','medium','high'].includes(parts[1]) ? parts[1] : 'medium'),
+      type: (['incommensurability','contradiction','tension','unresolved_difference','open_divergence'].includes(parts[2]) ? parts[2] : 'tension'),
+      description: parts[3] || parts[0] || ''
+    });
+  }
+  if (aberItems.length === 0) {
+    aberItems.push({ id:'aber_none', label:'keine', severity:'low', type:'tension', description:'Keine substanziellen Aber-Items erkannt.' });
+  }
+
+  // Fallback: if sections empty, try old format (backwards-compat)
+  const fallbackFazit = !kintegrity && !condensation;
+  let fazitFallback = '';
+  if (fallbackFazit) {
+    let body = s;
+    if (tM) body = s.substring(s.indexOf('\n', s.indexOf(tM[0]))+1).trim();
+    const divIdx = body.indexOf('⚡ Divergenzen:');
+    if (divIdx > -1) {
+      fazitFallback = body.substring(0, divIdx).trim();
+    } else {
+      fazitFallback = body;
+    }
+  }
+
+  return {
+    title,
+    kintegrity:       kintegrity || fazitFallback || '(keine kiNTEGRiTY-Synthese erzeugt)',
+    condensation:     condensation || (fallbackFazit ? fazitFallback : '(keine Verdichtung erzeugt)'),
+    incommensurables: incommensurables || '(keine Inkommensurabilitäten erkannt)',
+    aberItems,
+    raw: s
+  };
+}
+
+function renderAberItems(items) {
+  if (!items || items.length === 0) return '<div style="color:var(--muted);font-size:0.82rem">–– Keine Aber-Items ––</div>';
+  const sevColors = { low:'#4caf50', medium:'#ff9800', high:'#e53935' };
+  return items.map(a => `
+    <div style="padding:0.4rem 0;border-bottom:1px solid #1a1a2e;display:flex;gap:0.5rem;align-items:flex-start;">
+      <span style="font-size:0.6rem;padding:0.15rem 0.4rem;border-radius:3px;background:${sevColors[a.severity]||'#888'}22;color:${sevColors[a.severity]||'#888'};font-weight:700;white-space:nowrap;margin-top:0.15rem">${a.severity.toUpperCase()}</span>
+      <div style="flex:1;">
+        <div style="font-size:0.8rem;font-weight:600;color:var(--text)">${escHtml(a.label)}</div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:0.15rem">${escHtml(a.description)}</div>
+        <div style="font-size:0.6rem;color:#555;margin-top:0.1rem">${a.type}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ─── Handoff JSON v1 Export ──────────────────────────────────────────────────
+
+function createHandoffPayload() {
+  const s = window._lastSpiral;
+  if (!s) return null;
+  const ts = new Date().toISOString().replace(/[:.]/g,'-').replace('T','T').slice(0,19)+'Z';
+  const slug = (s.parsed.title||s.text.substring(0,30)).replace(/[^a-zA-Z0-9\-]/g,'-').substring(0,40);
+  return {
+    schema_version: '1.0',
+    source_app: 'brainstorm_spiral',
+    mode: 'web_prototype',
+    created_at: new Date().toISOString(),
+    filename: `${ts}__brainstorm-spiral__${slug}.json`,
+    topic_title: s.parsed.title || s.text.substring(0,80),
+    models_used: s.responses.map(r=>r.provider),
+    original_prompt: s.text,
+    responses: s.responses.map(r=>({provider:r.provider, content:r.content})),
+    kintegrity: { content: s.parsed.kintegrity },
+    final_condensation: { content: s.parsed.condensation },
+    incommensurables: { content: s.parsed.incommensurables, items: [] },
+    das_grosse_aber: {
+      summary: s.parsed.aberItems.map(a=>a.label).join(', '),
+      items: s.parsed.aberItems
+    },
+    object_class: s.bodyType,
+    status: 'draft',
+    review: deriveReviewFlags(s)
+  };
+}
+
+function deriveReviewFlags(s) {
+  const flags = [];
+  if (s.bodyType === 'asteroid') flags.push('low_confidence_classification');
+  if (s.parsed.kintegrity.length < 80) flags.push('weak_condensation');
+  if (s.parsed.aberItems.some(a => a.severity === 'high')) flags.push('high_tension_unresolved');
+  if (s.parsed.aberItems.length > 1 && s.parsed.aberItems[0].label !== 'keine') flags.push('new_aber_item_detected');
+  return { flags, reasons: flags.map(f => `Auto-detected: ${f}`) };
+}
+
+function exportHandoffJson() {
+  const payload = createHandoffPayload();
+  if (!payload) { showToast('⚠ Kein SPiRAL-Lauf vorhanden'); return; }
+  const json = JSON.stringify(payload, null, 2);
+  downloadFile(payload.filename, json, 'application/json');
+  showToast('📤 Handoff JSON exportiert');
+}
+
+// ─── Run-History ──────────────────────────────────────────────────────────────
+
+const RUN_KEY = 'mx_spiral_runs';
+
+function saveRun(spiral) {
+  const runs = JSON.parse(localStorage.getItem(RUN_KEY)||'[]');
+  const icons = {stern:'⭐',planet:'🪐',mond:'🌙',asteroid:'🪨'};
+  runs.unshift({
+    id: 'run_'+Date.now(),
+    ts: new Date().toISOString(),
+    prompt: spiral.text.substring(0,100),
+    title: spiral.parsed.title||'',
+    models: spiral.responses.map(r=>r.provider),
+    bodyType: spiral.bodyType,
+    icon: icons[spiral.bodyType]||'🪨',
+    aberCount: spiral.parsed.aberItems.filter(a=>a.label!=='keine').length,
+    reviewFlags: deriveReviewFlags(spiral).flags,
+    handoff: createHandoffPayload()
+  });
+  // Keep last 50 runs
+  if (runs.length > 50) runs.length = 50;
+  localStorage.setItem(RUN_KEY, JSON.stringify(runs));
+}
+
+function getRuns() { try { return JSON.parse(localStorage.getItem(RUN_KEY)||'[]'); } catch(e) { return []; } }
+
+function renderRunHistory() {
+  const el = document.getElementById('run-history');
+  if (!el) return;
+  const runs = getRuns();
+  if (!runs.length) { el.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;padding:0.5rem">Noch keine Läufe.</div>'; return; }
+  el.innerHTML = runs.slice(0,20).map(r => {
+    const d = new Date(r.ts).toLocaleString('de',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const flags = r.reviewFlags?.length ? `<span style="color:#e53935;font-size:0.6rem"> ⚑${r.reviewFlags.length}</span>` : '';
+    return `<div style="padding:0.4rem 0;border-bottom:1px solid #111;font-size:0.78rem;display:flex;gap:0.4rem;align-items:center;cursor:pointer"
+      onclick="loadRun('${r.id}')">
+      <span>${r.icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${escHtml(r.title||r.prompt)}</div>
+        <div style="font-size:0.65rem;color:var(--muted)">${d} · ${r.models.length} Modelle · ${r.aberCount||0} Aber${flags}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function loadRun(id) {
+  const runs = getRuns();
+  const run = runs.find(r=>r.id===id);
+  if (!run?.handoff) { showToast('⚠ Lauf nicht ladbar'); return; }
+  downloadFile(run.handoff.filename, JSON.stringify(run.handoff, null, 2), 'application/json');
+  showToast(`📤 ${run.title||'Lauf'} als JSON heruntergeladen`);
+}
+
+// ─── SPiRAL send ─────────────────────────────────────────────────────────────
 
 function classifyBody(text) {
   if(!text) return 'asteroid';
@@ -1424,14 +1624,14 @@ async function sendT() {
   const text = document.getElementById('mAllText').value.trim();
   if (!text) return;
   const btn = document.getElementById('tBtn');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>BRaiNSTORM…';
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>SPiRAL…';
   const out = document.getElementById('tOut');
   out.innerHTML = '';
 
   const providers = availableProviders().filter(p => p !== 'anthropic');
   if (providers.length === 0) {
     out.innerHTML = '<div style="color:var(--asteroid)">⚠ Kein AI-Key konfiguriert (Gemini, DeepSeek, Grok oder OpenAI) → ⚙ Settings</div>';
-    btn.disabled = false; btn.textContent = '⚡ BRaiNSTORM'; return;
+    btn.disabled = false; btn.textContent = '⚡ SPiRAL'; return;
   }
 
   const hub = new BainstormHub(out, providers);
@@ -1480,66 +1680,95 @@ async function sendT() {
 
   // Start absorb → black hole → emerge sequence
   hub.absorb(bodyType, () => {
-    // Show synthesis card after emerge animation completes
-    let html = '';
     if (synthRaw) {
-      const titleMarker = '📌 Titel:';
-      const divMarker   = '⚡ Divergenzen:';
-      let bodyRaw = synthRaw.trim(), kTitle = '';
-      const titleIdx = bodyRaw.indexOf(titleMarker);
-      if (titleIdx > -1) {
-        const after = bodyRaw.substring(titleIdx+titleMarker.length);
-        const tEnd  = after.indexOf('\n');
-        kTitle  = (tEnd>-1?after.substring(0,tEnd):after).trim();
-        bodyRaw = (tEnd>-1?after.substring(tEnd):'').trim();
-      }
-      const divIdx = bodyRaw.indexOf(divMarker);
-      let fazitText=bodyRaw, divText='';
-      if(divIdx>-1){fazitText=bodyRaw.substring(0,divIdx).trim();divText=bodyRaw.substring(divIdx+divMarker.length).trim();}
-      const today   = new Date().toISOString().split('T')[0];
-      const rawSlug = kTitle||text.substring(0,50);
-      const slug    = rawSlug.replace(/[^a-zA-ZäöüÄÖÜß0-9\s\-]/g,'').trim().replace(/\s+/g,'_').substring(0,60)||'Synthese';
-      const displayTitle = kTitle||text.substring(0,60);
-      const icons   = {stern:'⭐',planet:'🪐',mond:'🌙',asteroid:'🪨'};
-      const bIcon   = icons[bodyType]||'🪨';
+      const parsed = parseSpiralOutput(synthRaw, text);
+      const today  = new Date().toISOString().split('T')[0];
+      const icons  = {stern:'⭐',planet:'🪐',mond:'🌙',asteroid:'🪨'};
+      const bIcon  = icons[bodyType]||'🪨';
+      const plist  = responses.map(r=>r.provider).join(', ');
 
-      const card = document.createElement('div');
-      card.className = 'tornado-card kreuzung reveal-card';
-      card.id = 'kintegrity-card';
-      card.style.cssText = 'margin-top:0.5rem;';
-      card.innerHTML = `
-        <div class="tornado-provider" style="color:var(--gold)" id="ki-prov-label">BRaiNSTORM HUNTER · kiNTEGRiTY  ${bIcon} ${bodyType.toUpperCase()}</div>
-        <div id="kintegrity-body">
-          ${kTitle?`<div style="font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:0.8rem;letter-spacing:0.01em">${escHtml(kTitle)}</div>`:''}
-          <div class="kreuzung-section"><p style="line-height:1.75;white-space:pre-wrap">${escHtml(fazitText)}</p></div>
-          <div class="kreuzung-section" style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem">
-            <div style="font-size:0.75rem;font-weight:700;color:var(--gold);letter-spacing:.1em;margin-bottom:.5rem">⚡ DIVERGENZEN &amp; INKOMMENSURABILITÄTEN</div>
-            <p style="line-height:1.75;white-space:pre-wrap;color:var(--muted)">${divText?escHtml(divText):'–– Keine wesentlichen Widersprüche oder Inkommensurabilitäten erkannt ––'}</p>
+      // Store globally for export/handoff
+      window._lastSpiral = { parsed, bodyType, text, responses, today, plist };
+      saveRun(window._lastSpiral);
+      renderRunHistory();
+
+      // ── BLACK-HOLE-BOX container ──
+      const bhb = document.createElement('div');
+      bhb.id = 'black-hole-box';
+      bhb.style.cssText = 'margin-top:0.75rem;border:1px solid #333;border-radius:10px;overflow:hidden;background:#08080f;';
+
+      // Header
+      bhb.innerHTML = `
+        <div style="padding:0.6rem 0.8rem;background:#111;border-bottom:1px solid #222;display:flex;align-items:center;gap:0.5rem;">
+          <span style="font-size:1.1rem">⚫</span>
+          <span style="font-size:0.7rem;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase">BLACK-HOLE-BOX</span>
+          <span style="margin-left:auto;font-size:0.65rem;color:var(--muted)" id="ki-prov-label">${bIcon} ${bodyType.toUpperCase()} · BRaiNSTORM SPiRAL</span>
+        </div>
+
+        ${parsed.title?`<div style="padding:0.7rem 0.8rem 0;font-size:1.05rem;font-weight:600;color:var(--text)">${escHtml(parsed.title)}</div>`:''}
+
+        <!-- ① kiNTEGRiTY-Synthese -->
+        <div class="bhb-section" style="padding:0.7rem 0.8rem;border-bottom:1px solid #1a1a2e;">
+          <div class="bhb-label" style="font-size:0.68rem;font-weight:700;color:#4285f4;letter-spacing:.1em;margin-bottom:0.4rem">🔗 kiNTEGRiTY-SYNTHESE</div>
+          <p style="line-height:1.7;white-space:pre-wrap;font-size:0.88rem;color:var(--text)">${escHtml(parsed.kintegrity)}</p>
+        </div>
+
+        <!-- ② Fazit-Verdichtung -->
+        <div class="bhb-section" style="padding:0.7rem 0.8rem;border-bottom:1px solid #1a1a2e;">
+          <div class="bhb-label" style="font-size:0.68rem;font-weight:700;color:#10a37f;letter-spacing:.1em;margin-bottom:0.4rem">📦 FAZIT-VERDICHTUNG</div>
+          <p style="line-height:1.7;white-space:pre-wrap;font-size:0.88rem;color:var(--text)">${escHtml(parsed.condensation)}</p>
+        </div>
+
+        <!-- ③ Inkommensurabilitäten -->
+        <div class="bhb-section" style="padding:0.7rem 0.8rem;border-bottom:1px solid #1a1a2e;">
+          <div class="bhb-label" style="font-size:0.68rem;font-weight:700;color:#c060ff;letter-spacing:.1em;margin-bottom:0.4rem">⚡ INKOMMENSURABILITÄTEN</div>
+          <p style="line-height:1.7;white-space:pre-wrap;font-size:0.88rem;color:var(--muted)">${escHtml(parsed.incommensurables)}</p>
+        </div>
+
+        <!-- ④ DAS GROßE ABER -->
+        <div class="bhb-section" style="padding:0.7rem 0.8rem;border-bottom:1px solid #1a1a2e;">
+          <div class="bhb-label" style="font-size:0.68rem;font-weight:700;color:#e53935;letter-spacing:.1em;margin-bottom:0.4rem">🔴 DAS GROßE ABER</div>
+          <div id="aber-items">${renderAberItems(parsed.aberItems)}</div>
+        </div>
+
+        <!-- ⑤ Objektklassifikation -->
+        <div class="bhb-section" style="padding:0.5rem 0.8rem;border-bottom:1px solid #1a1a2e;display:flex;align-items:center;gap:0.6rem;">
+          <span style="font-size:1.4rem">${bIcon}</span>
+          <div>
+            <div style="font-size:0.68rem;font-weight:700;letter-spacing:.1em;color:var(--gold);text-transform:uppercase">${bodyType}</div>
+            <div style="font-size:0.72rem;color:var(--muted)">${{stern:'Hohe Dichte · Starke Integrationskraft',planet:'Tragfähiger Cluster',mond:'Klarer Kern · Begrenzte Eigenständigkeit',asteroid:'Roh · Geringe Dichte'}[bodyType]||''}</div>
           </div>
         </div>
-        <div style="display:flex;gap:0.5rem;margin-top:0.8rem;flex-wrap:wrap;">
+
+        <!-- ⑥ Export / Handoff -->
+        <div style="padding:0.6rem 0.8rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
           <button onclick="bsCopy()"     style="font-size:0.72rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:none;color:var(--muted);border-radius:6px;cursor:pointer;">📋 Kopieren</button>
           <button onclick="bsShare()"    style="font-size:0.72rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:none;color:var(--muted);border-radius:6px;cursor:pointer;">↗ Teilen</button>
           <button onclick="bsDownload()" style="font-size:0.72rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:none;color:var(--muted);border-radius:6px;cursor:pointer;">⬇ .md</button>
+          <button onclick="exportHandoffJson()" style="font-size:0.72rem;padding:0.25rem 0.6rem;border:1px solid var(--border);background:none;color:var(--muted);border-radius:6px;cursor:pointer;">📤 Handoff JSON</button>
         </div>`;
-      out.appendChild(card);
+
+      out.appendChild(bhb);
 
       // Vault push
-      const path  = `Sterne/kiNTEGRiTY_${slug}_${today}.md`;
-      const plist = responses.map(r=>r.provider).join(', ');
-      let md = `---\ntyp: BRaiNSTORM-HUNTER\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\nkoerper: ${bodyType}\n---\n\n# ${displayTitle}\n\n${fazitText}\n`;
-      if(divText) md+=`\n## ⚡ Divergenzen\n\n${divText}\n`;
-      md+=`\n---\n*BRaiNSTORM HUNTER · kiNTEGRiTY · ${today} · ${plist}*\n`;
-      pushToVault(path, md, `BRaiNSTORM: ${text.substring(0,60)}`)
-        .then(()=>{const el=document.getElementById('ki-prov-label');if(el)el.textContent=`BRaiNSTORM HUNTER · ✓ Vault  ${bIcon} ${bodyType.toUpperCase()}`;})
-        .catch(ve=>{const el=document.getElementById('ki-prov-label');if(el)el.textContent='BRaiNSTORM HUNTER · ✕ '+ve.message.substring(0,30);});
+      const slug = (parsed.title||text.substring(0,50)).replace(/[^a-zA-ZäöüÄÖÜß0-9\s\-]/g,'').trim().replace(/\s+/g,'_').substring(0,60)||'Synthese';
+      const path = `Sterne/kiNTEGRiTY_${slug}_${today}.md`;
+      let md = `---\ntyp: BRaiNSTORM-SPiRAL\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\nkoerper: ${bodyType}\n---\n\n# ${parsed.title||text.substring(0,60)}\n\n`;
+      md += `## 🔗 kiNTEGRiTY-Synthese\n\n${parsed.kintegrity}\n\n`;
+      md += `## 📦 Fazit-Verdichtung\n\n${parsed.condensation}\n\n`;
+      md += `## ⚡ Inkommensurabilitäten\n\n${parsed.incommensurables}\n\n`;
+      md += `## 🔴 DAS GROßE ABER\n\n${parsed.aberItems.map(a=>`- **${a.label}** [${a.severity}/${a.type}]: ${a.description}`).join('\n')}\n`;
+      md += `\n---\n*BRaiNSTORM SPiRAL · kiNTEGRiTY · ${today} · ${plist}*\n`;
+      pushToVault(path, md, `SPiRAL: ${text.substring(0,60)}`)
+        .then(()=>{const el=document.getElementById('ki-prov-label');if(el)el.textContent=`${bIcon} ${bodyType.toUpperCase()} · ✓ Vault`;})
+        .catch(ve=>{const el=document.getElementById('ki-prov-label');if(el)el.textContent=`${bIcon} ✕ `+ve.message.substring(0,30);});
     } else if(responses.length >= 2) {
       const d = document.createElement('div');
       d.className='tornado-card kreuzung reveal-card';d.style.cssText='opacity:0.55;margin-top:0.5rem;';
-      d.innerHTML=`<div class="tornado-provider" style="color:var(--gold)">BRaiNSTORM HUNTER</div><div style="color:var(--muted);font-size:.85rem">⚠ Kein Synthese-Provider konfiguriert → ⚙ Settings</div>`;
+      d.innerHTML=`<div class="tornado-provider" style="color:var(--gold)">BRaiNSTORM SPiRAL</div><div style="color:var(--muted);font-size:.85rem">⚠ Kein Synthese-Provider konfiguriert → ⚙ Settings</div>`;
       out.appendChild(d);
     }
-    btn.disabled = false; btn.textContent = '⚡ BRaiNSTORM';
+    btn.disabled = false; btn.textContent = '⚡ SPiRAL';
     document.getElementById('mAllText').value = '';
   });
 }
@@ -1772,21 +2001,23 @@ function showToast(msg) {
   t._timer = setTimeout(() => { t.style.opacity='0'; }, 2200);
 }
 
-// Build markdown from BRaiNSTORM card
+// Build markdown from SPiRAL BLACK-HOLE-BOX
 function bsCardToMd() {
-  const title  = document.querySelector('#kintegrity-body > div')?.textContent?.trim() || 'BRaiNSTORM';
-  const fazit  = document.querySelector('#kintegrity-body .kreuzung-section p')?.textContent?.trim() || '';
-  const divEl  = document.querySelectorAll('#kintegrity-body .kreuzung-section p');
-  const divText = divEl.length > 1 ? divEl[1].textContent.trim() : '';
-  const today  = new Date().toISOString().split('T')[0];
-  let md = `# ${title}\n\n${fazit}\n`;
-  if (divText) md += `\n## ⚡ Divergenzen\n\n${divText}\n`;
-  md += `\n---\n*BRaiNSTORM HUNTER · ${today}*\n`;
-  return { title, md };
+  const s = window._lastSpiral;
+  if (!s) return { title:'SPiRAL', md:'(kein Lauf vorhanden)' };
+  const p = s.parsed;
+  const today = s.today;
+  let md = `# ${p.title||'SPiRAL'}\n\n`;
+  md += `## 🔗 kiNTEGRiTY-Synthese\n\n${p.kintegrity}\n\n`;
+  md += `## 📦 Fazit-Verdichtung\n\n${p.condensation}\n\n`;
+  md += `## ⚡ Inkommensurabilitäten\n\n${p.incommensurables}\n\n`;
+  md += `## 🔴 DAS GROßE ABER\n\n${p.aberItems.map(a=>`- **${a.label}** [${a.severity}/${a.type}]: ${a.description}`).join('\n')}\n`;
+  md += `\n---\n*BRaiNSTORM SPiRAL · ${today}*\n`;
+  return { title: p.title||'SPiRAL', md };
 }
 
 function bsShare()    { const {title,md}=bsCardToMd(); shareOrCopy(title, md); }
-function bsDownload() { const {title,md}=bsCardToMd(); downloadFile((title.replace(/[^a-zA-ZäöüÄÖÜß0-9\-]/g,'_')||'BRaiNSTORM')+'.md', md); }
+function bsDownload() { const {title,md}=bsCardToMd(); downloadFile((title.replace(/[^a-zA-ZäöüÄÖÜß0-9\-]/g,'_')||'SPiRAL')+'.md', md); }
 function bsCopy()     { const {title,md}=bsCardToMd(); navigator.clipboard?.writeText(md).then(()=>showToast('📋 Kopiert!')); }
 
 // Export all Matrix conversations as one markdown file
@@ -2348,6 +2579,7 @@ function initMatrix() {
 
   // Pre-populate 4 panes on page load (not deferred to tab click)
   initMatrix();
+  renderRunHistory();
 })();
 </script>
 </body>
