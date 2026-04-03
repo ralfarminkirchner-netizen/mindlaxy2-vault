@@ -1076,7 +1076,7 @@ async function sendT() {
 
       // Auto-export to vault
       const today = new Date().toISOString().split('T')[0];
-      const slug = text.substring(0,50).replace(/[^a-zA-ZäöüÄÖÜß0-9\s]/g,'').trim().replace(/\s+/g,'_');
+      const slug = text.substring(0,50).replace(/[^a-zA-ZäöüÄÖÜß0-9\s]/g,'').trim().replace(/\s+/g,'_') || 'Synthese';
       const path = `Sterne/kiNTEGRiTY_${slug}_${today}.md`;
       const plist = responses.map(r=>r.provider).join(', ');
       let md = `---\ntyp: kiNTEGRiTY\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\n---\n\n# kiNTEGRiTY · ${text.substring(0,60)}\n\n${fazitText}\n`;
