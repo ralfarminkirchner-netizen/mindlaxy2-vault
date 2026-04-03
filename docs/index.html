@@ -296,6 +296,14 @@
       <input type="text" id="grokModel" placeholder="grok-4-1-fast-non-reasoning" oninput="saveKey('grokModel','mx_grok_model')">
     </div>
 
+    <div class="key-section">
+      <div class="key-title"><span class="dot" id="dot-openai"></span> OpenAI · ChatGPT</div>
+      <div class="key-label">API Key</div>
+      <input type="password" id="openaiKey" placeholder="sk-..." oninput="saveKey('openaiKey','mx_openai')">
+      <div class="key-label">Modell (Standard: gpt-4o-mini)</div>
+      <input type="text" id="openaiModel" placeholder="gpt-4o-mini" oninput="saveKey('openaiModel','mx_openai_model')">
+    </div>
+
     <div class="key-section" style="margin-top:0.8rem;">
       <div class="key-title">Klassifizierung</div>
       <div class="key-label">Welcher AI soll für Gedanken-Klassifizierung genutzt werden?</div>
@@ -306,18 +314,21 @@
         <option value="gemini">Google · Gemini</option>
         <option value="deepseek">DeepSeek</option>
         <option value="grok">xAI · Grok</option>
+        <option value="openai">OpenAI · ChatGPT</option>
       </select>
       <div class="key-label" style="margin-top:0.6rem;">kiNTEGRiTY Synthese — Orchestrator</div>
       <div style="font-size:0.78rem;color:var(--muted);margin-top:0.3rem;">
-        Claude orchestriert — denkt nicht mit, verdichtet nur was Gemini, DeepSeek &amp; Grok sagen.
-        Fallback auf einen anderen Provider wenn kein Anthropic-Key.
+        Claude orchestriert — verdichtet nur was die anderen sagen, denkt nicht selbst mit.
+        Kein Anthropic-Key? → Auto wählt ersten verfügbaren.
       </div>
       <select id="synthesisProvider" onchange="saveKey('synthesisProvider','mx_synthesis_provider')"
         style="width:100%;margin-top:0.5rem;padding:0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);">
-        <option value="anthropic">Anthropic · Claude (Standard)</option>
-        <option value="gemini">Google · Gemini (Fallback)</option>
-        <option value="deepseek">DeepSeek (Fallback)</option>
-        <option value="grok">xAI · Grok (Fallback)</option>
+        <option value="anthropic">Anthropic · Claude (empfohlen)</option>
+        <option value="gemini">Google · Gemini</option>
+        <option value="deepseek">DeepSeek</option>
+        <option value="grok">xAI · Grok</option>
+        <option value="openai">OpenAI · ChatGPT</option>
+        <option value="auto">Auto (erster verfügbarer)</option>
       </select>
     </div>
 
@@ -342,6 +353,8 @@ function getCfg() {
     deepseekModel:    localStorage.getItem('mx_deepseek_model')     || 'deepseek-chat',
     grok:             localStorage.getItem('mx_grok')               || '',
     grokModel:        localStorage.getItem('mx_grok_model')         || 'grok-4-1-fast-non-reasoning',
+    openai:           localStorage.getItem('mx_openai')             || '',
+    openaiModel:      localStorage.getItem('mx_openai_model')       || 'gpt-4o-mini',
     classifyProvider: localStorage.getItem('mx_classify_provider')  || 'auto',
     synthesisProvider:localStorage.getItem('mx_synthesis_provider') || 'anthropic',
   };
@@ -369,9 +382,10 @@ function updateDots() {
   set('dot-gemini',    !!cfg.gemini);
   set('dot-deepseek',  !!cfg.deepseek);
   set('dot-grok',      !!cfg.grok);
+  set('dot-openai',    !!cfg.openai);
 
   const el = document.getElementById('sys-status');
-  const hasAI = cfg.anthropic || cfg.gemini || cfg.deepseek || cfg.grok;
+  const hasAI = cfg.anthropic || cfg.gemini || cfg.deepseek || cfg.grok || cfg.openai;
   if (hasAI && cfg.ghToken) {
     el.className = 'status-bar status-ok';
     el.textContent = '● Online · Vault-Sync aktiv';
@@ -454,6 +468,9 @@ async function callProvider(name, systemPrompt, userContent) {
     case 'grok':
       if (!cfg.grok) throw new Error('Kein Grok Key');
       return await callOAI(fullPrompt, cfg.grok, 'https://api.x.ai/v1', cfg.grokModel);
+    case 'openai':
+      if (!cfg.openai) throw new Error('Kein OpenAI Key');
+      return await callOAI(fullPrompt, cfg.openai, 'https://api.openai.com/v1', cfg.openaiModel);
     default:
       throw new Error('Unbekannter Provider: ' + name);
   }
@@ -461,8 +478,23 @@ async function callProvider(name, systemPrompt, userContent) {
 
 function availableProviders() {
   const cfg = getCfg();
-  const all = ['anthropic','gemini','deepseek','grok'];
+  const all = ['anthropic','gemini','deepseek','grok','openai'];
   return all.filter(p => cfg[p]);
+}
+
+// Resolve synthesis provider: prefer configured, fallback to first thinking provider
+function resolveSynthProvider() {
+  const cfg = getCfg();
+  const pref = cfg.synthesisProvider;
+  if (pref === 'auto') {
+    const thinking = availableProviders().filter(p => p !== 'anthropic');
+    return thinking[0] || null;
+  }
+  if (cfg[pref]) return pref;
+  // Preferred not available → fallback: anthropic, else first thinking provider
+  if (cfg.anthropic) return 'anthropic';
+  const thinking = availableProviders().filter(p => p !== pref);
+  return thinking[0] || null;
 }
 
 // ─── Classification ─────────────────────────────────────────────────────────
@@ -656,7 +688,7 @@ Biete eine originelle, präzise und philosophisch fundierte Perspektive.
 Geh in die Tiefe, identifiziere das Wesentliche, zeige Verbindungen auf.
 Antworte auf Deutsch, fließend, ohne Aufzählungen — reiner Gedankenfluss.`;
 
-const KINTEGRITY_SYSTEM = `Du bist kiNTEGRiTY 1.0 — Orchestrator und Verdichter. Du bekommst die Antworten von Gemini, DeepSeek und Grok auf dasselbe Thema.
+const KINTEGRITY_SYSTEM = `Du bist kiNTEGRiTY 1.0 — Orchestrator und Verdichter. Du bekommst die Antworten von Gemini, DeepSeek, Grok und ChatGPT (oder einer Auswahl davon) auf dasselbe Thema.
 
 DEINE AUFGABE:
 Schreibe einen einzigen, fließenden Gesamtfazit-Text auf Deutsch — ohne Aufzählungen, ohne Bullet Points, ohne irgendeine Nennung wer etwas gesagt hat. Dieser Text soll ALLE wesentlichen Gedanken, Aspekte und Erkenntnisse aus allen drei Antworten so dicht und vollständig wie möglich verdichten. Fließend, direkt, als würde eine einzige Stimme sprechen.
@@ -699,7 +731,7 @@ async function sendT() {
     );
 
     let html = '';
-    const providerLabels = { anthropic: 'ANTHROPIC · CLAUDE', gemini: 'GOOGLE · GEMINI', deepseek: 'DEEPSEEK', grok: 'XAI · GROK' };
+    const providerLabels = { anthropic: 'ANTHROPIC · CLAUDE', gemini: 'GOOGLE · GEMINI', deepseek: 'DEEPSEEK', grok: 'XAI · GROK', openai: 'OPENAI · CHATGPT' };
     const responses = [];
 
     for (const r of results) {
@@ -723,8 +755,8 @@ async function sendT() {
 
     // kiNTEGRiTY synthesis (only if 2+ responses)
     if (responses.length >= 2) {
-      const synthProvider = cfg.synthesisProvider;
-      if (cfg[synthProvider]) {
+      const synthProvider = resolveSynthProvider();
+      if (synthProvider) {
         out.innerHTML += `<div class="tornado-card kreuzung" id="kintegrity-card">
           <div class="tornado-provider" style="color:var(--gold)">kiNTEGRiTY 1.0 <span class="spinner"></span></div>
           <div id="kintegrity-body" style="color:var(--muted)">Synthetisiere...</div>
@@ -739,26 +771,50 @@ async function sendT() {
           // Split on divergenzen marker if present
           const divMarker = '⚡ Divergenzen:';
           const divIdx = raw.indexOf(divMarker);
+          let fazitText = raw.trim();
+          let divText = '';
           let fazitHtml = '', divHtml = '';
 
           if (divIdx > -1) {
-            const fazitText = raw.substring(0, divIdx).trim();
-            const divText = raw.substring(divIdx + divMarker.length).trim();
+            fazitText = raw.substring(0, divIdx).trim();
+            divText = raw.substring(divIdx + divMarker.length).trim();
             fazitHtml = `<div class="kreuzung-section"><p style="line-height:1.75;white-space:pre-wrap">${escHtml(fazitText)}</p></div>`;
             divHtml = divText ? `<div class="kreuzung-section" style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem">
               <div style="font-size:0.75rem;font-weight:700;color:var(--gold);letter-spacing:0.1em;margin-bottom:0.5rem">⚡ DIVERGENZEN</div>
               <p style="line-height:1.75;white-space:pre-wrap;color:var(--muted)">${escHtml(divText)}</p>
             </div>` : '';
           } else {
-            fazitHtml = `<div class="kreuzung-section"><p style="line-height:1.75;white-space:pre-wrap">${escHtml(raw.trim())}</p></div>`;
+            fazitHtml = `<div class="kreuzung-section"><p style="line-height:1.75;white-space:pre-wrap">${escHtml(fazitText)}</p></div>`;
           }
 
           document.getElementById('kintegrity-body').innerHTML = fazitHtml + divHtml;
           document.querySelector('#kintegrity-card .tornado-provider').textContent = 'kiNTEGRiTY 1.0';
+
+          // Auto-export kiNTEGRiTY result to vault
+          try {
+            const today = new Date().toISOString().split('T')[0];
+            const titleSlug = text.substring(0,50).replace(/[^a-zA-ZäöüÄÖÜß0-9\s]/g,'').trim().replace(/\s+/g,'_');
+            const vaultPath = `Sterne/kiNTEGRiTY_${titleSlug}_${today}.md`;
+            const providerList = responses.map(r => r.provider).join(', ');
+            let mdContent = `---\ntyp: kiNTEGRiTY\ndatum: ${today}\nquellen: ${providerList}\nthema: "${text.substring(0,100)}"\n---\n\n# kiNTEGRiTY · ${text.substring(0,60)}\n\n`;
+            mdContent += fazitText + '\n';
+            if (divText) mdContent += `\n## ⚡ Divergenzen\n\n${divText}\n`;
+            mdContent += `\n---\n*kiNTEGRiTY 1.0 · ${today} · Quellen: ${providerList}*\n`;
+            await pushToVault(vaultPath, mdContent, `kiNTEGRiTY: ${text.substring(0,60)}`);
+            document.querySelector('#kintegrity-card .tornado-provider').textContent = 'kiNTEGRiTY 1.0 · ✓ Vault';
+          } catch(ve) {
+            document.querySelector('#kintegrity-card .tornado-provider').textContent = 'kiNTEGRiTY 1.0 · ✕ Vault: ' + ve.message.substring(0,40);
+          }
+
         } catch(e) {
           document.getElementById('kintegrity-body').innerHTML = `<span style="color:var(--asteroid)">✕ Synthese fehlgeschlagen: ${escHtml(e.message)}</span>`;
           document.querySelector('#kintegrity-card .tornado-provider').textContent = 'kiNTEGRiTY 1.0';
         }
+      } else {
+        out.innerHTML += `<div class="tornado-card kreuzung" style="opacity:0.5">
+          <div class="tornado-provider" style="color:var(--gold)">kiNTEGRiTY 1.0</div>
+          <div style="color:var(--muted);font-size:0.85rem;">⚠ Kein Synthese-Provider konfiguriert. Anthropic- oder anderen API Key in ⚙ Settings eintragen.</div>
+        </div>`;
       }
     }
 
@@ -815,6 +871,7 @@ async function testKeys() {
   if (cfg.gemini)    await test('Gemini',    async () => { await callGemini(tiny, cfg.gemini, cfg.geminiModel); });
   if (cfg.deepseek)  await test('DeepSeek',  async () => { await callOAI(tiny, cfg.deepseek, 'https://api.deepseek.com/v1', cfg.deepseekModel); });
   if (cfg.grok)      await test('Grok',      async () => { await callOAI(tiny, cfg.grok, 'https://api.x.ai/v1', cfg.grokModel); });
+  if (cfg.openai)    await test('OpenAI',    async () => { await callOAI(tiny, cfg.openai, 'https://api.openai.com/v1', cfg.openaiModel); });
 
   const html = lines.map(l => `<div style="font-size:0.85rem;margin:0.3rem 0;color:${l.startsWith('✓')?'#60c060':'#c06060'}">${l}</div>`).join('');
   out.innerHTML = `<div style="margin-top:0.8rem;padding:0.8rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;">${html}</div>`;
@@ -849,6 +906,8 @@ function escHtml(s) {
   set('deepseekModel',    cfg.deepseekModel);
   set('grokKey',          cfg.grok);
   set('grokModel',        cfg.grokModel);
+  set('openaiKey',        cfg.openai);
+  set('openaiModel',      cfg.openaiModel);
   if (cfg.classifyProvider)  { const el = document.getElementById('classifyProvider');  if(el) el.value = cfg.classifyProvider; }
   if (cfg.synthesisProvider) { const el = document.getElementById('synthesisProvider'); if(el) el.value = cfg.synthesisProvider; }
 
