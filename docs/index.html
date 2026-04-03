@@ -2369,7 +2369,7 @@ function classifyBody(text) {
 
 async function sendT() {
   const cfg  = getCfg();
-  const text = document.getElementById('mAllText').value.trim();
+  const text = document.getElementById('mAllText').value.trim() || _lastBrainstormText;
   if (!text) return;
   const btn = document.getElementById('tBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>SPiRALiNG…'; btn.style.animation = 'none';
@@ -3102,10 +3102,13 @@ async function sendMatrixOne(p) {
   mSetLoading(p, false);
 }
 
+let _lastBrainstormText = ''; // Store text for SPiRALiNG to use
+
 async function sendMatrixAll() {
   const ta = document.getElementById('mAllText');
   const text = ta?.value?.trim();
   if (!text) return;
+  _lastBrainstormText = text; // Save for SPiRALiNG
   ta.value = '';
   const btn = document.getElementById('mAllBtn');
   if (btn) btn.disabled = true;
@@ -3371,7 +3374,9 @@ function initMatrix() {
     const convs  = Object.values(ps.convs||{}).sort((a,b)=>b.created-a.created);
     const opts   = convs.map(c=>`<option value="${c.id}" ${c.id===ps.activeId?'selected':''}>${c.title.substring(0,28)}</option>`).join('');
 
-    return `<div class="matrix-col" id="mc-${p}" data-provider="${p}" style="border-color:${color}33;background:rgba(12,12,22,0.7);border-left:3px solid ${color}">
+    const bgMap = {gemini:'rgba(60,50,10,0.35)',deepseek:'rgba(10,25,50,0.35)',grok:'rgba(45,12,20,0.35)',openai:'rgba(10,40,30,0.35)'};
+    const bgCol = bgMap[p] || 'rgba(12,12,22,0.7)';
+    return `<div class="matrix-col" id="mc-${p}" data-provider="${p}" style="border-color:${color}55;background:${bgCol};border-left:3px solid ${color}">
       <div class="matrix-header" style="color:${color};border-bottom-color:${color}33;flex-wrap:wrap;gap:0.25rem;padding:0.35rem 0.5rem">
         <span class="matrix-dot" style="background:${hasKey?color:'#444'}" title="${hasKey?'Key OK':'Kein Key'}"></span>
         <span style="font-size:0.6rem;font-weight:700;letter-spacing:.08em">${M_LABELS[p]}</span>
