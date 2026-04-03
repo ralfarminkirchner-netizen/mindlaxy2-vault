@@ -160,9 +160,9 @@
   .panel { display: none; }
   .panel.active { display: block; }
 
-  /* ── MiND MATRIX ─────────────────────────────────────────────── */
+  /* ── BRaiNSTORM / 4-Pane Layout ──────────────────────────────── */
   main.matrix-mode { max-width: 100%; padding: 0.5rem 0.75rem; }
-  #p-matrix.active { display: flex; flex-direction: column; height: calc(100vh - 150px); }
+  #p-tornado.active { display: flex; flex-direction: column; min-height: calc(100vh - 150px); }
   .matrix-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -421,7 +421,6 @@
   <div class="tabs">
     <div class="tab active" onclick="sw('gedanke')">Gedanke</div>
     <div class="tab" onclick="sw('tornado')">🌪 BRaiNSTORM</div>
-    <div class="tab" onclick="sw('matrix')">4×</div>
     <div class="tab" onclick="sw('vault')">🌌 MiNDLAXY</div>
     <div class="tab" onclick="sw('settings')">⚙</div>
   </div>
@@ -433,30 +432,34 @@
     <div id="gOut"></div>
   </div>
 
-  <!-- BRaiNSTORM Panel -->
+  <!-- BRaiNSTORM HUNTER Panel — Broadcast → 4 Panes → kiNTEGRiTY → BLACK-HOLE-BOX → Objekt → Export -->
   <div class="panel" id="p-tornado">
-    <textarea id="tText" placeholder="Thema für BRaiNSTORM HUNTER…&#10;&#10;Gemini, DeepSeek, Grok und ChatGPT entfesseln ihre Tornados gleichzeitig.&#10;kiNTEGRiTY (Claude) fängt alles in der Ghost Trap — Gesamtfazit + Divergenzen." rows="5"></textarea>
-    <button class="btn" id="tBtn" onclick="sendT()">⚡ BRaiNSTORM</button>
-    <div id="tOut"></div>
-  </div>
 
-  <!-- Matrix Panel -->
-  <div class="panel" id="p-matrix">
-    <!-- Broadcast bar: one input → all LLMs -->
-    <div style="display:flex;gap:0.5rem;margin-bottom:0.6rem;align-items:flex-end">
+    <!-- ① Globales Broadcast-Feld -->
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;align-items:flex-end">
       <div style="flex:1">
-        <div style="font-size:0.65rem;color:var(--muted);letter-spacing:.1em;margin-bottom:0.3rem;text-transform:uppercase">↓ Alle gleichzeitig &nbsp;·&nbsp; kiNTEGRiTY</div>
-        <textarea id="mAllText" rows="2"
-          placeholder="Frage an alle 4 LLMs gleichzeitig… (Shift+Enter = neue Zeile)"
+        <div style="font-size:0.62rem;color:var(--muted);letter-spacing:.1em;margin-bottom:0.3rem;text-transform:uppercase">
+          ↓ Broadcast · alle 4 gleichzeitig &nbsp;·&nbsp; Shift+Enter = neue Zeile
+        </div>
+        <textarea id="mAllText" rows="3"
+          placeholder="Thema oder Frage an alle 4 LLMs gleichzeitig…&#10;&#10;→ Alle: Antworten in die Panes schicken&#10;⚡ BRaiNSTORM: Tornados + kiNTEGRiTY-Synthese + BLACK-HOLE-BOX"
           style="width:100%;resize:none;font-size:0.9rem"
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMatrixAll()}"
         ></textarea>
       </div>
-      <button class="matrix-send-btn" id="mAllBtn" onclick="sendMatrixAll()" title="An alle senden">→ Alle</button>
-      <button class="matrix-send-btn" onclick="mClearAll()" title="Alle Chats löschen" style="background:#1a1a2e;font-size:0.8rem;padding:0.5rem 0.6rem">🗑</button>
+      <div style="display:flex;flex-direction:column;gap:0.35rem;flex-shrink:0">
+        <button class="matrix-send-btn" id="mAllBtn" onclick="sendMatrixAll()" title="Antworten in alle 4 Panes">→ Alle</button>
+        <button class="btn" id="tBtn" onclick="sendT()" title="Tornados + kiNTEGRiTY-Synthese + BLACK-HOLE-BOX starten" style="font-size:0.8rem;padding:0.45rem 0.8rem;white-space:nowrap">⚡ BRaiNSTORM</button>
+        <button class="matrix-send-btn" onclick="mClearAll()" title="Alle Chatverläufe löschen" style="background:#1a1a2e;font-size:0.8rem;padding:0.45rem 0.6rem">🗑</button>
+      </div>
     </div>
-    <!-- 4 columns -->
+
+    <!-- ② Vier LLM-Panes (Hauptarbeitsfläche) -->
     <div class="matrix-grid" id="mGrid"></div>
+
+    <!-- ③④⑤⑥ kiNTEGRiTY + BLACK-HOLE-BOX + Objektbildung + Export -->
+    <div id="tOut"></div>
+
   </div>
 
   <!-- Vault Browser Panel -->
@@ -607,12 +610,12 @@ function saveKey(inputId, storageKey) {
 
 function sw(n) {
   document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active', ['gedanke','tornado','matrix','vault','settings'][i] === n);
+    t.classList.toggle('active', ['gedanke','tornado','vault','settings'][i] === n);
   });
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('p-' + n).classList.add('active');
-  document.querySelector('main').classList.toggle('matrix-mode', n === 'matrix');
-  if (n === 'matrix') initMatrix();
+  document.querySelector('main').classList.toggle('matrix-mode', n === 'tornado');
+  if (n === 'tornado') initMatrix();
   if (n === 'vault' && !vltLoaded) vltLoad();
 }
 
@@ -1418,7 +1421,7 @@ function classifyBody(text) {
 
 async function sendT() {
   const cfg  = getCfg();
-  const text = document.getElementById('tText').value.trim();
+  const text = document.getElementById('mAllText').value.trim();
   if (!text) return;
   const btn = document.getElementById('tBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>BRaiNSTORM…';
@@ -1537,7 +1540,7 @@ async function sendT() {
       out.appendChild(d);
     }
     btn.disabled = false; btn.textContent = '⚡ BRaiNSTORM';
-    document.getElementById('tText').value = '';
+    document.getElementById('mAllText').value = '';
   });
 }
 
