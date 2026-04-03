@@ -2345,6 +2345,9 @@ function initMatrix() {
   updateDots();
   loadCounts();
   setInterval(loadCounts, 60000);
+
+  // Pre-populate 4 panes on page load (not deferred to tab click)
+  initMatrix();
 })();
 </script>
 </body>
