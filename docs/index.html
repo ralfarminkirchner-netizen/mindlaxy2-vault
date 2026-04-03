@@ -2250,7 +2250,7 @@ function initMatrix() {
 
   grid.innerHTML = M_PROVIDERS.map(p => {
     const hasKey = !!cfg[p];
-    const cols  = PROVIDER_COLORS[M_LABELS[p]] || ['#888','#666','#aaa'];
+    const cols  = BS_META[p]?.cols || ['#888','#666','#aaa'];
     const color = cols[0];
 
     // Ensure a conv exists
