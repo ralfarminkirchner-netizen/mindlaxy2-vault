@@ -700,34 +700,38 @@ Schreibe einen einzigen, fließenden Gesamtfazit-Text auf Deutsch — ohne Aufz�
 
 Du selbst DENKST NICHT über das Thema nach. Du kondensierst ausschließlich, was Gemini, DeepSeek und Grok gesagt haben — nichts hinzufügen, nichts weglassen, was wichtig ist.
 
-DANN — nur wenn es tatsächliche Widersprüche, Unvereinbarkeiten oder wesentliche Unterschiede zwischen den drei gibt — füge einen zweiten Absatz hinzu, der beginnt mit exakt diesem Marker:
+DANACH — IMMER, ohne Ausnahme — füge einen zweiten Absatz hinzu, der beginnt mit exakt diesem Marker:
 
 ⚡ Divergenzen:
 
-In diesem Divergenzen-Absatz nennst du explizit welche KI (Gemini, DeepSeek oder Grok) welche abweichende Position vertritt. Wenn es keine echten Divergenzen gibt, lasse diesen Absatz vollständig weg.
+In diesem Divergenzen-Absatz analysierst du Widersprüche, Unvereinbarkeiten oder wesentliche Unterschiede zwischen den KIs. Wenn echte Divergenzen existieren, nennst du explizit welche KI (Gemini, DeepSeek, Grok, ChatGPT) welche abweichende Position vertritt. Wenn es keine wesentlichen Divergenzen gibt, schreibst du kurz warum die KIs weitgehend übereinstimmen.
+
+Dieser Absatz darf NIEMALS weggelassen werden.
 
 Format deiner Antwort:
-[Gesamtfazit — fließender Fließtext, alle wichtigen Punkte aller drei AIs, keine Attributionen]
+[Gesamtfazit — fließender Fließtext, alle wichtigen Punkte aller KIs, keine Attributionen]
 
-⚡ Divergenzen: [nur wenn vorhanden — Widersprüche mit Nennung der jeweiligen KI]`;
+⚡ Divergenzen: [IMMER vorhanden — entweder Widersprüche mit Nennung der KI, oder kurze Übereinstimmungsnotiz]`;
 
 // ─── Tornado Visualization ──────────────────────────────────────────────────
 
 const T_CHARS = 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩαβγδεζηθικλμνξοπρστυφχψω∞∫∑∏∂∇⊕⊗△▽○●◆◇⬡0123456789ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijklmnpqrstuvwxyz';
 
 const PROVIDER_COLORS = {
-  'GOOGLE · GEMINI':  ['#4285f4','#34a853','#fbbc04'],
-  'DEEPSEEK':         ['#00d4a3','#0077cc','#00a896'],
-  'XAI · GROK':       ['#b44fde','#7b2dba','#e07ffa'],
-  'OPENAI · CHATGPT': ['#10a37f','#0d7a60','#34c994'],
+  'GOOGLE · GEMINI':  ['#4285f4','#34a853','#a8c4ff'],
+  'DEEPSEEK':         ['#00d4a3','#0099cc','#7fffd4'],
+  'XAI · GROK':       ['#c060ff','#8820cc','#e8aaff'],
+  'OPENAI · CHATGPT': ['#10a37f','#0d7a60','#5dffc4'],
   'ANTHROPIC · CLAUDE':['#e07b39','#d4571f','#f4a261'],
 };
+// Always show exactly these 4 thinking providers
+const ALL_THINKING_LABELS = ['GOOGLE · GEMINI','DEEPSEEK','XAI · GROK','OPENAI · CHATGPT'];
 
 class TornadoViz {
-  constructor(container, providerNames) {
+  constructor(container, activeLabels) {
     this.container = container;
-    this.names = providerNames;
-    this.phase = 'spin'; // spin → merge → mega → absorb → done
+    this.active = new Set(activeLabels);
+    this.phase = 'spin';
     this.T = 0;
     this.groups = [];
     this.mega = [];
@@ -737,7 +741,7 @@ class TornadoViz {
     this.raf = null;
 
     this.canvas = document.createElement('canvas');
-    this.canvas.style.cssText = 'display:block;width:100%;border-radius:12px;background:#080812;';
+    this.canvas.style.cssText = 'display:block;width:100%;border-radius:12px;background:#060610;';
     this.container.innerHTML = '';
     this.container.appendChild(this.canvas);
     this.ctx = this.canvas.getContext('2d');
@@ -748,118 +752,185 @@ class TornadoViz {
   }
 
   _resize() {
-    const W = this.container.clientWidth || 500;
-    const H = Math.min(420, Math.max(300, W * 0.7));
+    const W = this.container.clientWidth || 520;
+    const H = Math.max(460, Math.min(560, W * 0.85));
     this.canvas.style.height = H + 'px';
     const dpr = window.devicePixelRatio || 1;
     this.canvas.width  = W * dpr;
     this.canvas.height = H * dpr;
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     this.W = W; this.H = H;
+    // BLACK HOLE BOX position (bottom center)
+    this.bhbX = W / 2;
+    this.bhbY = H - 36;
+    this.bhbW = 170; this.bhbH = 30;
   }
 
+  // Diamond positions for 4 tornadoes — wide spread
   _pos() {
-    const n = this.names.length, cx = this.W/2, cy = this.H/2;
-    const r = Math.min(this.W, this.H) * 0.27;
-    return this.names.map((_, i) => {
-      const a = (i/n)*Math.PI*2 - Math.PI/2;
-      return { x: cx + Math.cos(a)*r, y: cy + Math.sin(a)*r*0.75 };
-    });
+    const cx = this.W/2, cy = this.H/2 - 30;
+    const rx = Math.min(this.W * 0.34, 170);
+    const ry = Math.min(this.H * 0.26, 120);
+    // N, E, S, W — mapped to our 4 providers in order
+    return [
+      {x: cx,      y: cy - ry},   // top
+      {x: cx + rx, y: cy},         // right
+      {x: cx,      y: cy + ry},   // bottom
+      {x: cx - rx, y: cy},         // left
+    ];
   }
 
-  _mkPart(cx, cy, cols, ph) {
-    const rBase = 18 + Math.random()*16;
+  _mkPart(cx, cy, cols, ph, active) {
     return {
-      a: ph*Math.PI*2 + Math.random()*0.4,
-      h: (Math.random()-0.5)*100,
-      r: rBase,
-      spd: (0.035+Math.random()*0.03) * (Math.random()>0.25?1:-1),
-      ch: T_CHARS[Math.floor(Math.random()*T_CHARS.length)],
-      col: cols[Math.floor(Math.random()*cols.length)],
-      sz: 7+Math.random()*6,
-      op: 0.35+Math.random()*0.65,
-      hs: -0.35-Math.random()*0.25,
-      cx, cy
+      a:   ph * Math.PI * 2 + Math.random() * 0.5,
+      h:   (Math.random() - 0.5) * 170,  // ±85px height span
+      r:   active ? (40 + Math.random() * 30) : (20 + Math.random() * 15),
+      spd: (0.03 + Math.random() * 0.025) * (Math.random() > 0.25 ? 1 : -1),
+      ch:  T_CHARS[Math.floor(Math.random() * T_CHARS.length)],
+      col: active ? cols[Math.floor(Math.random() * cols.length)] : '#444',
+      sz:  active ? (9 + Math.random() * 8) : (6 + Math.random() * 4),
+      op:  active ? (0.5 + Math.random() * 0.5) : (0.12 + Math.random() * 0.1),
+      hs:  -(0.4 + Math.random() * 0.3),  // rise speed (upward = negative h direction)
     };
   }
 
+  // TRUE funnel: WIDE at TOP (h = -85), NARROW at BOTTOM (h = +85) — real tornado shape
   _updatePart(p, cx, cy) {
     p.a += p.spd;
     p.h += p.hs;
-    if (p.h < -58) { p.h = 58; p.ch = T_CHARS[Math.floor(Math.random()*T_CHARS.length)]; }
-    const funnel = 0.25 + 0.75*((p.h+58)/116);
+    if (p.h < -86) {
+      p.h = 85;
+      p.ch = T_CHARS[Math.floor(Math.random() * T_CHARS.length)];
+    }
+    // Funnel scale: 1.0 at top, ~0.04 at bottom tip
+    const norm = (p.h + 85) / 170;          // 0 = top (wide), 1 = bottom (tip)
+    const funnel = Math.max(0.04, 1 - norm * 0.96);
     p.sx = cx + Math.cos(p.a) * p.r * funnel;
-    p.sy = cy + p.h*0.92 + Math.sin(p.a) * p.r * funnel * 0.12;
+    p.sy = cy + p.h + Math.sin(p.a) * p.r * funnel * 0.1; // very slight oval
   }
 
   _initGroups() {
     const pos = this._pos();
-    this.groups = this.names.map((name, i) => {
-      const cols = PROVIDER_COLORS[name] || ['#888','#aaa'];
-      const parts = Array.from({length:38}, (_, j) => this._mkPart(pos[i].x, pos[i].y, cols, j/38));
-      return { name, pos: {...pos[i]}, cols, parts, startPos: {...pos[i]} };
+    this.groups = ALL_THINKING_LABELS.map((name, i) => {
+      const active = this.active.has(name);
+      const cols = PROVIDER_COLORS[name] || ['#666'];
+      const parts = Array.from({length: active ? 55 : 22},
+        (_, j) => this._mkPart(pos[i].x, pos[i].y, cols, j / (active ? 55 : 22), active));
+      return { name, pos: {...pos[i]}, startPos: {...pos[i]}, cols, parts, active };
     });
   }
 
+  _drawBHB(ctx, pulse = 1, openFrac = 0) {
+    const { bhbX: bx, bhbY: by, bhbW: bw, bhbH: bh } = this;
+    ctx.save();
+    ctx.globalAlpha = 0.55 + 0.25 * pulse;
+    // Glow
+    if (openFrac > 0) {
+      const gg = ctx.createRadialGradient(bx, by, 0, bx, by, 100 * openFrac);
+      gg.addColorStop(0, `rgba(255,215,0,${0.35 * openFrac})`);
+      gg.addColorStop(1, 'transparent');
+      ctx.fillStyle = gg; ctx.fillRect(0, 0, this.W, this.H);
+    }
+    ctx.fillStyle = '#000';
+    ctx.strokeStyle = openFrac > 0 ? `rgba(255,215,0,${0.6+0.4*openFrac})` : '#3a3a2a';
+    ctx.lineWidth = openFrac > 0 ? 1.5 + openFrac : 1;
+    ctx.fillRect(bx - bw/2, by - bh/2, bw, bh);
+    ctx.strokeRect(bx - bw/2, by - bh/2, bw, bh);
+    ctx.fillStyle = openFrac > 0 ? `rgba(255,215,0,${0.7+0.3*openFrac})` : '#555';
+    ctx.font = `bold 8px monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('▪  BLACK  HOLE  BOX  ▪', bx, by);
+    ctx.restore();
+  }
+
   _drawSpin(ctx) {
-    const cx = this.W/2, cy = this.H/2;
+    const bhPulse = 0.4 + 0.15 * Math.sin(this.T * 0.05);
+    this._drawBHB(ctx, bhPulse);
+
     for (const g of this.groups) {
       for (const p of g.parts) this._updatePart(p, g.pos.x, g.pos.y);
-      // Glow
-      const grd = ctx.createRadialGradient(g.pos.x, g.pos.y, 0, g.pos.x, g.pos.y, 45);
-      grd.addColorStop(0, g.cols[0]+'28'); grd.addColorStop(1, 'transparent');
-      ctx.fillStyle = grd; ctx.fillRect(0,0,this.W,this.H);
-      // Particles
-      for (const p of g.parts) {
-        ctx.globalAlpha = p.op; ctx.fillStyle = p.col;
-        ctx.font = `${p.sz}px monospace`; ctx.fillText(p.ch, p.sx, p.sy);
+
+      if (g.active) {
+        // Color glow behind active tornado
+        const grd = ctx.createRadialGradient(g.pos.x, g.pos.y, 0, g.pos.x, g.pos.y, 65);
+        grd.addColorStop(0, g.cols[0] + '22'); grd.addColorStop(1, 'transparent');
+        ctx.fillStyle = grd; ctx.fillRect(0, 0, this.W, this.H);
       }
-      // Label
-      ctx.globalAlpha = 0.85; ctx.fillStyle = g.cols[0];
-      ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center';
-      ctx.fillText(g.name, g.pos.x, g.pos.y - 68);
-      // Ground dot
-      ctx.globalAlpha = 0.4; ctx.fillStyle = g.cols[0];
-      ctx.beginPath(); ctx.arc(g.pos.x, g.pos.y+62, 3, 0, Math.PI*2); ctx.fill();
+
+      for (const p of g.parts) {
+        ctx.globalAlpha = p.op;
+        ctx.fillStyle = p.col;
+        ctx.font = `${p.sz}px monospace`;
+        ctx.textBaseline = 'middle';
+        ctx.fillText(p.ch, p.sx, p.sy);
+      }
+
+      // Provider label above cloud top
+      const labelY = g.pos.y - 95;
+      ctx.globalAlpha = g.active ? 0.9 : 0.28;
+      ctx.fillStyle = g.active ? g.cols[0] : '#444';
+      ctx.font = `bold ${g.active ? 9 : 8}px monospace`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(g.name, g.pos.x, labelY);
+      if (!g.active) {
+        ctx.globalAlpha = 0.2;
+        ctx.fillStyle = '#666';
+        ctx.font = '7px monospace';
+        ctx.fillText('kein key', g.pos.x, labelY + 12);
+      }
+      // Ground touch-point dot
+      ctx.globalAlpha = g.active ? 0.5 : 0.1;
+      ctx.fillStyle = g.active ? g.cols[0] : '#333';
+      ctx.beginPath();
+      ctx.arc(g.pos.x, g.pos.y + 86, g.active ? 3 : 2, 0, Math.PI * 2);
+      ctx.fill();
     }
-    // Center pulse
-    const pulse = 0.45 + 0.3*Math.sin(this.T*0.07);
-    ctx.globalAlpha = pulse; ctx.fillStyle = '#555';
-    ctx.font = '10px monospace'; ctx.textAlign = 'center';
-    ctx.fillText('analysieren · · ·', cx, this.H - 14);
+
+    const pulse = 0.3 + 0.2 * Math.sin(this.T * 0.07);
+    ctx.globalAlpha = pulse; ctx.fillStyle = '#444';
+    ctx.font = '9px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('analysieren · · ·', this.W / 2, this.bhbY - 22);
     ctx.globalAlpha = 1;
   }
 
-  _ease(t) { return t<0.5 ? 2*t*t : -1+(4-2*t)*t; }
-  _easeIn3(t) { return t*t*t; }
+  _ease(t) { return t < 0.5 ? 2*t*t : -1 + (4 - 2*t)*t; }
+  _easeIn3(t) { return t * t * t; }
 
   _drawMerge(ctx) {
-    const prog = Math.min(1, this.T/55);
+    const prog = Math.min(1, this.T / 65);
     const e = this._ease(prog);
-    const cx = this.W/2, cy = this.H/2 + 10;
+    const cx = this.W / 2, cy = this.H / 2 - 20;
+    this._drawBHB(ctx, 0.4 + e * 0.3);
+
     for (const g of this.groups) {
-      const tx = g.startPos.x + (cx - g.startPos.x)*e;
-      const ty = g.startPos.y + (cy - g.startPos.y)*e;
+      if (!g.active) continue;
+      const tx = g.startPos.x + (cx - g.startPos.x) * e;
+      const ty = g.startPos.y + (cy - g.startPos.y) * e;
       g.pos.x = tx; g.pos.y = ty;
       for (const p of g.parts) this._updatePart(p, tx, ty);
       for (const p of g.parts) {
-        ctx.globalAlpha = p.op*(1-e*0.4); ctx.fillStyle = p.col;
-        ctx.font = `${p.sz*(1+e*0.3)}px monospace`; ctx.fillText(p.ch, p.sx, p.sy);
+        ctx.globalAlpha = p.op * (1 - e * 0.35);
+        ctx.fillStyle = p.col;
+        ctx.font = `${p.sz * (1 + e * 0.4)}px monospace`;
+        ctx.textBaseline = 'middle';
+        ctx.fillText(p.ch, p.sx, p.sy);
       }
-      // Fading label
-      ctx.globalAlpha = 0.8*(1-e); ctx.fillStyle = g.cols[0];
-      ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center';
-      ctx.fillText(g.name, tx, ty - 68*(1-e*0.5));
+      ctx.globalAlpha = 0.8 * (1 - e);
+      ctx.fillStyle = g.cols[0];
+      ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(g.name, tx, ty - 95 * (1 - e * 0.6));
     }
-    // Connection sparks converging
-    if (prog > 0.3) {
-      ctx.globalAlpha = (prog-0.3)/0.7 * 0.6; ctx.strokeStyle = '#ffd70066';
-      ctx.lineWidth = 0.5;
-      for (let i=0; i<this.groups.length; i++) {
-        for (let j=i+1; j<this.groups.length; j++) {
+    // Converging sparks
+    if (prog > 0.25) {
+      const sparkOp = ((prog - 0.25) / 0.75) * 0.5;
+      ctx.globalAlpha = sparkOp; ctx.strokeStyle = '#ffd70055'; ctx.lineWidth = 0.6;
+      const active = this.groups.filter(g => g.active);
+      for (let i = 0; i < active.length; i++) {
+        for (let j = i + 1; j < active.length; j++) {
           ctx.beginPath();
-          ctx.moveTo(this.groups[i].pos.x, this.groups[i].pos.y);
-          ctx.lineTo(this.groups[j].pos.x, this.groups[j].pos.y);
+          ctx.moveTo(active[i].pos.x, active[i].pos.y);
+          ctx.lineTo(active[j].pos.x, active[j].pos.y);
           ctx.stroke();
         }
       }
@@ -869,77 +940,105 @@ class TornadoViz {
   }
 
   _startMega() {
-    const cx = this.W/2, cy = this.H/2 + 10;
-    const allCols = Object.values(PROVIDER_COLORS).flat().concat(['#ffd700','#ffffff']);
-    this.mega = Array.from({length:110}, () => ({
-      a: Math.random()*Math.PI*2,
-      h: (Math.random()-0.5)*180,
-      r: 15+Math.random()*55,
-      spd: (0.055+Math.random()*0.045)*(Math.random()>0.2?1:-1),
-      ch: T_CHARS[Math.floor(Math.random()*T_CHARS.length)],
-      col: allCols[Math.floor(Math.random()*allCols.length)],
-      sz: 9+Math.random()*9,
-      op: 0.45+Math.random()*0.55,
-      hs: -0.55-Math.random()*0.35
+    const allCols = Object.values(PROVIDER_COLORS).flat().concat(['#ffd700','#ffffff','#ffaaff']);
+    this.mega = Array.from({length: 140}, () => ({
+      a:   Math.random() * Math.PI * 2,
+      h:   (Math.random() - 0.5) * 230,   // ±115px — massive
+      r:   25 + Math.random() * 75,
+      spd: (0.05 + Math.random() * 0.045) * (Math.random() > 0.18 ? 1 : -1),
+      ch:  T_CHARS[Math.floor(Math.random() * T_CHARS.length)],
+      col: allCols[Math.floor(Math.random() * allCols.length)],
+      sz:  10 + Math.random() * 11,
+      op:  0.4 + Math.random() * 0.6,
+      hs:  -(0.5 + Math.random() * 0.4),
     }));
     this.phase = 'mega'; this.T = 0;
   }
 
   _drawMega(ctx) {
-    const cx = this.W/2, cy = this.H/2 + 10;
-    const scale = Math.min(1.6, 1 + this.T/100);
-    // Gold glow
-    const grd = ctx.createRadialGradient(cx,cy,0,cx,cy,110*scale);
-    grd.addColorStop(0,'rgba(255,215,0,0.13)'); grd.addColorStop(1,'transparent');
-    ctx.fillStyle = grd; ctx.fillRect(0,0,this.W,this.H);
+    const cx = this.W / 2, cy = this.H / 2 - 30;
+    const scale = Math.min(1.7, 1 + this.T / 90);
+    this._drawBHB(ctx, 0.6 + 0.2 * Math.sin(this.T * 0.08));
+
+    const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, 130 * scale);
+    grd.addColorStop(0, 'rgba(255,215,0,0.12)'); grd.addColorStop(1, 'transparent');
+    ctx.fillStyle = grd; ctx.fillRect(0, 0, this.W, this.H);
 
     for (const p of this.mega) {
-      p.a += p.spd*(0.9+scale*0.4);
+      p.a += p.spd * (0.85 + scale * 0.45);
       p.h += p.hs;
-      if (p.h < -95) { p.h = 95; p.ch = T_CHARS[Math.floor(Math.random()*T_CHARS.length)]; }
-      const funnel = 0.15 + 0.85*((p.h+95)/190);
-      const sx = cx + Math.cos(p.a)*p.r*scale*funnel;
-      const sy = cy + p.h*0.85 + Math.sin(p.a)*p.r*scale*funnel*0.08;
-      ctx.globalAlpha = p.op; ctx.fillStyle = p.col;
-      ctx.font = `bold ${p.sz}px monospace`; ctx.fillText(p.ch, sx, sy);
+      if (p.h < -116) { p.h = 115; p.ch = T_CHARS[Math.floor(Math.random() * T_CHARS.length)]; }
+      // Mega funnel: wide at top, tip at bottom
+      const norm = (p.h + 115) / 230;
+      const funnel = Math.max(0.04, 1 - norm * 0.96);
+      const sx = cx + Math.cos(p.a) * p.r * scale * funnel;
+      const sy = cy + p.h + Math.sin(p.a) * p.r * scale * funnel * 0.06;
+      ctx.globalAlpha = p.op;
+      ctx.fillStyle = p.col;
+      ctx.font = `bold ${p.sz}px monospace`;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.ch, sx, sy);
     }
-    // Label
-    const pulse = 0.7+0.3*Math.sin(this.T*0.12);
+    const pulse = 0.75 + 0.25 * Math.sin(this.T * 0.13);
     ctx.globalAlpha = pulse; ctx.fillStyle = '#ffd700';
-    ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
-    ctx.fillText('kiNTEGRiTY 1.0', cx, cy-105);
-    ctx.globalAlpha = pulse*0.6; ctx.fillStyle = '#aaa';
+    ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('kiNTEGRiTY 1.0', cx, cy - 130);
+    ctx.globalAlpha = pulse * 0.5; ctx.fillStyle = '#aaa';
     ctx.font = '9px monospace';
-    ctx.fillText('synthetisiert · · ·', cx, this.H-14);
+    ctx.fillText('synthetisiert · · ·', cx, this.bhbY - 22);
     ctx.globalAlpha = 1;
 
     if (this.synthReady) { this.phase = 'absorb'; this.T = 0; }
   }
 
   _drawAbsorb(ctx) {
-    const prog = Math.min(1, this.T/70);
+    const prog = Math.min(1, this.T / 80);
     const e = this._easeIn3(prog);
-    const cx = this.W/2, groundY = this.H/2 + 105;
+    const cx = this.W / 2;
+    const targetY = this.bhbY; // suck into BLACK HOLE BOX
 
-    // Drain glow at bottom
-    const gg = ctx.createRadialGradient(cx,groundY,0,cx,groundY,80*(1-e)+5);
-    gg.addColorStop(0,`rgba(255,215,0,${0.4*(1-e)})`); gg.addColorStop(1,'transparent');
-    ctx.fillStyle = gg; ctx.fillRect(0,0,this.W,this.H);
+    // BHB opens and glows brighter as tornado pours in
+    this._drawBHB(ctx, 1, e);
 
     for (const p of this.mega) {
-      p.a += p.spd*(1+e*5);
-      const pullFac = 1-e;
-      const funnel = (0.15 + 0.85*((p.h+95)/190))*pullFac;
-      const sx = cx + Math.cos(p.a)*p.r*funnel + (cx-cx)*e;
-      const sy = groundY + (p.h*pullFac - 95*e);
-      ctx.globalAlpha = p.op*(1-e*0.8); ctx.fillStyle = p.col;
-      ctx.font = `bold ${p.sz*(1-e*0.5)}px monospace`; ctx.fillText(p.ch, sx, sy);
+      p.a += p.spd * (1 + e * 6);
+      const pullFac = 1 - e;
+      const norm = (p.h + 115) / 230;
+      const funnel = Math.max(0.04, 1 - norm * 0.96) * pullFac;
+      // Tornado tip → BHB position
+      const tornadoCy = this.H / 2 - 30;
+      const currentCy = tornadoCy + (targetY - tornadoCy) * e;
+      const sx = cx + Math.cos(p.a) * p.r * funnel;
+      const sy = currentCy + p.h * pullFac;
+      ctx.globalAlpha = p.op * (1 - e * 0.9);
+      ctx.fillStyle = p.col;
+      ctx.font = `bold ${p.sz * (1 - e * 0.5)}px monospace`;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.ch, sx, sy);
     }
-    // Implode flash
-    if (prog > 0.85) {
-      const flash = (prog-0.85)/0.15;
-      ctx.globalAlpha = flash*0.6; ctx.fillStyle = '#ffd700';
-      ctx.beginPath(); ctx.arc(cx, groundY, 30*flash, 0, Math.PI*2); ctx.fill();
+
+    // "Spaghettification" streaks toward BHB
+    if (e > 0.4) {
+      const streakOp = (e - 0.4) / 0.6;
+      ctx.globalAlpha = streakOp * 0.4;
+      ctx.strokeStyle = '#ffd700';
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i < 20; i++) {
+        const a = (i / 20) * Math.PI * 2 + this.T * 0.05;
+        const r = 60 * (1 - e);
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(a) * r, this.H / 2 - 30 + Math.sin(a) * r * 0.3);
+        ctx.lineTo(cx, targetY);
+        ctx.stroke();
+      }
+    }
+
+    // Final flash inside BHB
+    if (prog > 0.88) {
+      const flash = (prog - 0.88) / 0.12;
+      ctx.globalAlpha = flash * 0.8;
+      ctx.fillStyle = '#ffd700';
+      ctx.fillRect(cx - this.bhbW/2 + 2, targetY - this.bhbH/2 + 2, this.bhbW - 4, this.bhbH - 4);
     }
     ctx.globalAlpha = 1;
 
@@ -953,14 +1052,13 @@ class TornadoViz {
 
   _loop() {
     const ctx = this.ctx;
-    ctx.clearRect(0,0,this.W,this.H);
-    ctx.fillStyle = '#080812'; ctx.fillRect(0,0,this.W,this.H);
-    ctx.textBaseline = 'middle';
+    ctx.clearRect(0, 0, this.W, this.H);
+    ctx.fillStyle = '#060610'; ctx.fillRect(0, 0, this.W, this.H);
 
-    if      (this.phase==='spin')   this._drawSpin(ctx);
-    else if (this.phase==='merge')  this._drawMerge(ctx);
-    else if (this.phase==='mega')   this._drawMega(ctx);
-    else if (this.phase==='absorb') this._drawAbsorb(ctx);
+    if      (this.phase === 'spin')   this._drawSpin(ctx);
+    else if (this.phase === 'merge')  this._drawMerge(ctx);
+    else if (this.phase === 'mega')   this._drawMega(ctx);
+    else if (this.phase === 'absorb') this._drawAbsorb(ctx);
 
     this.T++;
     if (this.phase !== 'done') this.raf = requestAnimationFrame(() => this._loop());
@@ -970,12 +1068,12 @@ class TornadoViz {
 
   notifySynthReady(raw) {
     this.synthRaw = raw; this.synthReady = true;
-    if (this.phase==='mega') { this.phase='absorb'; this.T=0; }
+    if (this.phase === 'mega') { this.phase = 'absorb'; this.T = 0; }
   }
 
   startReveal(cb) {
     this.revealCb = cb;
-    if (this.phase==='done') cb(this.synthRaw);
+    if (this.phase === 'done') cb(this.synthRaw);
   }
 }
 
@@ -1067,10 +1165,10 @@ async function sendT() {
         <div class="tornado-provider" style="color:var(--gold)">kiNTEGRiTY 1.0</div>
         <div id="kintegrity-body">
           <div class="kreuzung-section"><p style="line-height:1.75;white-space:pre-wrap">${escHtml(fazitText)}</p></div>
-          ${divText ? `<div class="kreuzung-section" style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem">
-            <div style="font-size:0.75rem;font-weight:700;color:var(--gold);letter-spacing:.1em;margin-bottom:.5rem">⚡ DIVERGENZEN</div>
-            <p style="line-height:1.75;white-space:pre-wrap;color:var(--muted)">${escHtml(divText)}</p>
-          </div>` : ''}
+          <div class="kreuzung-section" style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem">
+            <div style="font-size:0.75rem;font-weight:700;color:var(--gold);letter-spacing:.1em;margin-bottom:.5rem">⚡ DIVERGENZEN &amp; INKOMMENSURABILITÄTEN</div>
+            <p style="line-height:1.75;white-space:pre-wrap;color:var(--muted)">${divText ? escHtml(divText) : '–– Keine wesentlichen Widersprüche oder Inkommensurabilitäten erkannt ––'}</p>
+          </div>
         </div>
       </div>`;
 
