@@ -21,4 +21,18 @@ Manchmal liegt es nicht an dir, sondern an der Situation oder der Person. Es ist
 
 ---
 
+**Du:** wirklich?
+
+**DEEPSEEK:** Ja, wirklich.
+
+Das Gefühl, unverstanden zu sein, ist menschlich und fast jeder kennt es irgendwann. Es kann helfen, sich klarzumachen:
+
+1. **Verstehen ist ein Prozess** – selbst bei engsten Menschen klappt es nicht immer sofort.  
+2. **Selbstverständnis kommt zuerst** – oft verstehen wir uns selbst nicht vollständig, was es anderen zusätzlich schwer macht.  
+3. **Nicht jeder wird dich verstehen** – und das ist okay. Wichtig sind die Menschen, die bereit sind, es wirklich zu versuchen.
+
+Manchmal braucht es auch einfach **Geduld** – mit dir und anderen. Wenn du magst, kannst du mir mehr erzählen. Ich höre zu und versuche, dich zu verstehen. 💬
+
+---
+
 *DEEPSEEK · 2026-04-04*
