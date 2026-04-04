@@ -564,18 +564,29 @@
   .spiral-text-column .tornado-card {
     flex-shrink: 0;
     margin-bottom: 0;
-    background: rgba(12, 12, 25, 0.92) !important;
-    backdrop-filter: blur(30px) !important;
-    -webkit-backdrop-filter: blur(30px) !important;
-    border-radius: 14px;
+    background: rgba(8, 8, 18, 0.96) !important;
+    backdrop-filter: blur(40px) saturate(1.2) !important;
+    -webkit-backdrop-filter: blur(40px) saturate(1.2) !important;
+    border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), var(--glass-inset-strong);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7), 0 0 1px rgba(255,255,255,0.1), var(--glass-inset-strong);
     position: relative;
     z-index: 10;
   }
+  .spiral-text-column .tornado-card .tornado-provider {
+    color: var(--gold) !important;
+    text-shadow: 0 0 8px rgba(240,192,64,0.3);
+  }
   .spiral-text-column .tornado-card .tornado-content {
-    color: #eee !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    color: #f0f0f8 !important;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    font-size: 0.92rem;
+    line-height: 1.65;
+  }
+  /* Ensure the spiral text column itself is above the animation overlay */
+  .spiral-text-column {
+    position: relative;
+    z-index: 1000;
   }
 
   /* SVG Icon styles */
@@ -1591,7 +1602,7 @@ class SpectacleAnim {
 
     // Create fullscreen overlay
     this.overlay = document.createElement('div');
-    this.overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:999;pointer-events:none;';
+    this.overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:998;pointer-events:none;';
     this.canvas = document.createElement('canvas');
     this.canvas.style.cssText = 'display:block;width:100%;height:100%;';
     this.overlay.appendChild(this.canvas);
@@ -3842,40 +3853,56 @@ function initMatrix() {
     const convs  = Object.values(ps.convs||{}).sort((a,b)=>b.created-a.created);
     const opts   = convs.map(c=>`<option value="${c.id}" ${c.id===ps.activeId?'selected':''}>${c.title.substring(0,28)}</option>`).join('');
 
-    const bgMap = {gemini:'rgba(55,45,10,0.3)',deepseek:'rgba(12,22,55,0.3)',grok:'rgba(50,12,12,0.3)',openai:'rgba(12,45,28,0.3)'};
+    const bgMap = {
+      gemini:  'rgba(60,48,10,0.4)',
+      deepseek:'rgba(10,20,60,0.4)',
+      grok:    'rgba(55,10,10,0.4)',
+      openai:  'rgba(10,50,30,0.4)'
+    };
+    const msgBgMap = {
+      gemini:  'rgba(232,183,48,0.06)',
+      deepseek:'rgba(48,136,232,0.06)',
+      grok:    'rgba(224,64,64,0.06)',
+      openai:  'rgba(48,184,112,0.06)'
+    };
     const bgCol = bgMap[p] || 'rgba(12,12,22,0.5)';
-    return `<div class="matrix-col" id="mc-${p}" data-provider="${p}" style="border-color:${color}55;background:${bgCol};border-left:3px solid ${color}">
-      <div class="matrix-header" style="color:${color};border-bottom-color:${color}33;flex-wrap:wrap;gap:0.25rem;padding:0.35rem 0.5rem">
-        <span class="matrix-dot" style="background:${hasKey?color:'#444'}" title="${hasKey?'Key OK':'Kein Key'}"></span>
-        <span style="font-size:0.6rem;font-weight:700;letter-spacing:.08em">${M_LABELS[p]}</span>
+    const msgBg = msgBgMap[p] || 'transparent';
+    return `<div class="matrix-col" id="mc-${p}" data-provider="${p}" style="border-color:${color}44;background:${bgCol};backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-left:3px solid ${color};box-shadow:0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.08)">
+      <div class="matrix-header" style="color:${color};border-bottom:1px solid ${color}22;flex-wrap:wrap;gap:0.25rem;padding:0.4rem 0.55rem;background:rgba(255,255,255,0.03)">
+        <span class="matrix-dot" style="background:${hasKey?color:'#444'};box-shadow:0 0 10px ${hasKey?color:'transparent'}" title="${hasKey?'Key OK':'Kein Key'}"></span>
+        <span style="font-size:0.62rem;font-weight:700;letter-spacing:.08em">${M_LABELS[p]}</span>
         <select id="mcp-${p}" onchange="mSwitchConv('${p}',this.value)"
-          style="flex:1;min-width:60px;background:#0a0a0f;border:1px solid ${color}33;color:${color};border-radius:4px;font-size:0.65rem;padding:0.15rem 0.2rem;cursor:pointer"
+          style="flex:1;min-width:60px;background:rgba(10,10,20,0.6);backdrop-filter:blur(8px);border:1px solid ${color}25;color:${color};border-radius:8px;font-size:0.65rem;padding:0.2rem 0.3rem;cursor:pointer;transition:all 0.3s ease"
           title="Gespräch wechseln">${opts}</select>
-        <button onclick="mNewChat('${p}')"     title="Neues Gespräch"         style="background:none;border:1px solid ${color}44;color:${color};cursor:pointer;font-size:0.7rem;padding:0.1rem 0.3rem;border-radius:4px" ${!hasKey?'disabled':''}>＋</button>
-        <button onclick="mShowImport('${p}')"  title="ChatGPT JSON importieren" style="background:none;border:1px solid ${color}44;color:${color};cursor:pointer;font-size:0.7rem;padding:0.1rem 0.3rem;border-radius:4px" ${!hasKey?'disabled':''}>↑</button>
-        <button onclick="mClearOne('${p}')"    title="Gespräch löschen"       style="background:none;border:none;color:${color}55;cursor:pointer;font-size:0.7rem;padding:0.1rem 0.2rem">✕</button>
+        <button onclick="mNewChat('${p}')" title="Neues Gespräch" style="background:rgba(255,255,255,0.04);border:1px solid ${color}30;color:${color};cursor:pointer;font-size:0.7rem;padding:0.15rem 0.35rem;border-radius:8px;transition:all 0.3s ease" ${!hasKey?'disabled':''} onmouseover="this.style.background='${color}22'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">＋</button>
+        <button onclick="mShowImport('${p}')" title="ChatGPT JSON importieren" style="background:rgba(255,255,255,0.04);border:1px solid ${color}30;color:${color};cursor:pointer;font-size:0.7rem;padding:0.15rem 0.35rem;border-radius:8px;transition:all 0.3s ease" ${!hasKey?'disabled':''} onmouseover="this.style.background='${color}22'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">↑</button>
+        <button onclick="mClearOne('${p}')" title="Gespräch löschen" style="background:none;border:none;color:${color}55;cursor:pointer;font-size:0.7rem;padding:0.1rem 0.2rem;transition:all 0.3s ease" onmouseover="this.style.color='${color}'" onmouseout="this.style.color='${color}55'">✕</button>
       </div>
-      <div style="padding:0.25rem 0.4rem;border-bottom:1px solid ${color}22;display:flex;gap:0.3rem;align-items:center">
+      <div style="padding:0.3rem 0.45rem;border-bottom:1px solid ${color}15;display:flex;gap:0.3rem;align-items:center;background:rgba(255,255,255,0.015)">
         <select id="mr-${p}" onchange="onRoleChange('${p}')"
-          style="flex:1;background:#0a0a0f;border:1px solid ${color}22;color:${color}aa;border-radius:4px;font-size:0.62rem;padding:0.15rem 0.25rem;cursor:pointer"
+          style="flex:1;background:rgba(10,10,20,0.5);border:1px solid ${color}18;color:${color}bb;border-radius:8px;font-size:0.62rem;padding:0.18rem 0.25rem;cursor:pointer;transition:all 0.3s ease"
           title="Perspektive / Rolle">
           ${TISCH_ROLES.map(r => `<option value="${r.id}">${r.label}</option>`).join('')}
         </select>
         <input id="mrc-${p}" type="text" placeholder="Eigene Rolle beschreiben…"
-          style="display:none;flex:1;background:#0a0a0f;border:1px solid ${color}22;color:${color};border-radius:4px;font-size:0.62rem;padding:0.15rem 0.3rem"
+          style="display:none;flex:1;background:rgba(10,10,20,0.5);border:1px solid ${color}18;color:${color};border-radius:8px;font-size:0.62rem;padding:0.18rem 0.3rem;transition:all 0.3s ease"
           oninput="setPaneRole('${p}','custom',this.value)">
       </div>
-      <div class="matrix-messages" id="mm-${p}">
+      <div class="matrix-messages" id="mm-${p}" style="background:${msgBg}">
         ${!hasKey?`<div class="matrix-msg no-key">⚙ API Key in Settings eintragen</div>`:''}
       </div>
-      <div style="padding:0.4rem;border-top:1px solid ${color}22;display:flex;gap:0.3rem;align-items:flex-end">
+      <div style="padding:0.45rem;border-top:1px solid ${color}15;display:flex;gap:0.35rem;align-items:flex-end;background:rgba(255,255,255,0.02)">
         <textarea id="mi-${p}" rows="1" placeholder="Frage an ${M_LABELS[p]}…"
-          style="flex:1;resize:none;font-size:0.8rem;padding:0.35rem 0.5rem;min-height:32px;max-height:80px"
+          style="flex:1;resize:none;font-size:0.8rem;padding:0.4rem 0.55rem;min-height:34px;max-height:80px;background:rgba(10,10,20,0.5);border:1px solid ${color}20;border-radius:10px;color:var(--text);transition:all 0.3s ease"
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMatrixOne('${p}')}"
           oninput="this.style.height='';this.style.height=Math.min(this.scrollHeight,80)+'px'"
+          onfocus="this.style.borderColor='${color}55';this.style.boxShadow='0 0 12px ${color}15'"
+          onblur="this.style.borderColor='${color}20';this.style.boxShadow='none'"
           ${!hasKey?'disabled':''}></textarea>
         <button onclick="sendMatrixOne('${p}')"
-          style="padding:0.3rem 0.6rem;background:${color}22;border:1px solid ${color}44;color:${color};border-radius:5px;cursor:pointer;font-size:0.85rem;height:32px;flex-shrink:0"
+          style="padding:0.35rem 0.7rem;background:linear-gradient(135deg,${color}30,${color}18);border:1px solid ${color}35;color:${color};border-radius:10px;cursor:pointer;font-size:0.85rem;height:34px;flex-shrink:0;transition:all 0.3s ease;backdrop-filter:blur(8px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.1)"
+          onmouseover="this.style.background='linear-gradient(135deg,${color}50,${color}30)';this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px ${color}25,inset 0 1px 0 rgba(255,255,255,0.15)'"
+          onmouseout="this.style.background='linear-gradient(135deg,${color}30,${color}18)';this.style.transform='none';this.style.boxShadow='inset 0 1px 0 rgba(255,255,255,0.1)'"
           ${!hasKey?'disabled':''}>→</button>
       </div>
     </div>`;
