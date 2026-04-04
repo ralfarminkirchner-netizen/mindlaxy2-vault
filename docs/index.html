@@ -3983,7 +3983,7 @@ function initMatrix() {
       openai:  'rgba(48,184,112,0.04)'
     };
     const msgBg = msgBgMap[p] || 'transparent';
-    return `<div class="matrix-col" id="mc-${p}" data-provider="${p}" style="color:${color};border-left:3px solid ${color}">
+    return `<div class="matrix-col" id="mc-${p}" data-provider="${p}" style="color:${color}">
       <div class="matrix-header" style="color:${color};flex-wrap:wrap;gap:0.25rem;padding:0.4rem 0.55rem">
         <span class="matrix-dot" style="background:${hasKey?color:'#444'};box-shadow:0 0 10px ${hasKey?color:'transparent'}" title="${hasKey?'Key OK':'Kein Key'}"></span>
         <span style="font-size:0.62rem;font-weight:700;letter-spacing:.08em">${M_LABELS[p]}</span>
