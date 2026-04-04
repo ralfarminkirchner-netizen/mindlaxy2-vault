@@ -357,4 +357,10 @@ Die Erwähnung von Fakten, Logik und der Akasha-Chronik, einer hypothetischen un
 
 ---
 
+**Du:** open "/Users/ralfkirchner/Documents/New project/einsein/src/data/shared-core"
+
+**OPENAI · CHATGPT:** Es tut mir leid, aber ich kann nicht auf lokale Dateien oder Verzeichnisse auf deinem Computer zugreifen oder diese öffnen. Allerdings kann ich dir helfen, falls du Informationen oder Unterstützung zu einem bestimmten Thema benötigst, das möglicherweise in den Dateien enthalten ist oder falls du Fragen zum Programmieren oder zur Organisation von Projekten hast. Lass mich wissen, wie ich dir weiterhelfen kann!
+
+---
+
 *OPENAI · CHATGPT · 2026-04-04*
