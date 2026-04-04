@@ -1260,8 +1260,14 @@
       <div id="kintegrity-editor-header">
         <span style="font-size:0.78rem;font-weight:700;letter-spacing:.1em;color:#8080e0;text-transform:uppercase">🔗 kiNTEGRiTY</span>
         <span id="kintegrity-run-count" style="font-size:0.62rem;color:var(--muted);margin-left:auto">0 Synthesen</span>
+        <button onclick="copyKintegrity()" title="Text kopieren"
+          style="font-size:0.62rem;padding:0.2rem 0.5rem;background:rgba(80,80,216,0.15);border:1px solid rgba(80,80,216,0.25);color:#8080e0;border-radius:8px;cursor:pointer;transition:all 0.25s ease"
+          onmouseover="this.style.background='rgba(80,80,216,0.3)'" onmouseout="this.style.background='rgba(80,80,216,0.15)'">📋 Copy</button>
+        <button onclick="downloadKintegrity()" title="Als Markdown herunterladen"
+          style="font-size:0.62rem;padding:0.2rem 0.5rem;background:rgba(80,80,216,0.15);border:1px solid rgba(80,80,216,0.25);color:#8080e0;border-radius:8px;cursor:pointer;transition:all 0.25s ease"
+          onmouseover="this.style.background='rgba(80,80,216,0.3)'" onmouseout="this.style.background='rgba(80,80,216,0.15)'">⬇ MD</button>
         <button id="kintegrity-clear-btn" onclick="clearKintegrity()" title="kiNTEGRiTY leeren"
-          style="font-size:0.65rem;padding:0.2rem 0.5rem;background:rgba(200,60,60,0.15);border:1px solid rgba(200,60,60,0.25);color:#e06060;border-radius:8px;cursor:pointer;transition:all 0.25s ease"
+          style="font-size:0.62rem;padding:0.2rem 0.5rem;background:rgba(200,60,60,0.15);border:1px solid rgba(200,60,60,0.25);color:#e06060;border-radius:8px;cursor:pointer;transition:all 0.25s ease"
           onmouseover="this.style.background='rgba(200,60,60,0.3)'" onmouseout="this.style.background='rgba(200,60,60,0.15)'">✕ Leeren</button>
       </div>
       <div id="kintegrity-editor" contenteditable="true" spellcheck="true"></div>
@@ -4273,6 +4279,36 @@ async function sendMatrixOne(p) {
     if (c && c.msgs.at(-1)?.role==='user') { c.msgs.pop(); mSaveStore(st2); }
   }
   mSetLoading(p, false);
+  checkShowSpiralBtns();
+  autoTitleConv(p);
+}
+
+// Check if spiral buttons should be visible (≥2 panes have assistant responses)
+function checkShowSpiralBtns() {
+  let panesWithResponses = 0;
+  for (const p of M_PROVIDERS) {
+    const conv = mGetActive(p);
+    if (conv && conv.msgs && conv.msgs.some(m => m.role === 'assistant')) panesWithResponses++;
+  }
+  const sc = document.getElementById('spiralBtnContainer');
+  if (sc && panesWithResponses >= 2) {
+    sc.style.display = 'block';
+    updateSpiralSelection();
+  }
+}
+
+// Auto-title conversation from first user message
+function autoTitleConv(p) {
+  const store = mGetStore();
+  const ps = store[p];
+  if (!ps || !ps.activeId) return;
+  const conv = ps.convs[ps.activeId];
+  if (!conv || conv.title !== 'Neues Gespräch') return;
+  const firstUser = conv.msgs.find(m => m.role === 'user');
+  if (!firstUser) return;
+  conv.title = firstUser.content.substring(0, 35).replace(/\n/g, ' ').trim() + (firstUser.content.length > 35 ? '…' : '');
+  mSaveStore(store);
+  mUpdatePicker(p);
 }
 
 var _lastBrainstormText = ''; // Store text for SPiRALiNG to use
@@ -4312,15 +4348,15 @@ async function sendMatrixAll() {
   }));
 
   if (btn) btn.disabled = false;
-  // Show SPiRALiNG button below panes after all LLMs responded
+  for (const p of M_PROVIDERS) autoTitleConv(p);
+  checkShowSpiralBtns();
+  // Pulse animation on spiral buttons
   const spiralContainer = document.getElementById('spiralBtnContainer');
-  if (spiralContainer) {
-    spiralContainer.style.display = 'block';
+  if (spiralContainer && spiralContainer.style.display !== 'none') {
     const spiralBtn = document.getElementById('tBtn');
     const spiralBtnFull = document.getElementById('tBtnFull');
     if (spiralBtn) spiralBtn.style.animation = 'spiralBtnPulse 1.5s ease-in-out infinite';
     if (spiralBtnFull) spiralBtnFull.style.animation = 'spiralBtnPulse 1.5s ease-in-out infinite';
-    // Scroll to make the button visible
     spiralContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 }
@@ -4649,6 +4685,9 @@ function initMatrix() {
       }
     }
   }
+
+  // Show spiral buttons if panes already have responses
+  checkShowSpiralBtns();
 }
 
 // ── Sidebar (variable declarations — must be before Init IIFE) ───────────────
@@ -4808,7 +4847,7 @@ function updateSpiralSelection() {
   document.querySelectorAll('.spiral-pane-cb:checked').forEach(cb => {
     _spiralSelection.add(cb.dataset.provider);
   });
-  // Update button label to show count
+  // Update button labels to show count
   const btns = [document.getElementById('tBtn'), document.getElementById('tBtnFull')];
   const n = _spiralSelection.size;
   btns.forEach(b => {
@@ -4816,6 +4855,20 @@ function updateSpiralSelection() {
     if (b.id === 'tBtnFull') b.textContent = n > 0 ? `SPiRALiSiNG (${n}) & Black-Hole-Box` : 'SPiRALiSiNG & Black-Hole-Box';
     else b.textContent = n > 0 ? `SPiRALiSiNG (${n})` : 'SPiRALiSiNG';
   });
+  // Visual glow on selected panes
+  for (const p of M_PROVIDERS) {
+    const pane = document.getElementById('mc-' + p);
+    if (!pane) continue;
+    const meta = BS_META[p];
+    const col = meta?.cols?.[0] || '#888';
+    if (_spiralSelection.has(p)) {
+      pane.style.boxShadow = `0 0 18px ${col}30, 0 4px 24px rgba(0,0,0,0.4)`;
+      pane.style.borderColor = `${col}40`;
+    } else {
+      pane.style.boxShadow = '0 4px 24px rgba(0,0,0,0.4)';
+      pane.style.borderColor = '';
+    }
+  }
 }
 
 // Get selected providers (fallback to all available if none checked)
@@ -4830,6 +4883,7 @@ function showKintegrityEditor() {
   if (wrap) {
     wrap.style.display = '';
     wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setupEditorContextMenu(); // ensure context menu is attached
   }
 }
 
@@ -4867,6 +4921,27 @@ function clearKintegrity() {
   if (wrap) wrap.classList.remove('has-content');
   if (countEl) countEl.textContent = '0 Synthesen';
   _kintegrityRunCount = 0;
+}
+
+function copyKintegrity() {
+  const editor = document.getElementById('kintegrity-editor');
+  if (!editor || !editor.textContent.trim()) { showToast('⚠ Kein Text zum Kopieren'); return; }
+  navigator.clipboard.writeText(editor.textContent).then(() => showToast('✓ kiNTEGRiTY kopiert'));
+}
+
+function downloadKintegrity() {
+  const editor = document.getElementById('kintegrity-editor');
+  if (!editor || !editor.textContent.trim()) { showToast('⚠ Kein Text zum Exportieren'); return; }
+  const today = new Date().toISOString().split('T')[0];
+  let md = `# kiNTEGRiTY-Synthese\n\n*BRaiNSTORM SPiRAL · ${today} · ${_kintegrityRunCount} Synthese(n)*\n\n---\n\n`;
+  md += editor.textContent;
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `kiNTEGRiTY_${today}.md`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('⬇ kiNTEGRiTY.md heruntergeladen');
 }
 
 // Get latest assistant response from each selected pane
@@ -4947,9 +5022,12 @@ function hideContextMenu() {
 }
 
 // Handle right-click on kiNTEGRiTY editor
+let _ctxMenuAttached = false;
 function setupEditorContextMenu() {
+  if (_ctxMenuAttached) return;
   const editor = document.getElementById('kintegrity-editor');
   if (!editor) return;
+  _ctxMenuAttached = true;
   editor.addEventListener('contextmenu', (e) => {
     const sel = window.getSelection();
     const selectedText = sel ? sel.toString().trim() : '';
