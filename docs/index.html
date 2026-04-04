@@ -46,18 +46,21 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: #0c1020;
-    background-image:
-      radial-gradient(ellipse 100% 80% at 50% 0%, rgba(20, 30, 60, 0.8) 0%, transparent 60%),
-      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(80, 50, 180, 0.18) 0%, transparent 55%),
-      radial-gradient(ellipse 70% 50% at 85% 75%, rgba(30, 100, 200, 0.12) 0%, transparent 50%),
-      radial-gradient(ellipse 50% 40% at 50% 50%, rgba(180, 130, 60, 0.06) 0%, transparent 40%);
+    background: #06060e;
     color: var(--text);
     font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
+  }
+  /* Dynamic flowing background canvas */
+  #flowBg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: -1;
+    pointer-events: none;
   }
   header {
     width: 100%;
@@ -892,6 +895,10 @@
     --glass-bg-hover: rgba(255, 255, 255, 0.6);
     --glass-border: rgba(0, 0, 0, 0.08);
     --glass-border-hover: rgba(0, 0, 0, 0.14);
+    background: #eeeef5;
+  }
+  body.light-mode #flowBg {
+    opacity: 0.25; filter: saturate(0.6) brightness(3);
     --glass-shadow: 0 8px 40px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
     --glass-shadow-hover: 0 16px 56px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
     --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.7), inset 0 0 0 0.5px rgba(255, 255, 255, 0.3);
@@ -1084,6 +1091,7 @@
 </style>
 </head>
 <body>
+<canvas id="flowBg"></canvas>
 
 <!-- Theme Toggle (Hell/Dunkel) -->
 <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="Hell / Dunkel umschalten">☾</button>
@@ -1351,6 +1359,74 @@
 </main>
 
 <script>
+// ─── Dynamic Flowing Background ──────────────────────────────────────────────
+(function initFlowBg() {
+  const cv = document.getElementById('flowBg');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  let W, H;
+
+  function resize() {
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Color blobs that drift slowly
+  const blobs = [
+    { x: 0.2, y: 0.15, r: 0.45, h: 260, s: 80, l: 18, vx: 0.00008, vy: 0.00006, vr: 0.00003 },
+    { x: 0.8, y: 0.3,  r: 0.38, h: 35,  s: 75, l: 14, vx: -0.00006, vy: 0.00007, vr: -0.00002 },
+    { x: 0.5, y: 0.7,  r: 0.5,  h: 210, s: 70, l: 16, vx: 0.00005, vy: -0.00005, vr: 0.00004 },
+    { x: 0.15,y: 0.8,  r: 0.35, h: 300, s: 60, l: 12, vx: 0.00007, vy: -0.00004, vr: -0.00003 },
+    { x: 0.85,y: 0.75, r: 0.4,  h: 170, s: 65, l: 15, vx: -0.00005,vy: 0.00005, vr: 0.00002 },
+  ];
+
+  let t = 0;
+  function draw() {
+    t++;
+    ctx.fillStyle = '#06060e';
+    ctx.fillRect(0, 0, W, H);
+
+    for (const b of blobs) {
+      // Drift positions with sine wave modulation
+      b.x += b.vx + Math.sin(t * 0.001 + b.h) * 0.00003;
+      b.y += b.vy + Math.cos(t * 0.0012 + b.h) * 0.00003;
+      // Bounce softly
+      if (b.x < -0.2 || b.x > 1.2) b.vx *= -1;
+      if (b.y < -0.2 || b.y > 1.2) b.vy *= -1;
+      // Hue shifts slowly
+      b.h = (b.h + 0.015) % 360;
+
+      const cx = b.x * W;
+      const cy = b.y * H;
+      const radius = b.r * Math.max(W, H) * (0.9 + 0.1 * Math.sin(t * 0.002 + b.h));
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+      g.addColorStop(0, `hsla(${b.h}, ${b.s}%, ${b.l}%, 0.35)`);
+      g.addColorStop(0.4, `hsla(${b.h + 20}, ${b.s - 10}%, ${b.l - 3}%, 0.15)`);
+      g.addColorStop(0.7, `hsla(${b.h + 40}, ${b.s - 20}%, ${b.l - 6}%, 0.05)`);
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // Subtle noise grain overlay
+    ctx.globalAlpha = 0.015;
+    for (let i = 0; i < 120; i++) {
+      const nx = Math.random() * W;
+      const ny = Math.random() * H;
+      ctx.fillStyle = Math.random() > 0.5 ? '#fff' : '#000';
+      ctx.fillRect(nx, ny, 1.5, 1.5);
+    }
+    ctx.globalAlpha = 1;
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
 // ─── Config ────────────────────────────────────────────────────────────────
 const VAULT_DEFAULT = 'ralfarminkirchner-netizen/mindlaxy2-vault';
 
@@ -1958,9 +2034,9 @@ class SpectacleAnim {
     this.doneCb = null;
     this.overlayAlpha = 0;
 
-    // Create FULLSCREEN overlay — dramatic tornado merge covers entire viewport
+    // Create FULLSCREEN overlay — dramatic tornado merge, semi-transparent so text stays readable
     this.overlay = document.createElement('div');
-    this.overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:998;pointer-events:none;';
+    this.overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:50;pointer-events:none;';
     this.canvas = document.createElement('canvas');
     this.canvas.style.cssText = 'display:block;width:100%;height:100%;';
     this.overlay.appendChild(this.canvas);
@@ -2048,7 +2124,7 @@ class SpectacleAnim {
   // ── Phase: MIGRATE ──
   _drawMigrate(ctx) {
     this.migrate_e = Math.min(1, this.migrate_e + 0.012);
-    this.overlayAlpha = Math.min(0.92, this.overlayAlpha + 0.02);
+    this.overlayAlpha = Math.min(0.45, this.overlayAlpha + 0.015);
     const e = this._ease3(this.migrate_e);
 
     // Dark overlay
