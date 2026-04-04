@@ -596,6 +596,32 @@
   .tornado-provider { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.6rem; }
   .tornado-content  { line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem; }
   .kreuzung         { border-color: var(--gold); }
+
+  /* ── BLACK-HOLE-BOX V3 Animations ── */
+  @keyframes bhbSingPulse { 0%,100%{transform:scale(1);opacity:0.3;} 50%{transform:scale(1.2);opacity:0.8;} }
+  @keyframes bhbDotPulse { 0%,100%{opacity:0.5;transform:scale(1);} 50%{opacity:1;transform:scale(1.3);} }
+  .bhb-v3-btn {
+    font-size:0.68rem; padding:0.3rem 0.75rem;
+    border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02);
+    color:rgba(180,170,220,0.5); border-radius:8px; cursor:pointer;
+    transition:all 0.3s ease; letter-spacing:0.03em;
+  }
+  .bhb-v3-btn:hover {
+    background:rgba(100,80,200,0.1); border-color:rgba(100,80,200,0.2);
+    color:#b0a0ff; box-shadow:0 0 12px rgba(100,80,200,0.15);
+  }
+
+  /* ── Spinning Spiral Brand Element ── */
+  .spiral-brand {
+    position: fixed; bottom: 1.5rem; right: 1.5rem;
+    width: 48px; height: 48px; z-index: 90;
+    opacity: 0.25; transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  .spiral-brand:hover { opacity: 0.5; }
+  .spiral-brand svg { animation: spiralSpin 20s linear infinite; }
+  @keyframes spiralSpin { to { transform: rotate(360deg); } }
+
   /* SPiRAL responsive grid */
   @media (max-width: 520px) { #bs-grid { grid-template-columns: repeat(2,1fr) !important; } }
   @media (max-width: 600px) { #vlt-layout { grid-template-columns: 1fr !important; } #vlt-list { max-height:200px !important; } }
@@ -1042,102 +1068,7 @@
 
   /* ── kiNTEGRiTY Persistent Editor ── */
   /* ── NOTiZEN Scratchpad — schwebend über den Panes ── */
-  #notizen-bar {
-    position: sticky;
-    top: 10px;
-    z-index: 200;
-    width: 280px;
-    min-height: 220px;
-    max-height: 55vh;
-    background: rgba(24,20,46,0.88);
-    backdrop-filter: blur(28px);
-    -webkit-backdrop-filter: blur(28px);
-    border: 1px solid rgba(200,180,80,0.3);
-    border-radius: 16px;
-    box-shadow: 0 12px 48px rgba(0,0,0,0.55), 0 0 60px rgba(180,160,60,0.08), inset 0 1px 0 rgba(255,255,255,0.08);
-    overflow: hidden;
-    transition: box-shadow 0.35s ease, border-color 0.35s ease;
-    /* Default: rechts schwebend über dem Grid */
-    float: right;
-    margin: 0 0 0.8rem 0.8rem;
-    /* Schienen-Drag: horizontal verschiebbar */
-    cursor: default;
-  }
-  #notizen-bar.dragging {
-    box-shadow: 0 16px 60px rgba(0,0,0,0.7), 0 0 80px rgba(200,180,60,0.15), inset 0 1px 0 rgba(255,255,255,0.12);
-    border-color: rgba(240,220,100,0.5);
-  }
-  #notizen-bar:focus-within {
-    border-color: rgba(220,200,100,0.5);
-    box-shadow: 0 14px 52px rgba(0,0,0,0.6), 0 0 70px rgba(180,160,60,0.12), inset 0 1px 0 rgba(255,255,255,0.1);
-  }
-  #notizen-header {
-    padding: 0.5rem 0.8rem;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    background: rgba(255,255,255,0.03);
-    cursor: grab;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-  #notizen-header:active { cursor: grabbing; }
-  #notizen-rail-indicator {
-    position: absolute;
-    bottom: 6px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40px;
-    height: 3px;
-    border-radius: 2px;
-    background: rgba(200,180,80,0.25);
-    pointer-events: none;
-  }
-  #notizen-field {
-    width: 100%;
-    min-height: 160px;
-    max-height: calc(55vh - 44px);
-    overflow-y: auto;
-    padding: 0.6rem 0.8rem;
-    font-size: 0.84rem;
-    line-height: 1.7;
-    color: var(--text);
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    outline: none;
-    cursor: text;
-    resize: none;
-  }
-  #notizen-field:empty::before {
-    content: '📌 Kernaussagen, Zitate, Formulierungen hier festhalten…\A\A→ fließen mit höchster Priorität in die Synthese';
-    white-space: pre-wrap;
-    color: var(--muted);
-    font-style: italic;
-    pointer-events: none;
-    font-size: 0.78rem;
-  }
-  #notizen-field ::selection {
-    background: rgba(200,180,60,0.35);
-    color: #fff;
-  }
-  #notizen-counter {
-    font-size: 0.55rem;
-    color: var(--muted);
-    margin-left: auto;
-    white-space: nowrap;
-  }
-  @media (max-width: 900px) {
-    #notizen-bar {
-      width: 100%;
-      float: none;
-      min-height: 120px;
-      max-height: 40vh;
-      position: relative;
-      top: 0;
-      margin: 0.5rem 0;
-    }
-  }
+  /* Old floating NOTiZEN removed — replaced by NOTiZBUCH Shared Core component */
 
   #kintegrity-editor-wrap {
     margin-top: 1.2rem;
@@ -1330,19 +1261,7 @@
     <div style="font-size:0.85rem;font-weight:700;color:var(--text);margin-bottom:0.6rem;display:flex;align-items:center;gap:0.5rem;letter-spacing:0.03em">⊞ 5 LLMs</div>
     <div class="matrix-grid" id="mGrid"></div>
 
-    <!-- NOTiZEN Scratchpad — schwebt über den LLM-Panes, auf Schienen verschiebbar -->
-    <div id="notizen-bar">
-      <div id="notizen-header">
-        <span style="font-size:0.68rem;font-weight:700;letter-spacing:.1em;color:#c8b040;text-transform:uppercase">📌 NOTiZEN</span>
-        <span id="notizen-counter">0</span>
-        <button onclick="clearNotizen()" title="Notizen leeren"
-          style="font-size:0.55rem;padding:0.12rem 0.35rem;background:rgba(200,60,60,0.12);border:1px solid rgba(200,60,60,0.2);color:#e06060;border-radius:5px;cursor:pointer;transition:all 0.25s ease"
-          onmouseover="this.style.background='rgba(200,60,60,0.25)'" onmouseout="this.style.background='rgba(200,60,60,0.12)'">✕</button>
-      </div>
-      <div id="notizen-field" contenteditable="true" spellcheck="true"
-           oninput="updateNotizenCounter()"></div>
-      <div id="notizen-rail-indicator"></div>
-    </div>
+    <!-- NOTiZEN: jetzt über NOTiZBUCH Shared Core (Cmd/Ctrl+Shift+N) -->
 
     <!-- SPiRALiSiNG buttons — appear below panes after all LLMs respond -->
     <div id="spiralBtnContainer" style="display:none;margin:1.2rem 0 0.8rem;padding:0.5rem">
@@ -1526,6 +1445,22 @@
     </div>
   </div>
 </main>
+
+<!-- Spinning Spiral Brand Element -->
+<div class="spiral-brand" aria-hidden="true">
+  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M50 50 C50 38,58 28,68 28 C78 28,85 38,85 50 C85 68,68 82,50 82 C28 82,15 65,15 50 C15 28,32 12,50 12 C75 12,92 32,92 50 C92 75,72 95,50 95 C22 95,5 72,5 50 C5 22,25 2,50 2"
+      stroke="url(#spiralGrad)" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+    <defs>
+      <linearGradient id="spiralGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#8070ff"/>
+        <stop offset="40%" stop-color="#ffc060"/>
+        <stop offset="70%" stop-color="#ff6080"/>
+        <stop offset="100%" stop-color="#60a0ff"/>
+      </linearGradient>
+    </defs>
+  </svg>
+</div>
 
 <script>
 // ─── Dynamic Flowing Background ──────────────────────────────────────────────
@@ -2024,7 +1959,7 @@ class WildTornado {
     const W = this.canvas.parentElement?.clientWidth || 100;
     const H = 180;
     this.canvas.width = W*dpr; this.canvas.height = H*dpr;
-    this.canvas.style.height = H+'px';
+    this.canvas.style.width = W+'px'; this.canvas.style.height = H+'px';
     this.ctx.setTransform(dpr,0,0,dpr,0,0);
     this.W = W; this.H = H;
     this.cx = W/2; this.cy = H*0.45;
@@ -3164,7 +3099,7 @@ class BainstormHub {
       const tornadoSection = document.createElement('div');
       tornadoSection.id = `bs-cell-${p}`;
       tornadoSection.setAttribute('data-provider', p);
-      tornadoSection.style.cssText = `border-top:1px solid ${active ? col+'33' : 'rgba(255,255,255,0.04)'};background:rgba(4,4,12,0.6);`;
+      tornadoSection.style.cssText = `display:flex;flex-direction:column;border-top:1px solid ${active ? col+'33' : 'rgba(255,255,255,0.04)'};background:rgba(4,4,12,0.6);`;
 
       const cv = document.createElement('canvas');
       cv.style.cssText = 'display:block;width:100%;flex-shrink:0;';
@@ -3349,15 +3284,19 @@ function parseSpiralOutput(raw, originalPrompt) {
 }
 
 function renderAberItems(items) {
-  if (!items || items.length === 0) return '<div style="color:var(--muted);font-size:0.82rem">–– Keine Aber-Items ––</div>';
-  const sevColors = { low:'#4caf50', medium:'#ff9800', high:'#e53935' };
+  if (!items || items.length === 0) return '<div style="color:rgba(180,170,220,0.4);font-size:0.82rem">Keine substanziellen Spannungen erkannt.</div>';
+  const sevBg = { low:'rgba(100,200,100,0.06)', medium:'rgba(255,160,60,0.06)', high:'rgba(255,60,60,0.06)' };
+  const sevBorder = { low:'rgba(100,200,100,0.1)', medium:'rgba(255,160,60,0.1)', high:'rgba(255,60,60,0.1)' };
+  const sevColor = { low:'#80c080', medium:'#ffb060', high:'#ff8080' };
   return items.map(a => `
-    <div style="padding:0.4rem 0;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;gap:0.5rem;align-items:flex-start;">
-      <span style="font-size:0.6rem;padding:0.15rem 0.4rem;border-radius:3px;background:${sevColors[a.severity]||'#888'}22;color:${sevColors[a.severity]||'#888'};font-weight:700;white-space:nowrap;margin-top:0.15rem">${a.severity.toUpperCase()}</span>
-      <div style="flex:1;">
-        <div style="font-size:0.8rem;font-weight:600;color:var(--text)">${escHtml(a.label)}</div>
-        <div style="font-size:0.75rem;color:var(--muted);margin-top:0.15rem">${escHtml(a.description)}</div>
-        <div style="font-size:0.6rem;color:#555;margin-top:0.1rem">${a.type}</div>
+    <div style="margin-top:0.5rem;padding:0.65rem 1rem;border-radius:10px;background:${sevBg[a.severity]||'rgba(255,60,60,0.04)'};border:1px solid ${sevBorder[a.severity]||'rgba(255,60,60,0.08)'};position:relative;overflow:hidden;">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(to bottom,${sevColor[a.severity]||'#ff8080'},transparent)"></div>
+      <div style="padding-left:0.4rem;">
+        <div style="display:flex;align-items:center;gap:0.4rem;">
+          <span style="font-size:0.88rem;font-weight:600;color:#ff9090">${escHtml(a.label)}</span>
+          <span style="padding:0.08rem 0.35rem;border-radius:3px;font-size:0.58rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;background:${sevBg[a.severity]};color:${sevColor[a.severity]}">${a.severity.toUpperCase()}</span>
+        </div>
+        <div style="font-size:0.85rem;line-height:1.7;color:rgba(255,200,200,0.72);margin-top:0.25rem">${escHtml(a.description)}</div>
       </div>
     </div>`).join('');
 }
@@ -3511,7 +3450,7 @@ async function sendTIterative() {
     texts: responses.map(r => ({ source: r.provider, content: r.content })),
     notizen: notizen || undefined,
     existingSynthesis: existingKI || undefined,
-    mustKeep: [],
+    mustKeep: getMustKeepBlocks(),
   };
 
   try {
@@ -3635,7 +3574,7 @@ async function sendT(pushToVaultFlag = true) {
       texts: responses.map(r => ({ source: r.provider, content: r.content })),
       notizen: notizen || undefined,
       existingSynthesis: existingKI || undefined,
-      mustKeep: [],
+      mustKeep: getMustKeepBlocks(),
     };
 
     // Dynamic import: Shared Core kiNTEGRiTY Engine
@@ -3698,78 +3637,95 @@ async function sendT(pushToVaultFlag = true) {
       const fullSynthText = [parsed.kintegrity, parsed.condensation, parsed.fraglich ? '❓ ' + parsed.fraglich : ''].filter(Boolean).join('\n\n');
       appendToKintegrity(fullSynthText, plist);
 
-      // ── kiNTEGRiTY Panel ──
-      const kintegrityPanel = document.createElement('div');
-      kintegrityPanel.id = 'kintegrity-panel';
-      kintegrityPanel.className = 'tornado-card';
-      kintegrityPanel.style.cssText = 'background:rgba(40,30,70,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(90,74,154,0.35);box-shadow:0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.1);padding:1.2rem 1.4rem;margin-top:1rem;';
-      kintegrityPanel.innerHTML = `
-        <div style="font-size:0.8rem;font-weight:700;letter-spacing:.12em;color:#8080e0;text-transform:uppercase;margin-bottom:1rem;">
-          🔗 kiNTEGRiTY
-        </div>
-        <div style="line-height:1.8;font-size:0.95rem;white-space:pre-wrap;">${escHtml(parsed.kintegrity)}</div>
-      `;
-      outputTarget.appendChild(kintegrityPanel);
+      // ── BLACK-HOLE-BOX container (Variante 3: Canvas Gravitationsfeld) ──
+      const bhbWrap = document.createElement('div');
+      bhbWrap.style.cssText = 'position:relative;margin-top:1.5rem;';
 
-      // ── BLACK-HOLE-BOX container ──
+      // Gravitational particle canvas
+      const gravCanvas = document.createElement('canvas');
+      gravCanvas.id = 'bhb-grav-field';
+      gravCanvas.style.cssText = 'position:absolute;top:-60px;left:-30px;width:calc(100% + 60px);height:calc(100% + 100px);pointer-events:none;z-index:0;';
+      bhbWrap.appendChild(gravCanvas);
+
       const bhb = document.createElement('div');
       bhb.id = 'black-hole-box';
-      bhb.className = 'tornado-card';
-      bhb.style.cssText = 'background:rgba(16,16,32,0.6);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(42,42,90,0.35);box-shadow:0 12px 40px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;margin-top:1rem;';
+      bhb.style.cssText = 'position:relative;z-index:1;border-radius:24px;overflow:hidden;background:rgba(8,6,18,0.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(80,60,160,0.12);box-shadow:0 0 60px rgba(60,40,140,0.1),0 32px 64px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.06);';
 
-      // Header
       bhb.innerHTML = `
-        <div style="padding:1rem 1.2rem;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:0.6rem;">
-          <span style="font-size:1.3rem">⚫</span>
-          <span style="font-size:0.85rem;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase">BLACK-HOLE-BOX</span>
-          <span style="margin-left:auto;font-size:0.72rem;color:var(--muted)" id="ki-prov-label">${bIcon} ${bodyType.toUpperCase()} · BRaiNSTORM SPiRAL</span>
+        <div style="padding:1.1rem 1.5rem;display:flex;align-items:center;gap:0.7rem;border-bottom:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.015);">
+          <div style="width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#0a0a20,#000);box-shadow:0 0 12px rgba(80,40,200,0.3),0 0 24px rgba(40,20,100,0.2),inset 0 0 6px rgba(100,80,200,0.15);position:relative;">
+            <div style="position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(100,80,200,0.15);animation:bhbSingPulse 2.5s ease-in-out infinite;"></div>
+          </div>
+          <span style="font-size:0.75rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;background:linear-gradient(135deg,#b0a0ff,#ffc870);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">BLACK-HOLE-BOX</span>
+          <span style="margin-left:auto;font-size:0.66rem;color:rgba(180,170,220,0.4);" id="ki-prov-label">${bIcon} ${bodyType.toUpperCase()} · BRaiNSTORM SPiRAL</span>
         </div>
 
-        ${parsed.title?`<div style="padding:1rem 1.2rem 0.3rem;font-size:1.2rem;font-weight:700;color:var(--text)">${escHtml(parsed.title)}</div>`:''}
+        ${parsed.title?`<div style="padding:1rem 1.5rem 0.4rem;font-size:1.12rem;font-weight:600;color:#eee8ff;line-height:1.4">${escHtml(parsed.title)}</div>`:''}
 
-        <!-- ① kiNTEGRiTY-Synthese -->
-        <div class="bhb-section" style="padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.05);">
-          <div class="bhb-label" style="font-size:0.75rem;font-weight:700;color:#4285f4;letter-spacing:.1em;margin-bottom:0.5rem">🔗 kiNTEGRiTY-SYNTHESE</div>
-          <p style="line-height:1.8;white-space:pre-wrap;font-size:0.95rem;color:var(--text)">${escHtml(parsed.kintegrity)}</p>
+        <!-- Zone 1: kiNTEGRiTY-Synthese -->
+        <div style="padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.03);position:relative;">
+          <div style="position:absolute;left:0;top:0.8rem;bottom:0.8rem;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(to bottom,rgba(100,120,255,0.5),rgba(100,120,255,0.1))"></div>
+          <div style="display:flex;align-items:center;gap:0.4rem;font-size:0.66rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.6rem;color:#8090ff;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#6080ff;box-shadow:0 0 8px rgba(80,100,255,0.4);animation:bhbDotPulse 2s ease-in-out infinite;"></span>
+            kiNTEGRiTY-Synthese
+          </div>
+          <div style="font-size:0.92rem;line-height:1.85;color:rgba(220,215,240,0.88);white-space:pre-wrap;">${escHtml(parsed.kintegrity)}</div>
         </div>
 
-        ${parsed.condensation ? `<!-- ② Fazit-Verdichtung -->
-        <div class="bhb-section" style="padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.05);">
-          <div class="bhb-label" style="font-size:0.75rem;font-weight:700;color:#10a37f;letter-spacing:.1em;margin-bottom:0.5rem">📦 FAZIT-VERDICHTUNG</div>
-          <p style="line-height:1.8;white-space:pre-wrap;font-size:0.95rem;color:var(--text)">${escHtml(parsed.condensation)}</p>
+        ${parsed.condensation ? `
+        <div style="padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.03);position:relative;">
+          <div style="position:absolute;left:0;top:0.8rem;bottom:0.8rem;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(to bottom,rgba(60,200,120,0.5),rgba(60,200,120,0.1))"></div>
+          <div style="display:flex;align-items:center;gap:0.4rem;font-size:0.66rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.6rem;color:#60c880;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#40b060;box-shadow:0 0 8px rgba(60,180,90,0.4);animation:bhbDotPulse 2s ease-in-out infinite;"></span>
+            Fazit-Verdichtung
+          </div>
+          <div style="font-size:0.92rem;line-height:1.85;color:rgba(220,215,240,0.88);white-space:pre-wrap;">${escHtml(parsed.condensation)}</div>
         </div>` : ''}
 
-        <!-- ③ DAS GROßE ABER (Spannungen, Inkommensurabilitäten) -->
-        <div class="bhb-section" style="padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.05);">
-          <div class="bhb-label" style="font-size:0.75rem;font-weight:700;color:#e53935;letter-spacing:.1em;margin-bottom:0.5rem">⚡ DAS GROßE ABER</div>
+        <!-- Zone 2: DAS GROßE ABER -->
+        <div style="padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.03);position:relative;">
+          <div style="position:absolute;left:0;top:0.8rem;bottom:0.8rem;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(to bottom,rgba(255,80,80,0.5),rgba(255,80,80,0.1))"></div>
+          <div style="display:flex;align-items:center;gap:0.4rem;font-size:0.66rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.6rem;color:#ff7070;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#ff5050;box-shadow:0 0 8px rgba(255,60,60,0.4);animation:bhbDotPulse 2s ease-in-out infinite;"></span>
+            DAS GROßE ABER
+          </div>
           <div id="aber-items">${renderAberItems(parsed.aberItems)}</div>
-          ${parsed.incommensurables ? `<p style="line-height:1.8;white-space:pre-wrap;font-size:0.9rem;color:var(--muted);margin-top:0.8rem;border-top:1px solid rgba(255,255,255,0.04);padding-top:0.6rem">${escHtml(parsed.incommensurables)}</p>` : ''}
+          ${parsed.incommensurables ? `<div style="font-size:0.88rem;line-height:1.75;color:rgba(255,200,200,0.6);margin-top:0.8rem;padding-top:0.6rem;border-top:1px solid rgba(255,255,255,0.03);white-space:pre-wrap;">${escHtml(parsed.incommensurables)}</div>` : ''}
         </div>
 
-        ${parsed.fraglich ? `<!-- ④ FRAGLICH / FEHLERHAFT -->
-        <div class="bhb-section" style="padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.05);">
-          <div class="bhb-label" style="font-size:0.75rem;font-weight:700;color:#ff9800;letter-spacing:.1em;margin-bottom:0.5rem">❓ FRAGLICH / FEHLERHAFT</div>
-          <p style="line-height:1.8;white-space:pre-wrap;font-size:0.9rem;color:var(--muted)">${escHtml(parsed.fraglich)}</p>
+        ${parsed.fraglich ? `
+        <!-- Zone 3: FRAGLICH / FEHLERHAFT -->
+        <div style="padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.03);position:relative;">
+          <div style="position:absolute;left:0;top:0.8rem;bottom:0.8rem;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(to bottom,rgba(255,160,60,0.5),rgba(255,160,60,0.1))"></div>
+          <div style="display:flex;align-items:center;gap:0.4rem;font-size:0.66rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.6rem;color:#ffa050;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#ff9030;box-shadow:0 0 8px rgba(255,140,40,0.4);animation:bhbDotPulse 2s ease-in-out infinite;"></span>
+            Fraglich / Fehlerhaft
+          </div>
+          <div style="font-size:0.9rem;line-height:1.85;color:rgba(255,180,100,0.75);white-space:pre-wrap;">${escHtml(parsed.fraglich)}</div>
         </div>` : ''}
 
-        <!-- ⑤ Objektklassifikation -->
-        <div class="bhb-section" style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:0.6rem;">
-          <span style="font-size:1.4rem">${bIcon}</span>
+        <!-- Objektklassifikation -->
+        <div style="padding:0.6rem 1.5rem;display:flex;align-items:center;gap:0.7rem;border-bottom:1px solid rgba(255,255,255,0.03);">
+          <span style="font-size:1.3rem;">${bIcon}</span>
           <div>
-            <div style="font-size:0.68rem;font-weight:700;letter-spacing:.1em;color:var(--gold);text-transform:uppercase">${bodyType}</div>
-            <div style="font-size:0.72rem;color:var(--muted)">${{stern:'Hohe Dichte · Starke Integrationskraft',planet:'Tragfähiger Cluster',mond:'Klarer Kern · Begrenzte Eigenständigkeit',asteroid:'Roh · Geringe Dichte'}[bodyType]||''}</div>
+            <div style="font-size:0.65rem;font-weight:700;letter-spacing:0.1em;color:#ffd080;text-transform:uppercase">${bodyType}</div>
+            <div style="font-size:0.66rem;color:rgba(200,190,230,0.4)">${{stern:'Hohe Dichte · Starke Integrationskraft',planet:'Tragfähiger Cluster',mond:'Klarer Kern · Begrenzte Eigenständigkeit',asteroid:'Roh · Geringe Dichte'}[bodyType]||''}</div>
           </div>
         </div>
 
-        <!-- ⑥ Export / Handoff -->
-        <div style="padding:0.6rem 0.8rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
-          <button onclick="bsCopy()"     style="font-size:0.72rem;padding:0.3rem 0.7rem;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--muted);border-radius:8px;cursor:pointer;transition:all 0.3s ease;backdrop-filter:blur(8px);">Copy</button>
-          <button onclick="bsShare()"    style="font-size:0.72rem;padding:0.3rem 0.7rem;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--muted);border-radius:8px;cursor:pointer;transition:all 0.3s ease;backdrop-filter:blur(8px);">Share</button>
-          <button onclick="bsDownload()" style="font-size:0.72rem;padding:0.3rem 0.7rem;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--muted);border-radius:8px;cursor:pointer;transition:all 0.3s ease;backdrop-filter:blur(8px);">MD</button>
-          <button onclick="exportHandoffJson()" style="font-size:0.72rem;padding:0.3rem 0.7rem;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--muted);border-radius:8px;cursor:pointer;transition:all 0.3s ease;backdrop-filter:blur(8px);">JSON</button>
+        <!-- Export -->
+        <div style="padding:0.65rem 1.2rem;display:flex;gap:0.4rem;">
+          <button onclick="bsCopy()"     class="bhb-v3-btn">Copy</button>
+          <button onclick="bsShare()"    class="bhb-v3-btn">Share</button>
+          <button onclick="bsDownload()" class="bhb-v3-btn">MD</button>
+          <button onclick="exportHandoffJson()" class="bhb-v3-btn">JSON</button>
         </div>`;
 
-      outputTarget.appendChild(bhb);
+      bhbWrap.appendChild(bhb);
+      outputTarget.appendChild(bhbWrap);
+
+      // Start gravitational particle field
+      _initBHBGravField(gravCanvas, bhbWrap);
 
       if (pushToVaultFlag) {
         // Vault push (SPiRALiSiNG & Black-Hole-Box mode)
@@ -5149,108 +5105,124 @@ function appendToKintegrity(synthText, runLabel) {
   wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-function getNotizen() {
-  const el = document.getElementById('notizen-field');
-  return el ? el.textContent.trim() : '';
-}
-function clearNotizen() {
-  const el = document.getElementById('notizen-field');
-  if (el) el.innerHTML = '';
-  localStorage.removeItem('bs_notizen');
-  updateNotizenCounter();
-}
-function updateNotizenCounter() {
-  const el = document.getElementById('notizen-field');
-  const c = document.getElementById('notizen-counter');
-  const len = el?.textContent?.length || 0;
-  if (c) c.textContent = len + ' Zeichen';
-  // Auto-save
-  if (el) localStorage.setItem('bs_notizen', el.textContent);
-}
-function restoreNotizen() {
-  const saved = localStorage.getItem('bs_notizen');
-  const el = document.getElementById('notizen-field');
-  if (saved && el) { el.textContent = saved; updateNotizenCounter(); }
-}
+// ── BLACK-HOLE-BOX Gravitational Particle Field ──
+function _initBHBGravField(canvas, wrap) {
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  let W, H, cx, cy;
 
-// ── NOTiZEN Schienen-Drag (horizontal über Panes verschiebbar) ──
-function initNotizenDrag() {
-  const bar = document.getElementById('notizen-bar');
-  const header = document.getElementById('notizen-header');
-  if (!bar || !header) return;
-
-  let isDragging = false, startX = 0, startLeft = 0;
-  const savedPos = localStorage.getItem('bs_notizen_pos');
-  if (savedPos) {
-    const pos = JSON.parse(savedPos);
-    bar.style.float = 'none';
-    bar.style.position = 'sticky';
-    bar.style.marginLeft = pos.ml + 'px';
+  function resize() {
+    W = wrap.clientWidth + 60;
+    H = wrap.clientHeight + 100;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cx = W / 2; cy = 60;
   }
+  resize();
 
-  header.addEventListener('mousedown', (e) => {
-    if (e.target.tagName === 'BUTTON') return;
-    isDragging = true;
-    startX = e.clientX;
-    const rect = bar.getBoundingClientRect();
-    const parentRect = bar.parentElement.getBoundingClientRect();
-    startLeft = rect.left - parentRect.left;
-    bar.style.float = 'none';
-    bar.style.position = 'sticky';
-    bar.classList.add('dragging');
-    e.preventDefault();
+  const POOL = 150;
+  const COLORS = [
+    'rgba(100,80,200,A)', 'rgba(80,120,255,A)', 'rgba(200,160,60,A)',
+    'rgba(255,100,80,A)', 'rgba(60,200,160,A)', 'rgba(180,100,255,A)',
+    'rgba(255,200,100,A)', 'rgba(120,180,255,A)'
+  ];
+  const particles = [];
+
+  function spawn(randomPos) {
+    let x, y;
+    if (randomPos) { x = Math.random() * W; y = Math.random() * H; }
+    else {
+      const e = Math.random();
+      if (e < 0.25) { x = Math.random() * W; y = -5; }
+      else if (e < 0.5) { x = Math.random() * W; y = H + 5; }
+      else if (e < 0.75) { x = -5; y = Math.random() * H; }
+      else { x = W + 5; y = Math.random() * H; }
+    }
+    return { x, y, vx:(Math.random()-0.5)*0.3, vy:(Math.random()-0.5)*0.3,
+      size:0.5+Math.random()*2, color:COLORS[Math.random()*COLORS.length|0],
+      life:1, decay:0.001+Math.random()*0.003, trail:[] };
+  }
+  for (let i=0;i<POOL;i++) particles.push(spawn(true));
+
+  let raf;
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of particles) {
+      const dx=cx-p.x, dy=cy-p.y;
+      const dist = Math.sqrt(dx*dx+dy*dy)+1;
+      const force = Math.min(100/(dist*dist), 0.7);
+      p.vx += dx/dist*force; p.vy += dy/dist*force;
+      p.vx += -dy/dist*force*0.12; p.vy += dx/dist*force*0.12;
+      p.vx *= 0.995; p.vy *= 0.995;
+      p.x += p.vx; p.y += p.vy;
+      p.trail.push({x:p.x,y:p.y});
+      if (p.trail.length > 10) p.trail.shift();
+      // Draw trail
+      for (let t=0;t<p.trail.length-1;t++) {
+        const a = (t/p.trail.length)*p.life*0.12;
+        ctx.beginPath();
+        ctx.moveTo(p.trail[t].x,p.trail[t].y);
+        ctx.lineTo(p.trail[t+1].x,p.trail[t+1].y);
+        ctx.strokeStyle = p.color.replace('A',a.toFixed(3));
+        ctx.lineWidth = p.size*0.5;
+        ctx.stroke();
+      }
+      // Draw particle
+      const a = p.life*(dist<30?dist/30:1)*0.5;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.size*(dist<50?dist/50:1),0,Math.PI*2);
+      ctx.fillStyle = p.color.replace('A',a.toFixed(3));
+      ctx.fill();
+      if (dist<80) {
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,p.size*3,0,Math.PI*2);
+        ctx.fillStyle = p.color.replace('A',(a*0.12).toFixed(3));
+        ctx.fill();
+      }
+      p.life -= p.decay;
+      if (dist<8||p.life<=0||p.x<-30||p.x>W+30||p.y<-30||p.y>H+30) Object.assign(p, spawn(false));
+    }
+    // Singularity glow
+    const g = ctx.createRadialGradient(cx,cy,0,cx,cy,50);
+    g.addColorStop(0,'rgba(80,40,200,0.06)');
+    g.addColorStop(0.3,'rgba(60,30,150,0.03)');
+    g.addColorStop(1,'transparent');
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,W,H);
+    raf = requestAnimationFrame(loop);
+  }
+  loop();
+
+  // Cleanup when bhb removed from DOM
+  const obs = new MutationObserver(() => {
+    if (!document.contains(wrap)) { cancelAnimationFrame(raf); obs.disconnect(); }
   });
+  obs.observe(document.body, { childList:true, subtree:true });
+}
 
-  document.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-    const dx = e.clientX - startX;
-    const parentRect = bar.parentElement.getBoundingClientRect();
-    const maxLeft = parentRect.width - bar.offsetWidth;
-    const newLeft = Math.max(0, Math.min(maxLeft, startLeft + dx));
-    bar.style.marginLeft = newLeft + 'px';
-    bar.style.marginRight = '0';
-  });
-
-  document.addEventListener('mouseup', () => {
-    if (!isDragging) return;
-    isDragging = false;
-    bar.classList.remove('dragging');
-    localStorage.setItem('bs_notizen_pos', JSON.stringify({
-      ml: parseInt(bar.style.marginLeft) || 0
-    }));
-  });
-
-  // Touch support for mobile
-  header.addEventListener('touchstart', (e) => {
-    if (e.target.tagName === 'BUTTON') return;
-    isDragging = true;
-    startX = e.touches[0].clientX;
-    const rect = bar.getBoundingClientRect();
-    const parentRect = bar.parentElement.getBoundingClientRect();
-    startLeft = rect.left - parentRect.left;
-    bar.style.float = 'none';
-    bar.style.position = 'sticky';
-    bar.classList.add('dragging');
-  }, { passive: true });
-
-  document.addEventListener('touchmove', (e) => {
-    if (!isDragging) return;
-    const dx = e.touches[0].clientX - startX;
-    const parentRect = bar.parentElement.getBoundingClientRect();
-    const maxLeft = parentRect.width - bar.offsetWidth;
-    const newLeft = Math.max(0, Math.min(maxLeft, startLeft + dx));
-    bar.style.marginLeft = newLeft + 'px';
-    bar.style.marginRight = '0';
-  }, { passive: true });
-
-  document.addEventListener('touchend', () => {
-    if (!isDragging) return;
-    isDragging = false;
-    bar.classList.remove('dragging');
-    localStorage.setItem('bs_notizen_pos', JSON.stringify({
-      ml: parseInt(bar.style.marginLeft) || 0
-    }));
-  });
+// ── NOTiZEN Bridge → NOTiZBUCH Shared Core ──
+// getNotizen() reads from NOTiZBUCH's must-keep field for synthesis integration
+function getNotizen() {
+  // Try Must-Keep field first (highest priority for synthesis)
+  const mk = document.getElementById('notizbuch-must-keep');
+  if (mk && mk.value.trim()) return mk.value.trim();
+  // Fallback: concatenate all NOTiZBUCH entries
+  try {
+    const raw = localStorage.getItem('mindlaxy_notizbuch');
+    if (raw) {
+      const notes = JSON.parse(raw);
+      return notes.map(n => n.content).filter(Boolean).join('\n\n');
+    }
+  } catch(e) {}
+  return '';
+}
+function getMustKeepBlocks() {
+  const mk = document.getElementById('notizbuch-must-keep');
+  if (!mk || !mk.value.trim()) return [];
+  return [{ text: mk.value.trim(), mode: 'glätten' }];
 }
 
 function clearKintegrity() {
@@ -5448,12 +5420,10 @@ ${editor.textContent.substring(0, 500)}`
 document.addEventListener('DOMContentLoaded', () => {
   initContextMenu();
   setupEditorContextMenu();
-  restoreNotizen();
-  initNotizenDrag();
 });
 // Also try immediately in case DOMContentLoaded already fired
 if (document.readyState !== 'loading') {
-  setTimeout(() => { initContextMenu(); setupEditorContextMenu(); restoreNotizen(); initNotizenDrag(); }, 500);
+  setTimeout(() => { initContextMenu(); setupEditorContextMenu(); }, 500);
 }
 
 // ─── Keyboard Shortcuts ──────────────────────────────────────────────────────

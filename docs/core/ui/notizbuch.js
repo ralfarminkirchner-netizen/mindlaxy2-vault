@@ -51,7 +51,7 @@ function injectStyles() {
     #notizbuch-toggle {
       position: fixed;
       bottom: 24px;
-      right: 24px;
+      right: 80px;
       z-index: 9000;
       width: 56px;
       height: 56px;
@@ -292,6 +292,60 @@ function injectStyles() {
     }
     .nb-empty-icon { font-size: 2.5rem; opacity: 0.4; }
 
+    /* ── Must-Keep Field ── */
+    .nb-must-keep-wrap {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+      background: rgba(100,80,200,0.04);
+    }
+    .nb-must-keep-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #8090ff;
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .nb-must-keep-label .mk-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: #6080ff;
+      box-shadow: 0 0 6px rgba(80,100,255,0.4);
+    }
+    #notizbuch-must-keep {
+      width: 100%;
+      min-height: 60px;
+      max-height: 180px;
+      background: rgba(100,80,200,0.06);
+      border: 1px solid rgba(100,80,200,0.15);
+      border-radius: 10px;
+      padding: 0.5rem 0.7rem;
+      color: #d0ccff;
+      font-size: 0.82rem;
+      line-height: 1.65;
+      outline: none;
+      resize: vertical;
+      font-family: inherit;
+      transition: border-color 0.25s;
+    }
+    #notizbuch-must-keep:focus {
+      border-color: rgba(100,80,200,0.4);
+      box-shadow: 0 0 12px rgba(100,80,200,0.1);
+    }
+    #notizbuch-must-keep::placeholder {
+      color: rgba(160,150,220,0.35);
+      font-style: italic;
+    }
+    .nb-must-keep-hint {
+      font-size: 0.58rem;
+      color: rgba(160,150,220,0.35);
+      margin-top: 0.25rem;
+    }
+
     /* Mobile */
     @media (max-width: 600px) {
       #notizbuch-panel { width: 100vw; right: -100vw; }
@@ -327,6 +381,11 @@ function buildUI() {
       <button class="nb-header-btn" id="nb-new-btn" title="Neue Notiz">+ Neu</button>
       <button class="nb-header-btn" id="nb-export-all-btn" title="Alles exportieren">⬇ Export</button>
       <button class="nb-header-btn" id="nb-close-btn" title="Schließen">✕</button>
+    </div>
+    <div class="nb-must-keep-wrap">
+      <div class="nb-must-keep-label"><span class="mk-dot"></span> MUST-KEEP — bleibt in der Synthese</div>
+      <textarea id="notizbuch-must-keep" placeholder="Text hier wird nur leicht geglättet in die Synthese übernommen — Kernaussagen, Zitate, Formulierungen…" rows="3"></textarea>
+      <div class="nb-must-keep-hint">Höchste Priorität bei kiNTEGRiTY. Wird nicht umformuliert.</div>
     </div>
     <div class="nb-search">
       <input type="text" id="nb-search-input" placeholder="Notizen durchsuchen…" />
@@ -378,6 +437,16 @@ function buildUI() {
   editorTitle.addEventListener('input', () => {
     saveCurrentEntry();
   });
+
+  // Must-Keep field persistence
+  const mustKeep = document.getElementById('notizbuch-must-keep');
+  const savedMK = localStorage.getItem('mindlaxy_must_keep');
+  if (savedMK && mustKeep) mustKeep.value = savedMK;
+  if (mustKeep) {
+    mustKeep.addEventListener('input', () => {
+      localStorage.setItem('mindlaxy_must_keep', mustKeep.value);
+    });
+  }
 
   // Keyboard shortcut: Cmd/Ctrl+Shift+N → toggle
   document.addEventListener('keydown', (e) => {
