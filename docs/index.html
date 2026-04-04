@@ -1618,9 +1618,9 @@ class SpectacleAnim {
     this.doneCb = null;
     this.overlayAlpha = 0;
 
-    // Create fullscreen overlay
+    // Create LEFT-HALF overlay — tornado stays on left, text on right stays readable
     this.overlay = document.createElement('div');
-    this.overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:998;pointer-events:none;';
+    this.overlay.style.cssText = 'position:fixed;top:0;left:0;width:50vw;height:100vh;z-index:998;pointer-events:none;';
     this.canvas = document.createElement('canvas');
     this.canvas.style.cssText = 'display:block;width:100%;height:100%;';
     this.overlay.appendChild(this.canvas);
@@ -1635,26 +1635,31 @@ class SpectacleAnim {
 
   _resize() {
     const dpr = window.devicePixelRatio||1;
-    this.W = window.innerWidth;
+    // Canvas only covers the LEFT half of the screen
+    this.W = Math.floor(window.innerWidth / 2);
     this.H = window.innerHeight;
     this.canvas.width = this.W*dpr;
     this.canvas.height = this.H*dpr;
     this.ctx.setTransform(dpr,0,0,dpr,0,0);
-    this.cx = this.W/2;
-    this.tornado_cy = this.H*0.38;
-    this.trap_y = this.H*0.82;
+    // Tornado center = center of left half
+    this.cx = this.W / 2;
+    this.tornado_cy = this.H * 0.40;
+    this.trap_y = this.H * 0.82;
   }
 
   _initMigrants() {
-    // Create particles at each provider's position that will fly to center
+    // Create particles at each provider's position that will fly to LEFT-HALF center
     this.migrants = [];
     for(const pp of this.providerPositions) {
       for(let i=0;i<60;i++) {
         const col = pp.cols[Math.random()*pp.cols.length|0];
+        // Remap source positions: pp.x/pp.y are full-screen coords, canvas is left-half only
+        const srcX = Math.min(pp.x, this.W) * 0.8 + (Math.random()-0.5)*60;
+        const srcY = pp.y + (Math.random()-0.5)*60;
         this.migrants.push({
-          sx: pp.x+(Math.random()-0.5)*80, sy: pp.y+(Math.random()-0.5)*80,
+          sx: srcX, sy: srcY,
           tx: this.cx+(Math.random()-0.5)*40, ty: this.tornado_cy+(Math.random()-0.5)*120,
-          x: pp.x+(Math.random()-0.5)*80, y: pp.y+(Math.random()-0.5)*80,
+          x: srcX, y: srcY,
           col, ch: this._nextChar(),
           sz: 6+Math.random()*12, op: 0.3+Math.random()*0.7,
           trail: [], trailCol: col,
