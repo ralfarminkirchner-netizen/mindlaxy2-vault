@@ -341,4 +341,10 @@ Trotz des gemeinsamen Kerns bietet kiNTEGRiTY app-spezifische Profile, die es An
 
 ---
 
+**Du:** ich weiß, dass ich nichts weiß
+
+**GOOGLE · GEMINI:** "Ich weiß, dass ich nichts weiß" ist ein tiefgründiges Zitat, das oft dem griechischen Philosophen Sokrates zugeschrieben wird und die Grundlage seiner epistemologischen Haltung bildet. Es verkörpert eine paradoxe Weisheit: Die Erkenntnis der eigenen Unwissenheit ist der erste und entscheidende Schritt auf dem Weg zu wahrer Erkenntnis und philosophischer Einsicht. Anstatt ein Mangel zu sein, dient diese intellektuelle Demut als Katalysator für beständiges Fragen und unermüdliches Streben nach Wissen. Wer sich seiner Ignoranz bewusst ist, bleibt offen für neue Perspektiven und hinterfragt bestehende Annahmen kritisch, anstatt sich in dogmatischen Überzeugungen zu verlieren. Dieses Prinzip erinnert uns daran, dass das Lernen ein nie endender Prozess ist und dass jede vermeintliche Antwort neue Fragen aufwerfen kann. Es fordert uns auf, nicht in der Illusion der Allwissenheit zu verharren, sondern stets die Grenzen unseres Verständnisses zu erkunden und zu erweitern. In einer Welt, die oft von vermeintlicher Expertise und schnellen Antworten dominiert wird, bleibt diese sokratische Haltung ein mächtiger Aufruf zur Bescheidenheit und zur kontinuierlichen Selbstreflexion. Sie ist ein universelles Mantra für jeden, der ernsthaft nach Wahrheit sucht und bereit ist, seinen eigenen Horizont immer wieder neu zu vermessen.
+
+---
+
 *GOOGLE · GEMINI · 2026-04-04*
