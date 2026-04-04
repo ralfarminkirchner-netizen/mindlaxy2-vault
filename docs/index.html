@@ -28,6 +28,8 @@
     --grok-light: #f06060;
     --openai-primary: #30b870;
     --openai-light: #50d890;
+    --anthropic-primary: #d4a27a;
+    --anthropic-light: #e8c098;
     /* Apple Liquid Glass tokens */
     --glass-bg: rgba(255, 255, 255, 0.06);
     --glass-bg-hover: rgba(255, 255, 255, 0.10);
@@ -256,16 +258,19 @@
   .panel { display: none; }
   .panel.active { display: block; }
 
-  /* ── BRaiNSTORM SPiRAL / 4-Pane Layout ────────────────────────── */
+  /* ── BRaiNSTORM SPiRAL / 5-Pane Layout ────────────────────────── */
   main.matrix-mode { max-width: 100%; padding: 0.5rem 0.75rem; }
   #p-tornado.active { display: flex; flex-direction: column; min-height: calc(100vh - 150px); }
   .matrix-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.75rem;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.65rem;
     flex: 1;
     overflow: hidden;
     min-height: 0;
+  }
+  @media (max-width: 1200px) {
+    .matrix-grid { grid-template-columns: repeat(3, 1fr); }
   }
   @media (max-width: 900px) {
     .matrix-grid { grid-template-columns: repeat(2, 1fr); }
@@ -693,6 +698,7 @@
   .matrix-col[data-provider="deepseek"]:hover { border-color: rgba(48,136,232,0.30); box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 20px rgba(48,136,232,0.08); }
   .matrix-col[data-provider="grok"]:hover { border-color: rgba(224,64,64,0.30); box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 20px rgba(224,64,64,0.08); }
   .matrix-col[data-provider="openai"]:hover { border-color: rgba(48,184,112,0.30); box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 20px rgba(48,184,112,0.08); }
+  .matrix-col[data-provider="anthropic"]:hover { border-color: rgba(212,162,122,0.30); box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 20px rgba(212,162,122,0.08); }
   /* ── Sidebar ─────────────────────────── */
   .sidebar-toggle {
     position: fixed;
@@ -1035,6 +1041,63 @@
   }
 
   /* ── kiNTEGRiTY Persistent Editor ── */
+  /* ── NOTiZEN Scratchpad ── */
+  #notizen-bar {
+    margin: 0.8rem 0 0.2rem;
+    background: rgba(30,28,50,0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(180,160,80,0.25);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
+    overflow: hidden;
+    transition: all 0.35s ease;
+  }
+  #notizen-bar:focus-within {
+    border-color: rgba(220,200,100,0.45);
+    box-shadow: 0 6px 28px rgba(180,160,60,0.2), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  #notizen-header {
+    padding: 0.45rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.02);
+  }
+  #notizen-field {
+    width: 100%;
+    min-height: 38px;
+    max-height: 30vh;
+    overflow-y: auto;
+    padding: 0.6rem 1rem;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    outline: none;
+    cursor: text;
+    resize: none;
+  }
+  #notizen-field:empty::before {
+    content: 'NOTiZEN — Kernaussagen, Zitate, Formulierungen hier festhalten → fließen direkt in die Synthese…';
+    color: var(--muted);
+    font-style: italic;
+    pointer-events: none;
+    font-size: 0.82rem;
+  }
+  #notizen-field ::selection {
+    background: rgba(200,180,60,0.35);
+    color: #fff;
+  }
+  #notizen-counter {
+    font-size: 0.58rem;
+    color: var(--muted);
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
   #kintegrity-editor-wrap {
     margin-top: 1.2rem;
     background: rgba(30,24,60,0.55);
@@ -1163,7 +1226,7 @@
 <header>
   <div style="font-size:0.65rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.3rem">BRaiNSTORM SPiRAL / MiNDLAXY</div>
   <div class="logo">B R a i N S T O R M &nbsp; S P i R A L</div>
-  <div class="tagline">4 LLMs · 1 Synthese · Dein Wurmloch zur MiNDLAXY</div>
+  <div class="tagline">5 LLMs · 1 Synthese · Dein Wurmloch zur MiNDLAXY</div>
   <div class="counts" id="counts">
     <div class="count-item count-stern"    onclick="showVaultPopup('Sterne')">   <div class="count-num" id="c-stern">–</div>   <div class="count-label">Sterne</div></div>
     <div class="count-item count-planet"   onclick="showVaultPopup('Planeten')"> <div class="count-num" id="c-planet">–</div>  <div class="count-label">Planeten</div></div>
@@ -1223,8 +1286,21 @@
     </div>
 
     <!-- ② Vier LLM-Panes (Hauptarbeitsfläche) -->
-    <div style="font-size:0.85rem;font-weight:700;color:var(--text);margin-bottom:0.6rem;display:flex;align-items:center;gap:0.5rem;letter-spacing:0.03em">⊞ 4 LLMs</div>
+    <div style="font-size:0.85rem;font-weight:700;color:var(--text);margin-bottom:0.6rem;display:flex;align-items:center;gap:0.5rem;letter-spacing:0.03em">⊞ 5 LLMs</div>
     <div class="matrix-grid" id="mGrid"></div>
+
+    <!-- NOTiZEN Scratchpad — manuell Kernaussagen festhalten für Synthese -->
+    <div id="notizen-bar">
+      <div id="notizen-header">
+        <span style="font-size:0.72rem;font-weight:700;letter-spacing:.1em;color:#c8b040;text-transform:uppercase">📌 NOTiZEN</span>
+        <span id="notizen-counter">0 Zeichen</span>
+        <button onclick="clearNotizen()" title="Notizen leeren"
+          style="font-size:0.58rem;padding:0.15rem 0.4rem;background:rgba(200,60,60,0.12);border:1px solid rgba(200,60,60,0.2);color:#e06060;border-radius:6px;cursor:pointer;transition:all 0.25s ease"
+          onmouseover="this.style.background='rgba(200,60,60,0.25)'" onmouseout="this.style.background='rgba(200,60,60,0.12)'">✕</button>
+      </div>
+      <div id="notizen-field" contenteditable="true" spellcheck="true"
+           oninput="updateNotizenCounter()"></div>
+    </div>
 
     <!-- SPiRALiSiNG buttons — appear below panes after all LLMs respond -->
     <div id="spiralBtnContainer" style="display:none;margin:1.2rem 0 0.8rem;padding:0.5rem">
@@ -1841,7 +1917,8 @@ const TORNADO_LENGTH_NUDGE = {
   deepseek: '\n\nACHTUNG: Du neigst zu überlangen Antworten. HALTE DICH STRIKT an 6–10 Sätze. KÜRZE radikal. Wenn du merkst, dass du mehr als 10 Sätze schreibst, STOPPE SOFORT und kürze. Qualität vor Quantität. Kein einziger Satz über das Limit.',
   grok: '\n\nWICHTIG: Schreibe MINDESTENS 6 substanzielle, ausführliche Sätze. Geh tiefer, füge mehr Nuancen hinzu, entwickle deine Gedanken weiter. Jeder Satz sollte lang und gehaltvoll sein, nicht nur kurz und knapp.',
   gemini: '\n\nWICHTIG: Schreibe MINDESTENS 6 substanzielle, ausführliche Sätze. Sei nicht zu knapp — entwickle deine Gedanken, füge Beispiele oder Querverbindungen hinzu. Jeder Satz sollte reichhaltig und tiefgründig sein.',
-  openai: ''
+  openai: '',
+  anthropic: ''
 };
 
 const KINTEGRITY_SYSTEM = `Du bist kiNTEGRiTY 1.0 — Orchestrator und Verdichter innerhalb der BLACK-HOLE-BOX von BRaiNSTORM SPiRAL.
@@ -1880,12 +1957,13 @@ Wenn nichts offen bleibt, schreibe: ABER: keine | low | tension | Alle Perspekti
 
 const T_CHARS = 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩαβγδεζηθικλμνξοπρστυφχψω∞∫∑∏∂∇⊕⊗△▽○●◆◇⬡0123456789ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijklmnpqrstuvwxyz';
 
-const BS_PROVIDERS = ['openai','gemini','deepseek','grok'];
+const BS_PROVIDERS = ['openai','gemini','deepseek','grok','anthropic'];
 const BS_META = {
-  gemini:   { cols:['#e8b730','#f0d060','#fff4aa'], label:'GEMINI',   pLabel:'GOOGLE · GEMINI' },
-  deepseek: { cols:['#3088e8','#5aa0f0','#a0c8ff'], label:'DEEPSEEK', pLabel:'DEEPSEEK' },
-  grok:     { cols:['#e04040','#f06060','#ffaaaa'], label:'GROK',     pLabel:'XAI · GROK' },
-  openai:   { cols:['#30b870','#50d890','#a0f0c0'], label:'CHATGPT',  pLabel:'OPENAI · CHATGPT' },
+  gemini:    { cols:['#e8b730','#f0d060','#fff4aa'], label:'GEMINI',   pLabel:'GOOGLE · GEMINI' },
+  deepseek:  { cols:['#3088e8','#5aa0f0','#a0c8ff'], label:'DEEPSEEK', pLabel:'DEEPSEEK' },
+  grok:      { cols:['#e04040','#f06060','#ffaaaa'], label:'GROK',     pLabel:'XAI · GROK' },
+  openai:    { cols:['#30b870','#50d890','#a0f0c0'], label:'CHATGPT',  pLabel:'OPENAI · CHATGPT' },
+  anthropic: { cols:['#d4a27a','#e8c098','#f0d8b8'], label:'CLAUDE',   pLabel:'ANTHROPIC · CLAUDE' },
 };
 const PLABELS = { anthropic:'ANTHROPIC · CLAUDE', gemini:'GOOGLE · GEMINI', deepseek:'DEEPSEEK', grok:'XAI · GROK', openai:'OPENAI · CHATGPT' };
 
@@ -3385,15 +3463,22 @@ async function sendTIterative() {
   }
 
   // Build prompt with existing kiNTEGRiTY content for iterative refinement
+  const notizen = getNotizen();
   let synthPrompt = `Thema: "${text}"\n\n`;
+  if (notizen) {
+    synthPrompt += `═══ MANUELLE NOTiZEN DES NUTZERS (HÖCHSTE PRIORITÄT) ═══\nDiese Notizen MÜSSEN wortgetreu oder nur leicht geglättet in die Synthese einfließen. Nicht umformulieren, nicht weglassen, nicht stark verändern. Nur sanft einpassen.\n${notizen}\n\n`;
+  }
   if (existingKI) {
     synthPrompt += `═══ BISHERIGE kiNTEGRiTY-SYNTHESE ═══\n${existingKI}\n\n═══ NEUE PERSPEKTIVEN ZUR INTEGRATION ═══\n\n`;
   }
   synthPrompt += responses.map(r => `=== ${r.provider} ===\n${r.content}`).join('\n\n');
 
-  const iterativeSystem = existingKI
+  let iterativeSystem = existingKI
     ? KINTEGRITY_SYSTEM + '\n\nWICHTIG: Es gibt bereits eine vorherige kiNTEGRiTY-Synthese. Integriere die neuen Perspektiven in eine ERWEITERTE, tiefere Synthese. Wiederhole nicht einfach die bisherige Synthese, sondern baue darauf auf, vertiefe und erweitere sie mit den neuen Einsichten.'
     : KINTEGRITY_SYSTEM;
+  if (notizen) {
+    iterativeSystem += '\n\nKRITISCH: Der Nutzer hat manuelle NOTiZEN hinterlegt. Diese enthalten Kernaussagen, Zitate und Formulierungen die UNBEDINGT in die Synthese einfließen müssen — möglichst wortgetreu, nur leicht geglättet und eingepasst. Diese Notizen haben HÖCHSTE PRIORITÄT.';
+  }
 
   try {
     const synthRaw = await Promise.race([
@@ -3501,13 +3586,21 @@ async function sendT(pushToVaultFlag = true) {
   const synthProvider = resolveSynthProvider();
   let synthRaw = null;
   if (responses.length >= 2 && synthProvider) {
-    const synthPrompt = `Thema: "${text}"\n\n` +
-      responses.map(r=>`=== ${r.provider} ===\n${r.content}`).join('\n\n');
+    const notizen = getNotizen();
+    let synthPrompt = `Thema: "${text}"\n\n`;
+    if (notizen) {
+      synthPrompt += `═══ MANUELLE NOTiZEN DES NUTZERS (HÖCHSTE PRIORITÄT) ═══\nDiese Notizen MÜSSEN wortgetreu oder nur leicht geglättet in die Synthese einfließen. Nicht umformulieren, nicht weglassen, nicht stark verändern. Nur sanft einpassen.\n${notizen}\n\n`;
+    }
+    synthPrompt += responses.map(r=>`=== ${r.provider} ===\n${r.content}`).join('\n\n');
+    let synthSys = KINTEGRITY_SYSTEM;
+    if (notizen) {
+      synthSys += '\n\nKRITISCH: Der Nutzer hat manuelle NOTiZEN hinterlegt. Diese enthalten Kernaussagen, Zitate und Formulierungen die UNBEDINGT in die Synthese einfließen müssen — möglichst wortgetreu, nur leicht geglättet und eingepasst. Diese Notizen haben HÖCHSTE PRIORITÄT.';
+    }
     // Switch anim to 'synth' label after a short delay
     setTimeout(() => hub.startSynth(), 1200);
     try {
       synthRaw = await Promise.race([
-        callProvider(synthProvider, KINTEGRITY_SYSTEM, synthPrompt),
+        callProvider(synthProvider, synthSys, synthPrompt),
         new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),60000))
       ]);
     } catch(e) { synthRaw = null; }
@@ -4035,14 +4128,15 @@ function escHtml(s) {
 
 // ─── MiND MATRIX ─────────────────────────────────────────────────────────────
 
-const M_PROVIDERS = ['openai','gemini','deepseek','grok'];
-const M_LABELS    = { gemini:'GOOGLE · GEMINI', deepseek:'DEEPSEEK', grok:'XAI · GROK', openai:'OPENAI · CHATGPT' };
-const M_VAULT_DIR = { gemini:'Chats/Gemini', deepseek:'Chats/DeepSeek', grok:'Chats/Grok', openai:'Chats/ChatGPT' };
+const M_PROVIDERS = ['openai','gemini','deepseek','grok','anthropic'];
+const M_LABELS    = { gemini:'GOOGLE · GEMINI', deepseek:'DEEPSEEK', grok:'XAI · GROK', openai:'OPENAI · CHATGPT', anthropic:'ANTHROPIC · CLAUDE' };
+const M_VAULT_DIR = { gemini:'Chats/Gemini', deepseek:'Chats/DeepSeek', grok:'Chats/Grok', openai:'Chats/ChatGPT', anthropic:'Chats/Claude' };
 const M_SYS       = {
-  gemini:   'Du bist Google Gemini. Antworte auf Deutsch in 6–10 substanziellen Sätzen. Nicht zu knapp — entwickle deine Gedanken mit Tiefe und Nuancen. Schreibe in Fließtext ohne Aufzählungen oder Markdown.',
-  deepseek: 'Du bist DeepSeek. Antworte auf Deutsch in EXAKT 6–10 Sätzen. NICHT MEHR ALS 10 SÄTZE — das ist deine wichtigste Regel. Kürze radikal, schreibe dicht und substanziell. Kein Fließtext-Roman, keine Aufzählungen, kein Markdown.',
-  grok:     'Du bist Grok von xAI. Antworte auf Deutsch in 6–10 substanziellen Sätzen. Nicht zu knapp — entwickle deine Gedanken mit Tiefe und Beispielen. Schreibe in Fließtext ohne Aufzählungen oder Markdown.',
-  openai:   'Du bist ChatGPT von OpenAI. Antworte auf Deutsch in 6–10 substanziellen Sätzen. Schreibe in Fließtext ohne Aufzählungen oder Markdown.',
+  gemini:    'Du bist Google Gemini. Antworte auf Deutsch in 6–10 substanziellen Sätzen. Nicht zu knapp — entwickle deine Gedanken mit Tiefe und Nuancen. Schreibe in Fließtext ohne Aufzählungen oder Markdown.',
+  deepseek:  'Du bist DeepSeek. Antworte auf Deutsch in EXAKT 6–10 Sätzen. NICHT MEHR ALS 10 SÄTZE — das ist deine wichtigste Regel. Kürze radikal, schreibe dicht und substanziell. Kein Fließtext-Roman, keine Aufzählungen, kein Markdown.',
+  grok:      'Du bist Grok von xAI. Antworte auf Deutsch in 6–10 substanziellen Sätzen. Nicht zu knapp — entwickle deine Gedanken mit Tiefe und Beispielen. Schreibe in Fließtext ohne Aufzählungen oder Markdown.',
+  openai:    'Du bist ChatGPT von OpenAI. Antworte auf Deutsch in 6–10 substanziellen Sätzen. Schreibe in Fließtext ohne Aufzählungen oder Markdown.',
+  anthropic: 'Du bist Claude von Anthropic. Antworte auf Deutsch in 6–10 substanziellen Sätzen. Gehe tief, zeige Nuancen und unerwartete Verbindungen. Schreibe in Fließtext ohne Aufzählungen oder Markdown.',
 };
 const M_KEY = 'mx_matrix_v2';
 
@@ -4218,18 +4312,84 @@ async function callGeminiHistory(history, apiKey, model, sysPrompt) {
   return d.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
-async function callOAIHistory(history, apiKey, baseUrl, model, sysPrompt) {
+async function callOAIHistory(history, apiKey, baseUrl, model, sysPrompt, onChunk) {
   const messages = sysPrompt ? [{role:'system',content:sysPrompt},...history] : history;
+  const useStream = !!onChunk;
   const r = await fetch(baseUrl+'/chat/completions', {
     method:'POST', headers:{'Authorization':`Bearer ${apiKey}`,'content-type':'application/json'},
-    body: JSON.stringify({ model, messages, max_tokens:1500 })
+    body: JSON.stringify({ model, messages, max_tokens:1500, stream: useStream })
   });
   if (!r.ok) { const e=await r.text(); throw new Error('v1 '+r.status+': '+e.substring(0,100)); }
-  const d = await r.json();
-  return d.choices?.[0]?.message?.content || '';
+  if (!useStream) {
+    const d = await r.json();
+    return d.choices?.[0]?.message?.content || '';
+  }
+  // SSE streaming
+  const reader = r.body.getReader();
+  const decoder = new TextDecoder();
+  let full = '', buf = '';
+  while (true) {
+    const {done, value} = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, {stream: true});
+    const lines = buf.split('\n');
+    buf = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ') || line === 'data: [DONE]') continue;
+      try {
+        const j = JSON.parse(line.slice(6));
+        const delta = j.choices?.[0]?.delta?.content || '';
+        if (delta) { full += delta; onChunk(full, delta); }
+      } catch(e) {}
+    }
+  }
+  return full;
 }
 
-async function callMatrixProvider(p, history) {
+async function callAnthropicHistory(history, apiKey, model, sysPrompt, onChunk) {
+  const messages = history.map(m => ({ role: m.role, content: m.content }));
+  const useStream = !!onChunk;
+  const body = { model: model || 'claude-sonnet-4-6', max_tokens: 1500, messages, stream: useStream };
+  if (sysPrompt) body.system = sysPrompt;
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) { const e = await r.text(); throw new Error('Anthropic ' + r.status + ': ' + e.substring(0, 100)); }
+  if (!useStream) {
+    const d = await r.json();
+    return d.content?.[0]?.text || '';
+  }
+  // SSE streaming
+  const reader = r.body.getReader();
+  const decoder = new TextDecoder();
+  let full = '', buf = '';
+  while (true) {
+    const {done, value} = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, {stream: true});
+    const lines = buf.split('\n');
+    buf = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      try {
+        const j = JSON.parse(line.slice(6));
+        if (j.type === 'content_block_delta' && j.delta?.text) {
+          full += j.delta.text; onChunk(full, j.delta.text);
+        }
+      } catch(e) {}
+    }
+  }
+  return full;
+}
+
+async function callMatrixProvider(p, history, onChunk) {
   const cfg = getCfg();
   let sys = M_SYS[p] || '';
   const role = getPaneRole(p);
@@ -4237,10 +4397,11 @@ async function callMatrixProvider(p, history) {
     sys = role.prompt + '\n\n' + sys;
   }
   switch(p) {
-    case 'gemini':   if(!cfg.gemini)   throw new Error('kein Key'); return await callGeminiHistory(history,cfg.gemini,  cfg.geminiModel,  sys);
-    case 'deepseek': if(!cfg.deepseek) throw new Error('kein Key'); return await callOAIHistory(history,cfg.deepseek,'https://api.deepseek.com/v1',cfg.deepseekModel,sys);
-    case 'grok':     if(!cfg.grok)     throw new Error('kein Key'); return await callOAIHistory(history,cfg.grok,    'https://api.x.ai/v1',       cfg.grokModel,    sys);
-    case 'openai':   if(!cfg.openai)   throw new Error('kein Key'); return await callOAIHistory(history,cfg.openai,  'https://api.openai.com/v1', cfg.openaiModel,  sys);
+    case 'gemini':    if(!cfg.gemini)    throw new Error('kein Key'); return await callGeminiHistory(history,cfg.gemini,    cfg.geminiModel,    sys);
+    case 'deepseek':  if(!cfg.deepseek)  throw new Error('kein Key'); return await callOAIHistory(history,cfg.deepseek,  'https://api.deepseek.com/v1',cfg.deepseekModel,sys,onChunk);
+    case 'grok':      if(!cfg.grok)      throw new Error('kein Key'); return await callOAIHistory(history,cfg.grok,      'https://api.x.ai/v1',       cfg.grokModel,    sys,onChunk);
+    case 'openai':    if(!cfg.openai)    throw new Error('kein Key'); return await callOAIHistory(history,cfg.openai,    'https://api.openai.com/v1', cfg.openaiModel,  sys,onChunk);
+    case 'anthropic': if(!cfg.anthropic) throw new Error('kein Key'); return await callAnthropicHistory(history,cfg.anthropic,cfg.anthropicModel,sys,onChunk);
     default: throw new Error('unknown');
   }
 }
@@ -4265,11 +4426,16 @@ async function sendMatrixOne(p) {
   mSetLoading(p, true);
 
   try {
-    const result = await callMatrixProvider(p, mGetActiveMsgs(p));
-    if (loadEl) loadEl.remove();
+    // Use streaming: loadEl becomes the live output div
+    if (loadEl) { loadEl.textContent = ''; loadEl.className = 'matrix-msg assistant'; }
+    const streamDiv = loadEl;
+    let chunkCount = 0;
+    const result = await callMatrixProvider(p, mGetActiveMsgs(p), (full, delta) => {
+      if (streamDiv) { streamDiv.textContent = full; chunkCount++; if (chunkCount % 3 === 0) mScroll(p); }
+    });
+    // If streaming wasn't used (e.g. Gemini), fill the div
+    if (chunkCount === 0 && streamDiv) streamDiv.textContent = result;
     mAppendToStore(p, 'assistant', result);
-    // Typewriter effect for single-pane responses too
-    await mTypewriterMsg(p, result, 14);
     mScroll(p);
     mAutoVaultSync(p);
   } catch(e) {
@@ -4333,11 +4499,14 @@ async function sendMatrixAll() {
 
   await Promise.allSettled(M_PROVIDERS.map(async p => {
     try {
-      const result = await callMatrixProvider(p, mGetActiveMsgs(p));
-      if (loadEls[p]) loadEls[p].remove();
+      if (loadEls[p]) { loadEls[p].textContent = ''; loadEls[p].className = 'matrix-msg assistant'; }
+      const streamDiv = loadEls[p];
+      let chunkCount = 0;
+      const result = await callMatrixProvider(p, mGetActiveMsgs(p), (full, delta) => {
+        if (streamDiv) { streamDiv.textContent = full; chunkCount++; if (chunkCount % 3 === 0) mScroll(p); }
+      });
+      if (chunkCount === 0 && streamDiv) streamDiv.textContent = result;
       mAppendToStore(p,'assistant',result);
-      // Typewriter effect: type each character one by one
-      await mTypewriterMsg(p, result, 16);
       mScroll(p); mAutoVaultSync(p);
     } catch(e) {
       if (loadEls[p]) { loadEls[p].textContent='✕ '+e.message; loadEls[p].className='matrix-msg error'; }
@@ -4600,10 +4769,11 @@ function initMatrix() {
     const opts   = convs.map(c=>`<option value="${c.id}" ${c.id===ps.activeId?'selected':''}>${c.title.substring(0,28)}</option>`).join('');
 
     const msgBgMap = {
-      gemini:  'rgba(232,183,48,0.04)',
-      deepseek:'rgba(48,136,232,0.04)',
-      grok:    'rgba(224,64,64,0.04)',
-      openai:  'rgba(48,184,112,0.04)'
+      gemini:   'rgba(232,183,48,0.04)',
+      deepseek: 'rgba(48,136,232,0.04)',
+      grok:     'rgba(224,64,64,0.04)',
+      openai:   'rgba(48,184,112,0.04)',
+      anthropic:'rgba(212,162,122,0.04)'
     };
     const msgBg = msgBgMap[p] || 'transparent';
     return `<div class="matrix-col" id="mc-${p}" data-provider="${p}" style="color:${color}">
@@ -4913,6 +5083,30 @@ function appendToKintegrity(synthText, runLabel) {
   wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+function getNotizen() {
+  const el = document.getElementById('notizen-field');
+  return el ? el.textContent.trim() : '';
+}
+function clearNotizen() {
+  const el = document.getElementById('notizen-field');
+  if (el) el.innerHTML = '';
+  localStorage.removeItem('bs_notizen');
+  updateNotizenCounter();
+}
+function updateNotizenCounter() {
+  const el = document.getElementById('notizen-field');
+  const c = document.getElementById('notizen-counter');
+  const len = el?.textContent?.length || 0;
+  if (c) c.textContent = len + ' Zeichen';
+  // Auto-save
+  if (el) localStorage.setItem('bs_notizen', el.textContent);
+}
+function restoreNotizen() {
+  const saved = localStorage.getItem('bs_notizen');
+  const el = document.getElementById('notizen-field');
+  if (saved && el) { el.textContent = saved; updateNotizenCounter(); }
+}
+
 function clearKintegrity() {
   const editor = document.getElementById('kintegrity-editor');
   const wrap = document.getElementById('kintegrity-editor-wrap');
@@ -5108,11 +5302,48 @@ ${editor.textContent.substring(0, 500)}`
 document.addEventListener('DOMContentLoaded', () => {
   initContextMenu();
   setupEditorContextMenu();
+  restoreNotizen();
 });
 // Also try immediately in case DOMContentLoaded already fired
 if (document.readyState !== 'loading') {
-  setTimeout(() => { initContextMenu(); setupEditorContextMenu(); }, 500);
+  setTimeout(() => { initContextMenu(); setupEditorContextMenu(); restoreNotizen(); }, 500);
 }
+
+// ─── Keyboard Shortcuts ──────────────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  const isMod = e.metaKey || e.ctrlKey;
+  // Cmd/Ctrl+Enter → BRaiNSTORMiNG (An alle senden)
+  if (isMod && e.key === 'Enter' && !e.shiftKey) {
+    const ta = document.getElementById('mAllText');
+    if (ta && ta.value.trim()) {
+      e.preventDefault();
+      sendMatrixAll();
+    }
+  }
+  // Cmd/Ctrl+S → SPiRALiSiNG
+  if (isMod && e.key === 's' && !e.shiftKey) {
+    e.preventDefault();
+    const sc = document.getElementById('spiralBtnContainer');
+    if (sc && sc.style.display !== 'none') {
+      sendTOnly();
+    } else {
+      showToast('⚠ Erst Antworten sammeln, dann SPiRALiSiNG');
+    }
+  }
+  // Cmd/Ctrl+Shift+S → Re-Synthetisieren
+  if (isMod && e.key === 's' && e.shiftKey) {
+    e.preventDefault();
+    sendTIterative();
+  }
+  // Cmd/Ctrl+Shift+Enter → SPiRALiSiNG & Black-Hole-Box
+  if (isMod && e.key === 'Enter' && e.shiftKey) {
+    e.preventDefault();
+    const sc = document.getElementById('spiralBtnContainer');
+    if (sc && sc.style.display !== 'none') {
+      sendTFull();
+    }
+  }
+});
 
 </script>
 </body>
