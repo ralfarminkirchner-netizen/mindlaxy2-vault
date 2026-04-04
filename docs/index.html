@@ -363,11 +363,56 @@
     border-radius: 10px;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    /* 2-line clamp by default */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+  }
+  .matrix-msg.user.expanded {
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+  .matrix-msg.user.clamped::after {
+    content: '… mehr';
+    position: absolute;
+    right: 0.5rem;
+    bottom: 0.3rem;
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.35);
+    font-style: normal;
+    font-weight: 600;
+    letter-spacing: 0.04em;
   }
   .matrix-msg.assistant { background: transparent; color: var(--text); }
   .matrix-msg.streaming { color: var(--muted); }
   .matrix-msg.error { color: var(--asteroid); font-size: 0.75rem; }
   .matrix-msg.no-key { color: var(--muted); font-size: 0.75rem; opacity: 0.5; text-align: center; padding: 1rem; }
+  /* Collapsed older messages */
+  .matrix-msg.collapsed {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  .msg-collapse-toggle {
+    display: none;
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-align: center;
+    padding: 0.2rem 0;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: color 0.2s ease;
+  }
+  .msg-collapse-toggle:hover { color: var(--text); }
+  .msg-collapse-toggle.visible { display: block; }
   .matrix-input-area {
     display: flex;
     gap: 0.5rem;
@@ -1829,7 +1874,7 @@ Wenn nichts offen bleibt, schreibe: ABER: keine | low | tension | Alle Perspekti
 
 const T_CHARS = 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩαβγδεζηθικλμνξοπρστυφχψω∞∫∑∏∂∇⊕⊗△▽○●◆◇⬡0123456789ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijklmnpqrstuvwxyz';
 
-const BS_PROVIDERS = ['gemini','deepseek','grok','openai'];
+const BS_PROVIDERS = ['openai','gemini','deepseek','grok'];
 const BS_META = {
   gemini:   { cols:['#e8b730','#f0d060','#fff4aa'], label:'GEMINI',   pLabel:'GOOGLE · GEMINI' },
   deepseek: { cols:['#3088e8','#5aa0f0','#a0c8ff'], label:'DEEPSEEK', pLabel:'DEEPSEEK' },
@@ -3984,7 +4029,7 @@ function escHtml(s) {
 
 // ─── MiND MATRIX ─────────────────────────────────────────────────────────────
 
-const M_PROVIDERS = ['gemini','deepseek','grok','openai'];
+const M_PROVIDERS = ['openai','gemini','deepseek','grok'];
 const M_LABELS    = { gemini:'GOOGLE · GEMINI', deepseek:'DEEPSEEK', grok:'XAI · GROK', openai:'OPENAI · CHATGPT' };
 const M_VAULT_DIR = { gemini:'Chats/Gemini', deepseek:'Chats/DeepSeek', grok:'Chats/Grok', openai:'Chats/ChatGPT' };
 const M_SYS       = {
@@ -4020,7 +4065,7 @@ function mSwitchConv(p, id) {
   mEnsure(store, p).activeId = id;
   mSaveStore(store);
   const el = document.getElementById('mm-'+p);
-  if (el) { el.innerHTML=''; const c=store[p].convs[id]; if(c) for(const m of c.msgs) mRenderMsg(p,m.role,m.content); }
+  if (el) { el.innerHTML=''; const c=store[p].convs[id]; if(c) for(const m of c.msgs) mRenderMsg(p,m.role,m.content); mCollapseOlder(p); }
   mScroll(p);
   mUpdatePicker(p);
 }
@@ -4048,6 +4093,20 @@ function mRenderMsg(p, role, content) {
   div.className = 'matrix-msg ' + role;
   div.textContent = content;
   el.appendChild(div);
+
+  // User messages: click to expand/collapse, detect clamp
+  if (role === 'user') {
+    requestAnimationFrame(() => {
+      if (div.scrollHeight > div.clientHeight + 2) {
+        div.classList.add('clamped');
+      }
+    });
+    div.addEventListener('click', () => {
+      div.classList.toggle('expanded');
+      div.classList.toggle('clamped', !div.classList.contains('expanded') && div.scrollHeight > div.clientHeight + 2);
+    });
+  }
+
   return div;
 }
 
@@ -4093,6 +4152,41 @@ function mAddMsg(p, role, text) { // temp DOM-only (loading indicators)
 }
 
 function mScroll(p)           { const el=document.getElementById('mm-'+p); if(el) el.scrollTop=el.scrollHeight; }
+
+// Collapse older messages, keep only the latest Q+A pair visible
+function mCollapseOlder(p) {
+  const el = document.getElementById('mm-'+p);
+  if (!el) return;
+  const msgs = el.querySelectorAll('.matrix-msg:not(.no-key)');
+  if (msgs.length <= 2) return; // Nothing to collapse if only 1 pair
+
+  // Remove existing toggle
+  const oldToggle = el.querySelector('.msg-collapse-toggle');
+  if (oldToggle) oldToggle.remove();
+
+  // Collapse all except last 2 messages (latest Q+A)
+  const toCollapse = [];
+  for (let i = 0; i < msgs.length - 2; i++) {
+    msgs[i].classList.add('collapsed');
+    toCollapse.push(msgs[i]);
+  }
+
+  if (toCollapse.length > 0) {
+    // Add "show older" toggle at top
+    const toggle = document.createElement('div');
+    toggle.className = 'msg-collapse-toggle visible';
+    const count = toCollapse.length;
+    toggle.textContent = `▾ ${count} ältere Nachricht${count > 1 ? 'en' : ''} anzeigen`;
+    toggle.addEventListener('click', () => {
+      const isCollapsed = toCollapse[0].classList.contains('collapsed');
+      toCollapse.forEach(m => m.classList.toggle('collapsed', !isCollapsed));
+      toggle.textContent = isCollapsed
+        ? `▴ ${count} ältere Nachricht${count > 1 ? 'en' : ''} einklappen`
+        : `▾ ${count} ältere Nachricht${count > 1 ? 'en' : ''} anzeigen`;
+    });
+    el.insertBefore(toggle, el.firstChild);
+  }
+}
 function mSetLoading(p,active){ const c=document.getElementById('mc-'+p); if(c) c.style.opacity=active?'0.7':'1'; }
 
 function mUpdatePicker(p) {
@@ -4158,6 +4252,7 @@ async function sendMatrixOne(p) {
   if (!ps.activeId || !ps.convs[ps.activeId]) { mNewConv(p); mUpdatePicker(p); }
 
   mAppendToStore(p, 'user', text);
+  mCollapseOlder(p); // collapse older messages before adding new ones
   mRenderMsg(p, 'user', text);
   mUpdatePicker(p);
   const loadEl = mAddMsg(p, 'assistant streaming', '⟳ …');
@@ -4195,7 +4290,7 @@ async function sendMatrixAll() {
   for (const p of M_PROVIDERS) {
     const st=mGetStore(); const ps=mEnsure(st,p);
     if (!ps.activeId || !ps.convs[ps.activeId]) { mNewConv(p); mUpdatePicker(p); }
-    mAppendToStore(p,'user',text); mRenderMsg(p,'user',text); mUpdatePicker(p);
+    mAppendToStore(p,'user',text); mCollapseOlder(p); mRenderMsg(p,'user',text); mUpdatePicker(p);
     loadEls[p] = mAddMsg(p,'assistant streaming','⟳ …');
     mSetLoading(p,true);
   }
@@ -4257,7 +4352,7 @@ function mClearOne(p) {
   const el = document.getElementById('mm-'+p);
   if (el) el.innerHTML = '';
   const newC = mGetActive(p);
-  if (newC) for (const m of newC.msgs) mRenderMsg(p,m.role,m.content);
+  if (newC) for (const m of newC.msgs) mRenderMsg(p,m.role,m.content); mCollapseOlder(p);
   mUpdatePicker(p);
 }
 
@@ -4531,7 +4626,7 @@ function initMatrix() {
   // Render active conversation messages
   for (const p of M_PROVIDERS) {
     const conv = mGetActive(p);
-    if (conv) { for (const m of conv.msgs) mRenderMsg(p, m.role, m.content); mScroll(p); }
+    if (conv) { for (const m of conv.msgs) mRenderMsg(p, m.role, m.content); mCollapseOlder(p); mScroll(p); }
   }
 
   // Initialize mini particle animations
