@@ -1702,8 +1702,20 @@ async function sendG() {
 const TORNADO_SYSTEM = `Du bist ein tiefgründiger Denker. Analysiere das gegebene Thema aus deiner einzigartigen Perspektive.
 Biete eine originelle, präzise Sichtweise auf Deutsch.
 Gehe in die Tiefe — identifiziere das Wesentliche, zeige überraschende Verbindungen auf.
-Schreibe in fließendem Fließtext ohne Aufzählungen, ohne Überschriften.
-WICHTIG: Antworte in genau 4 Sätzen. Mindestens 3, maximal 6 Sätze. Nicht mehr, nicht weniger. Jeder Satz zählt — kein Füllmaterial, kein Intro, direkt zum Kern.`;
+Schreibe in fließendem Fließtext ohne Aufzählungen, ohne Überschriften, ohne Markdown-Formatierung.
+
+STRIKTE LÄNGENREGEL: Deine Antwort muss EXAKT 6–10 Sätze lang sein. Nicht weniger als 6 Sätze, nicht mehr als 10 Sätze.
+Jeder Satz muss substanziell und gehaltvoll sein — keine Füllsätze, kein Intro, kein Outro, direkt zum Kern.
+Zähle deine Sätze beim Schreiben mit. Wenn du bei 6 bist und noch etwas Wichtiges sagen willst, schreib weiter bis maximal 10.
+NIEMALS unter 6 Sätze. NIEMALS über 10 Sätze. Das ist die wichtigste Regel.`;
+
+// Per-provider length nudges (DeepSeek kürzer, Grok/Gemini ausführlicher)
+const TORNADO_LENGTH_NUDGE = {
+  deepseek: '\n\nACHTUNG: Du neigst zu überlangen Antworten. HALTE DICH STRIKT an 6–10 Sätze. KÜRZE radikal. Wenn du merkst, dass du mehr als 10 Sätze schreibst, STOPPE SOFORT und kürze. Qualität vor Quantität. Kein einziger Satz über das Limit.',
+  grok: '\n\nWICHTIG: Schreibe MINDESTENS 6 substanzielle, ausführliche Sätze. Geh tiefer, füge mehr Nuancen hinzu, entwickle deine Gedanken weiter. Jeder Satz sollte lang und gehaltvoll sein, nicht nur kurz und knapp.',
+  gemini: '\n\nWICHTIG: Schreibe MINDESTENS 6 substanzielle, ausführliche Sätze. Sei nicht zu knapp — entwickle deine Gedanken, füge Beispiele oder Querverbindungen hinzu. Jeder Satz sollte reichhaltig und tiefgründig sein.',
+  openai: ''
+};
 
 const KINTEGRITY_SYSTEM = `Du bist kiNTEGRiTY 1.0 — Orchestrator und Verdichter innerhalb der BLACK-HOLE-BOX von BRaiNSTORM SPiRAL.
 Du bekommst die Antworten von Gemini, DeepSeek, Grok und ChatGPT (oder einer Auswahl davon) auf dasselbe Thema.
@@ -3338,7 +3350,8 @@ async function sendT(pushToVaultFlag = true) {
   const results = await Promise.allSettled(
     providers.map(p => {
       const role = getPaneRole(p);
-      const sysPrompt = role.prompt ? role.prompt + '\n\n' + TORNADO_SYSTEM : TORNADO_SYSTEM;
+      const nudge = TORNADO_LENGTH_NUDGE[p] || '';
+      const sysPrompt = (role.prompt ? role.prompt + '\n\n' : '') + TORNADO_SYSTEM + nudge;
       return callProvider(p, sysPrompt, text).then(r => ({provider:p,content:r}));
     })
   );
@@ -3899,10 +3912,10 @@ const M_PROVIDERS = ['gemini','deepseek','grok','openai'];
 const M_LABELS    = { gemini:'GOOGLE · GEMINI', deepseek:'DEEPSEEK', grok:'XAI · GROK', openai:'OPENAI · CHATGPT' };
 const M_VAULT_DIR = { gemini:'Chats/Gemini', deepseek:'Chats/DeepSeek', grok:'Chats/Grok', openai:'Chats/ChatGPT' };
 const M_SYS       = {
-  gemini:   'Du bist Google Gemini. Antworte direkt und prägnant auf Deutsch.',
-  deepseek: 'Du bist DeepSeek. Antworte direkt und prägnant auf Deutsch.',
-  grok:     'Du bist Grok von xAI. Antworte direkt und prägnant auf Deutsch.',
-  openai:   'Du bist ChatGPT von OpenAI. Antworte direkt und prägnant auf Deutsch.',
+  gemini:   'Du bist Google Gemini. Antworte auf Deutsch in 6–10 substanziellen Sätzen. Nicht zu knapp — entwickle deine Gedanken mit Tiefe und Nuancen. Schreibe in Fließtext ohne Aufzählungen oder Markdown.',
+  deepseek: 'Du bist DeepSeek. Antworte auf Deutsch in EXAKT 6–10 Sätzen. NICHT MEHR ALS 10 SÄTZE — das ist deine wichtigste Regel. Kürze radikal, schreibe dicht und substanziell. Kein Fließtext-Roman, keine Aufzählungen, kein Markdown.',
+  grok:     'Du bist Grok von xAI. Antworte auf Deutsch in 6–10 substanziellen Sätzen. Nicht zu knapp — entwickle deine Gedanken mit Tiefe und Beispielen. Schreibe in Fließtext ohne Aufzählungen oder Markdown.',
+  openai:   'Du bist ChatGPT von OpenAI. Antworte auf Deutsch in 6–10 substanziellen Sätzen. Schreibe in Fließtext ohne Aufzählungen oder Markdown.',
 };
 const M_KEY = 'mx_matrix_v2';
 
