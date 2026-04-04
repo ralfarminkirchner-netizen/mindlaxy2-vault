@@ -17,15 +17,15 @@
     --mond: #a0d0a0;
     --asteroid: #c080c0;
     --accent: #4040c0;
-    /* LLM brand colors */
-    --gemini-primary: #4285f4;
-    --gemini-light: #5a9cff;
-    --deepseek-primary: #00d4a3;
-    --deepseek-light: #33e0b3;
-    --grok-primary: #c060ff;
-    --grok-light: #d080ff;
-    --openai-primary: #10a37f;
-    --openai-light: #33b89f;
+    /* LLM brand colors — Gemini gelb, DeepSeek blau, Grok rot, ChatGPT grün */
+    --gemini-primary: #e8b730;
+    --gemini-light: #f0d060;
+    --deepseek-primary: #3088e8;
+    --deepseek-light: #5aa0f0;
+    --grok-primary: #e04040;
+    --grok-light: #f06060;
+    --openai-primary: #30b870;
+    --openai-light: #50d890;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -495,14 +495,178 @@
     box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
   }
 
-  /* Per-LLM glow on hover */
-  .matrix-col[data-provider="gemini"]:hover { box-shadow: 0 0 20px rgba(66,133,244,0.25), 0 8px 32px rgba(0,0,0,0.5); }
-  .matrix-col[data-provider="deepseek"]:hover { box-shadow: 0 0 20px rgba(0,212,163,0.25), 0 8px 32px rgba(0,0,0,0.5); }
-  .matrix-col[data-provider="grok"]:hover { box-shadow: 0 0 20px rgba(192,96,255,0.25), 0 8px 32px rgba(0,0,0,0.5); }
-  .matrix-col[data-provider="openai"]:hover { box-shadow: 0 0 20px rgba(16,163,127,0.25), 0 8px 32px rgba(0,0,0,0.5); }
+  /* Per-LLM glow on hover — Gemini gelb, DeepSeek blau, Grok rot, ChatGPT grün */
+  .matrix-col[data-provider="gemini"]:hover { box-shadow: 0 0 20px rgba(232,183,48,0.3), 0 8px 32px rgba(0,0,0,0.5); }
+  .matrix-col[data-provider="deepseek"]:hover { box-shadow: 0 0 20px rgba(48,136,232,0.3), 0 8px 32px rgba(0,0,0,0.5); }
+  .matrix-col[data-provider="grok"]:hover { box-shadow: 0 0 20px rgba(224,64,64,0.3), 0 8px 32px rgba(0,0,0,0.5); }
+  .matrix-col[data-provider="openai"]:hover { box-shadow: 0 0 20px rgba(48,184,112,0.3), 0 8px 32px rgba(0,0,0,0.5); }
+  /* ── Sidebar ─────────────────────────── */
+  .sidebar-toggle {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1100;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(20,20,35,0.85);
+    border: 1px solid #2a2a40;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .sidebar-toggle:hover { background: rgba(40,40,60,0.9); color: var(--text); }
+  .sidebar-toggle svg { width: 18px; height: 18px; }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    background: rgba(10,10,18,0.95);
+    border-right: 1px solid #1e1e30;
+    z-index: 1050;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-header {
+    padding: 1rem;
+    border-bottom: 1px solid #1e1e30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .sidebar-header h3 {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0;
+  }
+  .sidebar-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0.2rem;
+    transition: color 0.2s;
+  }
+  .sidebar-close:hover { color: var(--text); }
+  .sidebar-provider-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid #1e1e30;
+    flex-shrink: 0;
+  }
+  .sidebar-ptab {
+    flex: 1;
+    padding: 0.5rem 0.3rem;
+    text-align: center;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    color: var(--muted);
+  }
+  .sidebar-ptab:hover { background: rgba(255,255,255,0.03); }
+  .sidebar-ptab.active { border-bottom-color: currentColor; }
+  .sidebar-ptab[data-p="gemini"] { color: var(--gemini-primary); }
+  .sidebar-ptab[data-p="deepseek"] { color: var(--deepseek-primary); }
+  .sidebar-ptab[data-p="grok"] { color: var(--grok-primary); }
+  .sidebar-ptab[data-p="openai"] { color: var(--openai-primary); }
+  .sidebar-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem;
+  }
+  .sidebar-list::-webkit-scrollbar { width: 3px; }
+  .sidebar-list::-webkit-scrollbar-thumb { background: #2a2a40; border-radius: 3px; }
+  .sidebar-chat-item {
+    padding: 0.55rem 0.7rem;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 0.25rem;
+    transition: background 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .sidebar-chat-item:hover { background: rgba(255,255,255,0.04); }
+  .sidebar-chat-item.active { background: rgba(255,255,255,0.06); border-left-color: currentColor; }
+  .sidebar-chat-title {
+    font-size: 0.78rem;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sidebar-chat-meta {
+    font-size: 0.62rem;
+    color: var(--muted);
+    margin-top: 0.15rem;
+  }
+  .sidebar-new-btn {
+    margin: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px dashed #2a2a40;
+    border-radius: 8px;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.72rem;
+    text-align: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .sidebar-new-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1040;
+    display: none;
+  }
+  .sidebar-backdrop.open { display: block; }
+
+  /* Push main content when sidebar open (desktop) */
+  @media (min-width: 768px) {
+    body.sidebar-open main { margin-left: 280px; transition: margin-left 0.3s; }
+    body.sidebar-open header { margin-left: 280px; transition: margin-left 0.3s; }
+    .sidebar-backdrop.open { display: none; }
+  }
 </style>
 </head>
 <body>
+
+<!-- Sidebar Toggle Button -->
+<button class="sidebar-toggle" onclick="toggleSidebar()" title="Chat-Verlauf">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+
+<!-- Sidebar Backdrop (mobile) -->
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h3>Chat-Verlauf</h3>
+    <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+  </div>
+  <div class="sidebar-provider-tabs" id="sidebarTabs"></div>
+  <div class="sidebar-list" id="sidebarList"></div>
+  <button class="sidebar-new-btn" onclick="sidebarNewChat()">+ Neues Gespräch</button>
+</div>
 
 <header>
   <div class="logo">B R a i N S T O R M &nbsp; S P i R A L</div>
@@ -1096,10 +1260,10 @@ const T_CHARS = 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩαβγδεζη�
 
 const BS_PROVIDERS = ['gemini','deepseek','grok','openai'];
 const BS_META = {
-  gemini:   { cols:['#4285f4','#34a853','#a8c4ff'], label:'GEMINI',   pLabel:'GOOGLE · GEMINI' },
-  deepseek: { cols:['#00d4a3','#0099cc','#7fffd4'], label:'DEEPSEEK', pLabel:'DEEPSEEK' },
-  grok:     { cols:['#c060ff','#8820cc','#e8aaff'], label:'GROK',     pLabel:'XAI · GROK' },
-  openai:   { cols:['#10a37f','#0d7a60','#5dffc4'], label:'CHATGPT',  pLabel:'OPENAI · CHATGPT' },
+  gemini:   { cols:['#e8b730','#f0d060','#fff4aa'], label:'GEMINI',   pLabel:'GOOGLE · GEMINI' },
+  deepseek: { cols:['#3088e8','#5aa0f0','#a0c8ff'], label:'DEEPSEEK', pLabel:'DEEPSEEK' },
+  grok:     { cols:['#e04040','#f06060','#ffaaaa'], label:'GROK',     pLabel:'XAI · GROK' },
+  openai:   { cols:['#30b870','#50d890','#a0f0c0'], label:'CHATGPT',  pLabel:'OPENAI · CHATGPT' },
 };
 const PLABELS = { anthropic:'ANTHROPIC · CLAUDE', gemini:'GOOGLE · GEMINI', deepseek:'DEEPSEEK', grok:'XAI · GROK', openai:'OPENAI · CHATGPT' };
 
@@ -3374,7 +3538,7 @@ function initMatrix() {
     const convs  = Object.values(ps.convs||{}).sort((a,b)=>b.created-a.created);
     const opts   = convs.map(c=>`<option value="${c.id}" ${c.id===ps.activeId?'selected':''}>${c.title.substring(0,28)}</option>`).join('');
 
-    const bgMap = {gemini:'rgba(60,50,10,0.35)',deepseek:'rgba(10,25,50,0.35)',grok:'rgba(45,12,20,0.35)',openai:'rgba(10,40,30,0.35)'};
+    const bgMap = {gemini:'rgba(55,45,10,0.45)',deepseek:'rgba(12,22,55,0.45)',grok:'rgba(50,12,12,0.45)',openai:'rgba(12,45,28,0.45)'};
     const bgCol = bgMap[p] || 'rgba(12,12,22,0.7)';
     return `<div class="matrix-col" id="mc-${p}" data-provider="${p}" style="border-color:${color}55;background:${bgCol};border-left:3px solid ${color}">
       <div class="matrix-header" style="color:${color};border-bottom-color:${color}33;flex-wrap:wrap;gap:0.25rem;padding:0.35rem 0.5rem">
@@ -3492,7 +3656,76 @@ function initMatrix() {
   document.querySelector('main').classList.add('matrix-mode');
   initMatrix();
   renderRunHistory();
+  initSidebar();
 })();
+
+// ── Sidebar ──────────────────────────────────────────────────────────────────
+
+let _sidebarProvider = 'gemini';
+
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const bd = document.getElementById('sidebarBackdrop');
+  const open = sb.classList.toggle('open');
+  bd.classList.toggle('open', open);
+  document.body.classList.toggle('sidebar-open', open);
+  if (open) renderSidebarList();
+}
+
+function initSidebar() {
+  const tabs = document.getElementById('sidebarTabs');
+  const providers = [{id:'gemini',label:'Gemini'},{id:'deepseek',label:'Deep'},{id:'grok',label:'Grok'},{id:'openai',label:'GPT'}];
+  tabs.innerHTML = providers.map(p =>
+    `<div class="sidebar-ptab ${p.id===_sidebarProvider?'active':''}" data-p="${p.id}" onclick="switchSidebarProvider('${p.id}')">${p.label}</div>`
+  ).join('');
+}
+
+function switchSidebarProvider(p) {
+  _sidebarProvider = p;
+  document.querySelectorAll('.sidebar-ptab').forEach(t => t.classList.toggle('active', t.dataset.p === p));
+  renderSidebarList();
+}
+
+function renderSidebarList() {
+  const list = document.getElementById('sidebarList');
+  const store = mGetStore();
+  const ps = store[_sidebarProvider];
+  if (!ps || !ps.convs || Object.keys(ps.convs).length === 0) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:0.75rem;padding:1rem;text-align:center">Noch keine Gespräche</div>';
+    return;
+  }
+  const convs = Object.values(ps.convs).sort((a,b) => (b.created||0) - (a.created||0));
+  const activeId = ps.activeId;
+  const provColor = getComputedStyle(document.documentElement).getPropertyValue('--'+_sidebarProvider+'-primary').trim() || '#888';
+
+  list.innerHTML = convs.map(c => {
+    const date = c.created ? new Date(c.created) : null;
+    const dateStr = date ? date.toLocaleDateString('de',{day:'2-digit',month:'2-digit'}) + ' ' + date.toLocaleTimeString('de',{hour:'2-digit',minute:'2-digit'}) : '';
+    const msgCount = c.msgs?.length || 0;
+    const isActive = c.id === activeId;
+    return `<div class="sidebar-chat-item ${isActive?'active':''}" style="color:${provColor}" onclick="sidebarSelectChat('${_sidebarProvider}','${c.id}')">
+      <div class="sidebar-chat-title">${escHtml(c.title || 'Unbenannt')}</div>
+      <div class="sidebar-chat-meta">${dateStr} · ${msgCount} Nachrichten</div>
+    </div>`;
+  }).join('');
+}
+
+function sidebarSelectChat(provider, convId) {
+  // Switch to BRaiNSTORMiNG tab if not there
+  sw('tornado');
+  // Switch conv in that provider's pane
+  mSwitchConv(provider, convId);
+  // Close sidebar on mobile
+  if (window.innerWidth < 768) toggleSidebar();
+  // Update sidebar to show selection
+  renderSidebarList();
+}
+
+function sidebarNewChat() {
+  sw('tornado');
+  mNewChat(_sidebarProvider);
+  renderSidebarList();
+}
 </script>
 </body>
 </html>
