@@ -1041,37 +1041,66 @@
   }
 
   /* ── kiNTEGRiTY Persistent Editor ── */
-  /* ── NOTiZEN Scratchpad ── */
+  /* ── NOTiZEN Scratchpad — schwebend über den Panes ── */
   #notizen-bar {
-    margin: 0.8rem 0 0.2rem;
-    background: rgba(30,28,50,0.55);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(180,160,80,0.25);
-    border-radius: 14px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
+    position: sticky;
+    top: 10px;
+    z-index: 200;
+    width: 280px;
+    min-height: 220px;
+    max-height: 55vh;
+    background: rgba(24,20,46,0.88);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(200,180,80,0.3);
+    border-radius: 16px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.55), 0 0 60px rgba(180,160,60,0.08), inset 0 1px 0 rgba(255,255,255,0.08);
     overflow: hidden;
-    transition: all 0.35s ease;
+    transition: box-shadow 0.35s ease, border-color 0.35s ease;
+    /* Default: rechts schwebend über dem Grid */
+    float: right;
+    margin: 0 0 0.8rem 0.8rem;
+    /* Schienen-Drag: horizontal verschiebbar */
+    cursor: default;
+  }
+  #notizen-bar.dragging {
+    box-shadow: 0 16px 60px rgba(0,0,0,0.7), 0 0 80px rgba(200,180,60,0.15), inset 0 1px 0 rgba(255,255,255,0.12);
+    border-color: rgba(240,220,100,0.5);
   }
   #notizen-bar:focus-within {
-    border-color: rgba(220,200,100,0.45);
-    box-shadow: 0 6px 28px rgba(180,160,60,0.2), inset 0 1px 0 rgba(255,255,255,0.08);
+    border-color: rgba(220,200,100,0.5);
+    box-shadow: 0 14px 52px rgba(0,0,0,0.6), 0 0 70px rgba(180,160,60,0.12), inset 0 1px 0 rgba(255,255,255,0.1);
   }
   #notizen-header {
-    padding: 0.45rem 1rem;
+    padding: 0.5rem 0.8rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    background: rgba(255,255,255,0.02);
+    gap: 0.4rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.03);
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #notizen-header:active { cursor: grabbing; }
+  #notizen-rail-indicator {
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(200,180,80,0.25);
+    pointer-events: none;
   }
   #notizen-field {
     width: 100%;
-    min-height: 38px;
-    max-height: 30vh;
+    min-height: 160px;
+    max-height: calc(55vh - 44px);
     overflow-y: auto;
-    padding: 0.6rem 1rem;
-    font-size: 0.88rem;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.84rem;
     line-height: 1.7;
     color: var(--text);
     white-space: pre-wrap;
@@ -1081,21 +1110,33 @@
     resize: none;
   }
   #notizen-field:empty::before {
-    content: 'NOTiZEN — Kernaussagen, Zitate, Formulierungen hier festhalten → fließen direkt in die Synthese…';
+    content: '📌 Kernaussagen, Zitate, Formulierungen hier festhalten…\A\A→ fließen mit höchster Priorität in die Synthese';
+    white-space: pre-wrap;
     color: var(--muted);
     font-style: italic;
     pointer-events: none;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
   }
   #notizen-field ::selection {
     background: rgba(200,180,60,0.35);
     color: #fff;
   }
   #notizen-counter {
-    font-size: 0.58rem;
+    font-size: 0.55rem;
     color: var(--muted);
     margin-left: auto;
     white-space: nowrap;
+  }
+  @media (max-width: 900px) {
+    #notizen-bar {
+      width: 100%;
+      float: none;
+      min-height: 120px;
+      max-height: 40vh;
+      position: relative;
+      top: 0;
+      margin: 0.5rem 0;
+    }
   }
 
   #kintegrity-editor-wrap {
@@ -1289,17 +1330,18 @@
     <div style="font-size:0.85rem;font-weight:700;color:var(--text);margin-bottom:0.6rem;display:flex;align-items:center;gap:0.5rem;letter-spacing:0.03em">⊞ 5 LLMs</div>
     <div class="matrix-grid" id="mGrid"></div>
 
-    <!-- NOTiZEN Scratchpad — manuell Kernaussagen festhalten für Synthese -->
+    <!-- NOTiZEN Scratchpad — schwebt über den LLM-Panes, auf Schienen verschiebbar -->
     <div id="notizen-bar">
       <div id="notizen-header">
-        <span style="font-size:0.72rem;font-weight:700;letter-spacing:.1em;color:#c8b040;text-transform:uppercase">📌 NOTiZEN</span>
-        <span id="notizen-counter">0 Zeichen</span>
+        <span style="font-size:0.68rem;font-weight:700;letter-spacing:.1em;color:#c8b040;text-transform:uppercase">📌 NOTiZEN</span>
+        <span id="notizen-counter">0</span>
         <button onclick="clearNotizen()" title="Notizen leeren"
-          style="font-size:0.58rem;padding:0.15rem 0.4rem;background:rgba(200,60,60,0.12);border:1px solid rgba(200,60,60,0.2);color:#e06060;border-radius:6px;cursor:pointer;transition:all 0.25s ease"
+          style="font-size:0.55rem;padding:0.12rem 0.35rem;background:rgba(200,60,60,0.12);border:1px solid rgba(200,60,60,0.2);color:#e06060;border-radius:5px;cursor:pointer;transition:all 0.25s ease"
           onmouseover="this.style.background='rgba(200,60,60,0.25)'" onmouseout="this.style.background='rgba(200,60,60,0.12)'">✕</button>
       </div>
       <div id="notizen-field" contenteditable="true" spellcheck="true"
            oninput="updateNotizenCounter()"></div>
+      <div id="notizen-rail-indicator"></div>
     </div>
 
     <!-- SPiRALiSiNG buttons — appear below panes after all LLMs respond -->
@@ -5107,6 +5149,86 @@ function restoreNotizen() {
   if (saved && el) { el.textContent = saved; updateNotizenCounter(); }
 }
 
+// ── NOTiZEN Schienen-Drag (horizontal über Panes verschiebbar) ──
+function initNotizenDrag() {
+  const bar = document.getElementById('notizen-bar');
+  const header = document.getElementById('notizen-header');
+  if (!bar || !header) return;
+
+  let isDragging = false, startX = 0, startLeft = 0;
+  const savedPos = localStorage.getItem('bs_notizen_pos');
+  if (savedPos) {
+    const pos = JSON.parse(savedPos);
+    bar.style.float = 'none';
+    bar.style.position = 'sticky';
+    bar.style.marginLeft = pos.ml + 'px';
+  }
+
+  header.addEventListener('mousedown', (e) => {
+    if (e.target.tagName === 'BUTTON') return;
+    isDragging = true;
+    startX = e.clientX;
+    const rect = bar.getBoundingClientRect();
+    const parentRect = bar.parentElement.getBoundingClientRect();
+    startLeft = rect.left - parentRect.left;
+    bar.style.float = 'none';
+    bar.style.position = 'sticky';
+    bar.classList.add('dragging');
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - startX;
+    const parentRect = bar.parentElement.getBoundingClientRect();
+    const maxLeft = parentRect.width - bar.offsetWidth;
+    const newLeft = Math.max(0, Math.min(maxLeft, startLeft + dx));
+    bar.style.marginLeft = newLeft + 'px';
+    bar.style.marginRight = '0';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    bar.classList.remove('dragging');
+    localStorage.setItem('bs_notizen_pos', JSON.stringify({
+      ml: parseInt(bar.style.marginLeft) || 0
+    }));
+  });
+
+  // Touch support for mobile
+  header.addEventListener('touchstart', (e) => {
+    if (e.target.tagName === 'BUTTON') return;
+    isDragging = true;
+    startX = e.touches[0].clientX;
+    const rect = bar.getBoundingClientRect();
+    const parentRect = bar.parentElement.getBoundingClientRect();
+    startLeft = rect.left - parentRect.left;
+    bar.style.float = 'none';
+    bar.style.position = 'sticky';
+    bar.classList.add('dragging');
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    const dx = e.touches[0].clientX - startX;
+    const parentRect = bar.parentElement.getBoundingClientRect();
+    const maxLeft = parentRect.width - bar.offsetWidth;
+    const newLeft = Math.max(0, Math.min(maxLeft, startLeft + dx));
+    bar.style.marginLeft = newLeft + 'px';
+    bar.style.marginRight = '0';
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    bar.classList.remove('dragging');
+    localStorage.setItem('bs_notizen_pos', JSON.stringify({
+      ml: parseInt(bar.style.marginLeft) || 0
+    }));
+  });
+}
+
 function clearKintegrity() {
   const editor = document.getElementById('kintegrity-editor');
   const wrap = document.getElementById('kintegrity-editor-wrap');
@@ -5303,10 +5425,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initContextMenu();
   setupEditorContextMenu();
   restoreNotizen();
+  initNotizenDrag();
 });
 // Also try immediately in case DOMContentLoaded already fired
 if (document.readyState !== 'loading') {
-  setTimeout(() => { initContextMenu(); setupEditorContextMenu(); restoreNotizen(); }, 500);
+  setTimeout(() => { initContextMenu(); setupEditorContextMenu(); restoreNotizen(); initNotizenDrag(); }, 500);
 }
 
 // ─── Keyboard Shortcuts ──────────────────────────────────────────────────────
