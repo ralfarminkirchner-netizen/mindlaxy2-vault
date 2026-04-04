@@ -73,9 +73,9 @@
     align-items: center;
   }
   .logo {
-    font-size: 2.4rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    font-size: 2.8rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
     color: #f0f0f8;
     text-shadow: none;
   }
@@ -115,6 +115,14 @@
   .count-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 500; }
   .count-stern .count-num { color: var(--stern); }
   .count-planet .count-num { color: var(--planet); }
+  .count-stern { background: rgba(40,180,80,0.15) !important; border-color: rgba(40,180,80,0.25) !important; color: #50c870 !important; }
+  .count-stern .count-num, .count-stern .count-label { color: #50c870 !important; }
+  .count-planet { background: rgba(60,120,220,0.15) !important; border-color: rgba(60,120,220,0.25) !important; color: #5090e0 !important; }
+  .count-planet .count-num, .count-planet .count-label { color: #5090e0 !important; }
+  .count-mond { background: rgba(60,120,220,0.15) !important; border-color: rgba(60,120,220,0.25) !important; color: #5090e0 !important; }
+  .count-mond .count-num, .count-mond .count-label { color: #5090e0 !important; }
+  .count-asteroid { background: rgba(220,80,60,0.15) !important; border-color: rgba(220,80,60,0.25) !important; color: #e06050 !important; }
+  .count-asteroid .count-num, .count-asteroid .count-label { color: #e06050 !important; }
 
   /* Vault files popup */
   #vault-popup {
@@ -278,6 +286,15 @@
   .matrix-col[data-provider="deepseek"] { border-top: 2px solid var(--deepseek-primary); }
   .matrix-col[data-provider="grok"] { border-top: 2px solid var(--grok-primary); }
   .matrix-col[data-provider="openai"] { border-top: 2px solid var(--openai-primary); }
+  /* Pane particle canvas */
+  .pane-particles {
+    background: linear-gradient(180deg, rgba(8,12,24,0.3) 0%, rgba(8,12,24,0.8) 100%);
+  }
+  .matrix-col .matrix-header {
+    font-size: 0.6rem;
+    padding: 0.35rem 0.5rem;
+    background: rgba(255,255,255,0.02);
+  }
   .matrix-header {
     padding: 0.6rem 0.7rem;
     font-size: 0.68rem;
@@ -966,6 +983,7 @@
 </div>
 
 <header>
+  <div style="font-size:0.65rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.3rem">BRaiNSTORM SPiRAL / MiNDLAXY</div>
   <div class="logo">B R a i N S T O R M &nbsp; S P i R A L</div>
   <div class="tagline">4 LLMs · 1 Synthese · Dein Wurmloch zur MiNDLAXY</div>
   <div class="counts" id="counts">
@@ -1008,9 +1026,7 @@
 
     <!-- ① Broadcast-Feld -->
     <div style="margin-bottom:1rem">
-      <div style="font-size:0.68rem;color:var(--muted);letter-spacing:.08em;margin-bottom:0.5rem;text-transform:uppercase;font-weight:600">
-        Broadcast
-      </div>
+      <div style="font-size:0.85rem;font-weight:700;color:var(--text);letter-spacing:0.03em">✦ Broadcast</div>
       <textarea id="mAllText" rows="3"
         placeholder="Thema oder Frage…&#10;&#10;BRaiNSTORMiNG startet die 4 LLM-Tornados.&#10;SPiRALiNG verdichtet alles zur Synthese."
         style="width:100%;resize:none;font-size:0.92rem;background:rgba(10,14,28,0.6);border:1px solid rgba(255,255,255,0.10);border-radius:12px;color:var(--text);padding:0.9rem 1rem;line-height:1.6;transition:all 0.3s ease;"
@@ -1021,14 +1037,15 @@
       <div style="display:flex;gap:0.5rem;margin-top:0.6rem">
         <button id="mAllBtn" onclick="sendMatrixAll()" title="BRaiNSTORMiNG starten"
           style="padding:0.5rem 1.2rem;background:rgba(60,100,220,0.85);border:none;border-radius:10px;color:#fff;font-size:0.82rem;font-weight:600;letter-spacing:0.02em;cursor:pointer;transition:all 0.3s ease"
-          onmouseover="this.style.background='rgba(70,110,230,0.95)'" onmouseout="this.style.background='rgba(60,100,220,0.85)'">An 4 Panes senden</button>
+          onmouseover="this.style.background='rgba(70,110,230,0.95)'" onmouseout="this.style.background='rgba(60,100,220,0.85)'">BRaiNSTORMiNG</button>
         <button onclick="mNewChatAll()" title="Neues Gespräch in allen Panes starten"
           style="padding:0.5rem 1rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);border-radius:10px;color:var(--text);font-size:0.82rem;font-weight:500;cursor:pointer;transition:all 0.3s ease"
-          onmouseover="this.style.background='rgba(255,255,255,0.10)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">Eingabe leeren</button>
+          onmouseover="this.style.background='rgba(255,255,255,0.10)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">+ Neuer Chat</button>
       </div>
     </div>
 
     <!-- ② Vier LLM-Panes (Hauptarbeitsfläche) -->
+    <div style="font-size:0.85rem;font-weight:700;color:var(--text);margin-bottom:0.6rem;display:flex;align-items:center;gap:0.5rem;letter-spacing:0.03em">⊞ 4 LLMs</div>
     <div class="matrix-grid" id="mGrid"></div>
 
     <!-- SPiRALiNG button — appears below panes after all LLMs respond -->
@@ -1681,6 +1698,72 @@ class WildTornado {
 
   fade() { this.phase='fade'; }
   stop() { if(this.raf)cancelAnimationFrame(this.raf); }
+}
+
+// ── Mini particle animation for LLM pane headers ──────────────────────────────
+class MiniParticles {
+  constructor(canvas, color) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.color = color;
+    this.particles = [];
+    this.W = 0; this.H = 0;
+    this._resize();
+    for (let i = 0; i < 35; i++) {
+      this.particles.push({
+        x: Math.random() * this.W,
+        y: Math.random() * this.H,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        r: Math.random() * 2.5 + 1,
+        alpha: Math.random() * 0.6 + 0.3
+      });
+    }
+    this._animate();
+  }
+  _resize() {
+    const rect = this.canvas.parentElement.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    this.W = rect.width;
+    this.H = rect.height;
+    this.canvas.width = this.W * dpr;
+    this.canvas.height = this.H * dpr;
+    this.canvas.style.width = this.W + 'px';
+    this.canvas.style.height = this.H + 'px';
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  _animate() {
+    this.ctx.clearRect(0, 0, this.W, this.H);
+    const ps = this.particles;
+    for (const p of ps) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > this.W) p.vx *= -1;
+      if (p.y < 0 || p.y > this.H) p.vy *= -1;
+      this.ctx.beginPath();
+      this.ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      this.ctx.fillStyle = this.color.replace(')', `,${p.alpha})`).replace('rgb', 'rgba');
+      this.ctx.fill();
+    }
+    // Draw connections
+    this.ctx.strokeStyle = this.color.replace(')', ',0.08)').replace('rgb', 'rgba');
+    this.ctx.lineWidth = 0.5;
+    for (let i = 0; i < ps.length; i++) {
+      for (let j = i + 1; j < ps.length; j++) {
+        const dx = ps[i].x - ps[j].x;
+        const dy = ps[i].y - ps[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 60) {
+          this.ctx.globalAlpha = (1 - dist/60) * 0.3;
+          this.ctx.beginPath();
+          this.ctx.moveTo(ps[i].x, ps[i].y);
+          this.ctx.lineTo(ps[j].x, ps[j].y);
+          this.ctx.stroke();
+        }
+      }
+    }
+    this.ctx.globalAlpha = 1;
+    requestAnimationFrame(() => this._animate());
+  }
 }
 
 // ── Fullscreen Spectacle Animation ──────────────────────────────────────────
@@ -3984,6 +4067,14 @@ function initMatrix() {
     };
     const msgBg = msgBgMap[p] || 'transparent';
     return `<div class="matrix-col" id="mc-${p}" data-provider="${p}" style="color:${color}">
+      <div style="position:relative;height:120px;overflow:hidden;border-bottom:1px solid rgba(255,255,255,0.06)">
+        <canvas class="pane-particles" data-color="${color}" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
+        <div style="position:absolute;bottom:10px;left:12px;z-index:2">
+          <div style="font-size:1rem;font-weight:700;color:#fff;letter-spacing:0.03em">${M_LABELS[p].split(' · ').pop()}</div>
+          <div style="font-size:0.62rem;color:rgba(255,255,255,0.5);margin-top:2px">—</div>
+        </div>
+        ${hasKey ? `<span style="position:absolute;top:10px;right:10px;background:rgba(40,180,80,0.2);color:#50c870;font-size:0.58rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:100px;letter-spacing:0.06em;border:1px solid rgba(40,180,80,0.3)">READY</span>` : `<span style="position:absolute;top:10px;right:10px;background:rgba(200,60,60,0.15);color:#e06060;font-size:0.58rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:100px;letter-spacing:0.06em;border:1px solid rgba(200,60,60,0.25)">NO KEY</span>`}
+      </div>
       <div class="matrix-header" style="color:${color};flex-wrap:wrap;gap:0.25rem;padding:0.4rem 0.55rem">
         <span class="matrix-dot" style="background:${hasKey?color:'#444'};box-shadow:0 0 10px ${hasKey?color:'transparent'}" title="${hasKey?'Key OK':'Kein Key'}"></span>
         <span style="font-size:0.62rem;font-weight:700;letter-spacing:.08em">${M_LABELS[p]}</span>
@@ -4029,6 +4120,12 @@ function initMatrix() {
     const conv = mGetActive(p);
     if (conv) { for (const m of conv.msgs) mRenderMsg(p, m.role, m.content); mScroll(p); }
   }
+
+  // Initialize mini particle animations
+  document.querySelectorAll('.pane-particles').forEach(canvas => {
+    const colorStr = canvas.dataset.color;
+    new MiniParticles(canvas, colorStr);
+  });
 
   // Restore saved roles
   loadPaneRoles();
