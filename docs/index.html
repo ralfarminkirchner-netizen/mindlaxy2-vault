@@ -1489,7 +1489,7 @@ class WildTornado {
       r: a ? (4+Math.random()*50) : (3+Math.random()*12),
       spd: dir*(a ? (0.015+Math.random()*0.08) : (0.006+Math.random()*0.02)),
       wA: Math.random()*10, wF: 0.015+Math.random()*0.06, wT: Math.random()*Math.PI*2,
-      ch: T_CHARS[Math.random()*T_CHARS.length|0],
+      ch: this._nextChar ? this._nextChar() : T_CHARS[Math.random()*T_CHARS.length|0],
       life: (4+Math.random()*24)|0, age: 0,
       col: a ? this.cols[Math.random()*this.cols.length|0] : '#252525',
       sz: a ? (5+Math.random()*10) : (4+Math.random()*5),
@@ -1502,8 +1502,8 @@ class WildTornado {
 
   _step(p) {
     p.ang += p.spd; p.wT += p.wF; p.h += p.hs; p.age++;
-    if(p.age>p.life){p.ch=T_CHARS[Math.random()*T_CHARS.length|0];p.col=this.active?this.cols[Math.random()*this.cols.length|0]:'#252525';p.age=0;p.life=(4+Math.random()*24)|0;}
-    if(p.h<-70){p.h=70;p.ch=T_CHARS[Math.random()*T_CHARS.length|0];}
+    if(p.age>p.life){p.ch=this._nextChar();p.col=this.active?this.cols[Math.random()*this.cols.length|0]:'#252525';p.age=0;p.life=(4+Math.random()*24)|0;}
+    if(p.h<-70){p.h=70;p.ch=this._nextChar();}
     const norm=(p.h+70)/140;
     const funnel=Math.max(0.03,1-norm*0.97);
     const effR=(p.r+Math.sin(p.wT)*p.wA)*funnel;
@@ -1539,16 +1539,42 @@ class WildTornado {
     this.raf=requestAnimationFrame(()=>this._loop());
   }
 
+  // Feed real response text into the tornado characters
+  feedRealText(text) {
+    this._realChars = Array.from(text.replace(/\s+/g,' '));
+    this._charIdx = 0;
+    // Replace particle chars with real text chars, cycling through
+    for(const p of this.parts) {
+      if(this._realChars.length > 0) {
+        p.ch = this._realChars[this._charIdx % this._realChars.length];
+        this._charIdx++;
+      }
+    }
+  }
+
+  // Override char recycling to use real text
+  _nextChar() {
+    if(this._realChars && this._realChars.length > 0) {
+      const ch = this._realChars[this._charIdx % this._realChars.length];
+      this._charIdx++;
+      return ch;
+    }
+    return T_CHARS[Math.random()*T_CHARS.length|0];
+  }
+
   fade() { this.phase='fade'; }
   stop() { if(this.raf)cancelAnimationFrame(this.raf); }
 }
 
 // ── Fullscreen Spectacle Animation ──────────────────────────────────────────
 class SpectacleAnim {
-  constructor(activeCols, providerPositions) {
+  constructor(activeCols, providerPositions, realText) {
     this.activeCols = activeCols;
     this.providerPositions = providerPositions; // [{x,y,cols},...] center of each pane
     this.allCols = activeCols.flat().concat(['#ffd700','#fffaaa','#ff88ff','#ffffff']);
+    // Real text chars for mega tornado
+    this._realChars = realText ? Array.from(realText.replace(/\s+/g,' ')) : [];
+    this._charIdx = 0;
     this.phase = 'migrate'; // migrate|tornado|synth|absorb|blackhole|emerge|done
     this.T = 0;
     this.mega = [];
@@ -1600,7 +1626,7 @@ class SpectacleAnim {
           sx: pp.x+(Math.random()-0.5)*80, sy: pp.y+(Math.random()-0.5)*80,
           tx: this.cx+(Math.random()-0.5)*40, ty: this.tornado_cy+(Math.random()-0.5)*120,
           x: pp.x+(Math.random()-0.5)*80, y: pp.y+(Math.random()-0.5)*80,
-          col, ch: T_CHARS[Math.random()*T_CHARS.length|0],
+          col, ch: this._nextChar(),
           sz: 6+Math.random()*12, op: 0.3+Math.random()*0.7,
           trail: [], trailCol: col,
           speed: 0.008+Math.random()*0.012,
@@ -1613,6 +1639,8 @@ class SpectacleAnim {
   }
 
   _initMega() {
+    // Start small and grow — mega tornado begins at 30% scale and grows to 100%
+    this._megaGrowth = 0; // 0→1 over ~2 seconds
     this.mega = Array.from({length:450}, () => {
       const dir = Math.random()>0.15?1:-1;
       return {
@@ -1621,7 +1649,7 @@ class SpectacleAnim {
         r: 5+Math.random()*Math.min(this.W*0.35, 250),
         spd: dir*(0.008+Math.random()*0.1),
         wA: Math.random()*20, wF: 0.01+Math.random()*0.06, wT: Math.random()*Math.PI*2,
-        ch: T_CHARS[Math.random()*T_CHARS.length|0],
+        ch: this._nextChar(),
         life: (4+Math.random()*20)|0, age: 0,
         col: this.allCols[Math.random()*this.allCols.length|0],
         sz: 6+Math.random()*18,
@@ -1630,6 +1658,15 @@ class SpectacleAnim {
         stretchY: 1, // for spaghettification
       };
     });
+  }
+
+  _nextChar() {
+    if(this._realChars && this._realChars.length > 0) {
+      const ch = this._realChars[this._charIdx % this._realChars.length];
+      this._charIdx++;
+      return ch;
+    }
+    return T_CHARS[Math.random()*T_CHARS.length|0];
   }
 
   _ease3(t){return t<0.5?4*t*t*t:(t-1)*(2*t-2)*(2*t-2)+1;}
@@ -1701,9 +1738,9 @@ class SpectacleAnim {
     p.wT += p.wF;
     p.h += p.hs;
     p.age++;
-    if(p.age>p.life){p.ch=T_CHARS[Math.random()*T_CHARS.length|0];p.age=0;}
+    if(p.age>p.life){p.ch=this._nextChar();p.age=0;}
     const halfH = this.H*0.35;
-    if(p.h < -halfH) { p.h = halfH; p.ch=T_CHARS[Math.random()*T_CHARS.length|0]; }
+    if(p.h < -halfH) { p.h = halfH; p.ch=this._nextChar(); }
     const norm = (p.h+halfH)/(halfH*2);
     const funnel = Math.max(0.02, 1-norm*0.98);
     const effR = (p.r + Math.sin(p.wT)*p.wA) * funnel;
@@ -1714,39 +1751,52 @@ class SpectacleAnim {
   _drawMegaTornado(ctx) {
     const {cx, tornado_cy:cy, W, H, T} = this;
 
+    // Grow the mega tornado from small to full size over ~120 frames
+    if(this._megaGrowth !== undefined && this._megaGrowth < 1) {
+      this._megaGrowth = Math.min(1, this._megaGrowth + 0.008);
+    }
+    const growth = this._megaGrowth !== undefined ? this._ease3(this._megaGrowth) : 1;
+    const scale = 0.15 + growth * 0.85; // 15% → 100%
+
     // Background overlay
     ctx.fillStyle = `rgba(6,6,16,${this.overlayAlpha})`;
     ctx.fillRect(0,0,W,H);
 
-    // Multi-layer glow
+    // Multi-layer glow — scales with growth
     for(let i=0;i<this.activeCols.length;i++){
       const cols = this.activeCols[i];
       const a = (i/this.activeCols.length)*Math.PI*2 + T*0.008;
-      const gx = cx + Math.cos(a)*35;
-      const gy = cy + Math.sin(a)*25;
-      const g = ctx.createRadialGradient(gx,gy,0,cx,cy,H*0.4);
+      const gx = cx + Math.cos(a)*35*scale;
+      const gy = cy + Math.sin(a)*25*scale;
+      const g = ctx.createRadialGradient(gx,gy,0,cx,cy,H*0.4*scale);
       g.addColorStop(0, cols[0]+'18');
       g.addColorStop(0.5, cols[1]+'08');
       g.addColorStop(1, 'transparent');
       ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
     }
 
-    // Central intense glow
-    const cg = ctx.createRadialGradient(cx,cy,0,cx,cy,100);
-    cg.addColorStop(0, 'rgba(255,215,0,0.12)');
-    cg.addColorStop(0.4, 'rgba(200,100,255,0.05)');
+    // Central intense glow — grows with tornado
+    const glowSize = 40 + 120 * growth;
+    const cg = ctx.createRadialGradient(cx,cy,0,cx,cy,glowSize);
+    cg.addColorStop(0, `rgba(255,215,0,${0.05 + 0.1*growth})`);
+    cg.addColorStop(0.4, `rgba(200,100,255,${0.02 + 0.05*growth})`);
     cg.addColorStop(1, 'transparent');
     ctx.fillStyle = cg; ctx.fillRect(0,0,W,H);
 
-    // Particles
+    // Particles — scale their position around center
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(scale, scale);
+    ctx.translate(-cx, -cy);
     for(const p of this.mega) {
       this._stepMega(p, cx, cy, 1.2);
-      ctx.globalAlpha = p.op;
+      ctx.globalAlpha = p.op * Math.min(1, growth * 2); // fade in as tornado grows
       ctx.fillStyle = p.col;
       ctx.font = `${p.sz}px monospace`;
       ctx.textBaseline = 'middle';
       ctx.fillText(p.ch, p.sx, p.sy);
     }
+    ctx.restore();
 
     // Electric discharge (lightning between nearby particles)
     ctx.globalAlpha = 0.12;
@@ -2468,7 +2518,31 @@ class BainstormHub {
     }
   }
 
-  setResponse(p, text) { const el=document.getElementById(`bs-tx-${p}`); if(el) el.textContent=text||'–'; }
+  setResponse(p, text) {
+    const el=document.getElementById(`bs-tx-${p}`);
+    if(!el) return;
+    // Store the real text for tornado chars
+    this._responseTexts = this._responseTexts || {};
+    this._responseTexts[p] = text || '';
+    // Feed real chars into the tornado
+    if(this.tornados[p]) this.tornados[p].feedRealText(text || '');
+    // Typewriter effect in the small text box
+    el.textContent = '';
+    const chars = Array.from(text || '–');
+    let i = 0;
+    const typeIt = () => {
+      if(i >= chars.length) return;
+      el.textContent += chars[i]; i++;
+      if(i % 4 === 0) el.scrollTop = el.scrollHeight;
+      const ch = chars[i-1];
+      let d = 14;
+      if(ch === '.' || ch === '!' || ch === '?') d = 80;
+      else if(ch === ',' || ch === ';') d = 40;
+      else if(ch === '\n') d = 50;
+      setTimeout(typeIt, d);
+    };
+    typeIt();
+  }
   setError(p, msg) { const el=document.getElementById(`bs-tx-${p}`); if(el){el.textContent='✕ '+msg;el.style.color='#cc3333';} }
 
   merge() {
@@ -2489,10 +2563,15 @@ class BainstormHub {
       if(this.tornados[p]?.active) this.tornados[p].fade();
     }
 
-    // Launch fullscreen spectacle
+    // Collect all real response text for the mega tornado
+    const allRealText = BS_PROVIDERS
+      .filter(p => this.activeSet.has(p) && this._responseTexts?.[p])
+      .map(p => this._responseTexts[p]).join(' ');
+
+    // Launch fullscreen spectacle with real text
     setTimeout(() => {
       const activeCols = BS_PROVIDERS.filter(p=>this.activeSet.has(p)).map(p=>BS_META[p].cols);
-      this.anim = new SpectacleAnim(activeCols, positions);
+      this.anim = new SpectacleAnim(activeCols, positions, allRealText);
     }, 300);
   }
 
@@ -3360,6 +3439,36 @@ function mRenderMsg(p, role, content) {
   return div;
 }
 
+// Typewriter: renders character by character, returns a Promise that resolves when done
+function mTypewriterMsg(p, content, speed) {
+  return new Promise(resolve => {
+    const el = document.getElementById('mm-'+p);
+    if (!el) { resolve(); return; }
+    const div = document.createElement('div');
+    div.className = 'matrix-msg assistant';
+    div.textContent = '';
+    el.appendChild(div);
+    let i = 0;
+    const chars = Array.from(content);
+    const baseDelay = speed || 18;
+    function typeNext() {
+      if (i >= chars.length) { resolve(div); return; }
+      div.textContent += chars[i];
+      i++;
+      // Scroll during typing
+      if (i % 5 === 0) mScroll(p);
+      // Vary speed slightly for natural feel; pause at punctuation
+      const ch = chars[i-1];
+      let delay = baseDelay;
+      if (ch === '.' || ch === '!' || ch === '?') delay = baseDelay * 6;
+      else if (ch === ',' || ch === ';' || ch === ':') delay = baseDelay * 3;
+      else if (ch === '\n') delay = baseDelay * 4;
+      setTimeout(typeNext, delay);
+    }
+    typeNext();
+  });
+}
+
 function mAddMsg(p, role, text) { // temp DOM-only (loading indicators)
   const el = document.getElementById('mm-'+p);
   if (!el) return null;
@@ -3446,7 +3555,8 @@ async function sendMatrixOne(p) {
     const result = await callMatrixProvider(p, mGetActiveMsgs(p));
     if (loadEl) loadEl.remove();
     mAppendToStore(p, 'assistant', result);
-    mRenderMsg(p, 'assistant', result);
+    // Typewriter effect for single-pane responses too
+    await mTypewriterMsg(p, result, 14);
     mScroll(p);
     mAutoVaultSync(p);
   } catch(e) {
@@ -3482,7 +3592,9 @@ async function sendMatrixAll() {
     try {
       const result = await callMatrixProvider(p, mGetActiveMsgs(p));
       if (loadEls[p]) loadEls[p].remove();
-      mAppendToStore(p,'assistant',result); mRenderMsg(p,'assistant',result);
+      mAppendToStore(p,'assistant',result);
+      // Typewriter effect: type each character one by one
+      await mTypewriterMsg(p, result, 16);
       mScroll(p); mAutoVaultSync(p);
     } catch(e) {
       if (loadEls[p]) { loadEls[p].textContent='✕ '+e.message; loadEls[p].className='matrix-msg error'; }
