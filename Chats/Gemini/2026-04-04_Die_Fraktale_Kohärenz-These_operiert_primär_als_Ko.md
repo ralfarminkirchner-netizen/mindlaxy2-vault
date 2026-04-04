@@ -18,4 +18,10 @@ datum: 2026-04-04
 
 ---
 
+**Du:** wirklich?
+
+**GOOGLE · GEMINI:** Ja, die Zusammenfassung spiegelt den Inhalt deines Textes präzise wider. Dein ursprünglicher Text endete mit dem Satzfragment "Offen und unauflösbar bleibt, ob die These". Daher schließt auch die Zusammenfassung an dieser Stelle ab.
+
+---
+
 *GOOGLE · GEMINI · 2026-04-04*
