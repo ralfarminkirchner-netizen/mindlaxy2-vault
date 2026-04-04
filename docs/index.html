@@ -3504,34 +3504,31 @@ async function sendTIterative() {
     return;
   }
 
-  // Build prompt with existing kiNTEGRiTY content for iterative refinement
+  // Build KIntegrityInput for Shared Core iterative synthesis
   const notizen = getNotizen();
-  let synthPrompt = `Thema: "${text}"\n\n`;
-  if (notizen) {
-    synthPrompt += `═══ MANUELLE NOTiZEN DES NUTZERS (HÖCHSTE PRIORITÄT) ═══\nDiese Notizen MÜSSEN wortgetreu oder nur leicht geglättet in die Synthese einfließen. Nicht umformulieren, nicht weglassen, nicht stark verändern. Nur sanft einpassen.\n${notizen}\n\n`;
-  }
-  if (existingKI) {
-    synthPrompt += `═══ BISHERIGE kiNTEGRiTY-SYNTHESE ═══\n${existingKI}\n\n═══ NEUE PERSPEKTIVEN ZUR INTEGRATION ═══\n\n`;
-  }
-  synthPrompt += responses.map(r => `=== ${r.provider} ===\n${r.content}`).join('\n\n');
-
-  let iterativeSystem = existingKI
-    ? KINTEGRITY_SYSTEM + '\n\nWICHTIG: Es gibt bereits eine vorherige kiNTEGRiTY-Synthese. Integriere die neuen Perspektiven in eine ERWEITERTE, tiefere Synthese. Wiederhole nicht einfach die bisherige Synthese, sondern baue darauf auf, vertiefe und erweitere sie mit den neuen Einsichten.'
-    : KINTEGRITY_SYSTEM;
-  if (notizen) {
-    iterativeSystem += '\n\nKRITISCH: Der Nutzer hat manuelle NOTiZEN hinterlegt. Diese enthalten Kernaussagen, Zitate und Formulierungen die UNBEDINGT in die Synthese einfließen müssen — möglichst wortgetreu, nur leicht geglättet und eingepasst. Diese Notizen haben HÖCHSTE PRIORITÄT.';
-  }
+  const kiInput = {
+    topic: text,
+    texts: responses.map(r => ({ source: r.provider, content: r.content })),
+    notizen: notizen || undefined,
+    existingSynthesis: existingKI || undefined,
+    mustKeep: [],
+  };
 
   try {
-    const synthRaw = await Promise.race([
-      callProvider(synthProvider, iterativeSystem, synthPrompt),
-      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 60000))
-    ]);
-    if (synthRaw) {
-      const parsed = parseSpiralOutput(synthRaw, text);
+    // Dynamic import: Shared Core kiNTEGRiTY Engine
+    const { processKIntegrity } = await import('./core/kintegrity/engine.js');
+
+    const callLLM = async (sysPrompt, userPrompt) => {
+      return await Promise.race([
+        callProvider(synthProvider, sysPrompt, userPrompt),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 60000))
+      ]);
+    };
+
+    const kiResult = await processKIntegrity(kiInput, 'brainstorm', callLLM);
+    if (kiResult && kiResult.synthesis.synthesisText) {
       const plist = responses.map(r => r.provider).join(', ');
-      // Append to persistent kiNTEGRiTY editor
-      const fullText = [parsed.kintegrity, parsed.condensation].filter(Boolean).join('\n\n');
+      const fullText = [kiResult.synthesis.synthesisText, kiResult.fraglichFehlerhaft.map(f => '❓ ' + (f.claim || f.issue)).join('\n')].filter(Boolean).join('\n\n');
       appendToKintegrity(fullText, plist);
       showToast('✓ Synthese zum kiNTEGRiTY-Editor hinzugefügt');
     }
@@ -3624,28 +3621,40 @@ async function sendT(pushToVaultFlag = true) {
 
   // Start merge → big colorful tornado
   hub.merge();
-  // Fire synthesis in parallel (BainstormAnim now shows merge phase)
+  // Fire synthesis via Shared Core kiNTEGRiTY Engine
   const synthProvider = resolveSynthProvider();
+  let kiResult = null;
   let synthRaw = null;
   if (responses.length >= 2 && synthProvider) {
     const notizen = getNotizen();
-    let synthPrompt = `Thema: "${text}"\n\n`;
-    if (notizen) {
-      synthPrompt += `═══ MANUELLE NOTiZEN DES NUTZERS (HÖCHSTE PRIORITÄT) ═══\nDiese Notizen MÜSSEN wortgetreu oder nur leicht geglättet in die Synthese einfließen. Nicht umformulieren, nicht weglassen, nicht stark verändern. Nur sanft einpassen.\n${notizen}\n\n`;
-    }
-    synthPrompt += responses.map(r=>`=== ${r.provider} ===\n${r.content}`).join('\n\n');
-    let synthSys = KINTEGRITY_SYSTEM;
-    if (notizen) {
-      synthSys += '\n\nKRITISCH: Der Nutzer hat manuelle NOTiZEN hinterlegt. Diese enthalten Kernaussagen, Zitate und Formulierungen die UNBEDINGT in die Synthese einfließen müssen — möglichst wortgetreu, nur leicht geglättet und eingepasst. Diese Notizen haben HÖCHSTE PRIORITÄT.';
-    }
+    const existingKI = document.getElementById('kintegrity-editor')?.textContent?.trim() || '';
+
+    // Build KIntegrityInput for Shared Core engine
+    const kiInput = {
+      topic: text,
+      texts: responses.map(r => ({ source: r.provider, content: r.content })),
+      notizen: notizen || undefined,
+      existingSynthesis: existingKI || undefined,
+      mustKeep: [],
+    };
+
+    // Dynamic import: Shared Core kiNTEGRiTY Engine
+    const { processKIntegrity } = await import('./core/kintegrity/engine.js');
+
+    // Wrap inline callProvider for the engine's callLLM interface
+    const callLLM = async (sysPrompt, userPrompt) => {
+      return await Promise.race([
+        callProvider(synthProvider, sysPrompt, userPrompt),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 60000))
+      ]);
+    };
+
     // Switch anim to 'synth' label after a short delay
     setTimeout(() => hub.startSynth(), 1200);
     try {
-      synthRaw = await Promise.race([
-        callProvider(synthProvider, synthSys, synthPrompt),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),60000))
-      ]);
-    } catch(e) { synthRaw = null; }
+      kiResult = await processKIntegrity(kiInput, 'brainstorm', callLLM);
+      synthRaw = kiResult.synthesis.synthesisText || null;
+    } catch(e) { kiResult = null; synthRaw = null; }
   }
 
   // Ensure minimum merge/synth animation time (3 seconds visible)
@@ -3659,8 +3668,22 @@ async function sendT(pushToVaultFlag = true) {
     // Results appear full-width below the grid
     const outputTarget = out;
 
-    if (synthRaw) {
-      const parsed = parseSpiralOutput(synthRaw, text);
+    if (synthRaw && kiResult) {
+      // Map Shared Core KIntegrityResult → legacy display format
+      const parsed = {
+        title: text.substring(0, 60),
+        kintegrity: kiResult.synthesis.synthesisText,
+        condensation: '', // now merged into kiNTEGRiTY synthesis
+        incommensurables: kiResult.dasGrosseAber.map(a => a.description).join('\n\n'),
+        aberItems: kiResult.dasGrosseAber.length > 0
+          ? kiResult.dasGrosseAber.map(a => ({
+              id: a.id, label: a.label, severity: a.severity || 'medium',
+              type: a.type || 'tension', description: a.description,
+              source_section: 'das_grosse_aber'
+            }))
+          : [{ id:'aber_none', label:'keine', severity:'low', type:'tension', description:'Keine substanziellen Aber-Items erkannt.', source_section:'das_grosse_aber' }],
+        fraglich: kiResult.fraglichFehlerhaft.map(f => f.claim || f.issue).join('\n\n'),
+      };
       const today  = new Date().toISOString().split('T')[0];
       const icons  = {stern:'⭐',planet:'🪐',mond:'🌙',asteroid:'🪨'};
       const bIcon  = icons[bodyType]||'🪨';
@@ -3672,7 +3695,7 @@ async function sendT(pushToVaultFlag = true) {
       renderRunHistory();
 
       // Append to persistent kiNTEGRiTY editor
-      const fullSynthText = [parsed.kintegrity, parsed.condensation].filter(Boolean).join('\n\n');
+      const fullSynthText = [parsed.kintegrity, parsed.condensation, parsed.fraglich ? '❓ ' + parsed.fraglich : ''].filter(Boolean).join('\n\n');
       appendToKintegrity(fullSynthText, plist);
 
       // ── kiNTEGRiTY Panel ──
@@ -3710,23 +3733,24 @@ async function sendT(pushToVaultFlag = true) {
           <p style="line-height:1.8;white-space:pre-wrap;font-size:0.95rem;color:var(--text)">${escHtml(parsed.kintegrity)}</p>
         </div>
 
-        <!-- ② Fazit-Verdichtung -->
+        ${parsed.condensation ? `<!-- ② Fazit-Verdichtung -->
         <div class="bhb-section" style="padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.05);">
           <div class="bhb-label" style="font-size:0.75rem;font-weight:700;color:#10a37f;letter-spacing:.1em;margin-bottom:0.5rem">📦 FAZIT-VERDICHTUNG</div>
           <p style="line-height:1.8;white-space:pre-wrap;font-size:0.95rem;color:var(--text)">${escHtml(parsed.condensation)}</p>
-        </div>
+        </div>` : ''}
 
-        <!-- ③ Inkommensurabilitäten -->
+        <!-- ③ DAS GROßE ABER (Spannungen, Inkommensurabilitäten) -->
         <div class="bhb-section" style="padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.05);">
-          <div class="bhb-label" style="font-size:0.75rem;font-weight:700;color:#c060ff;letter-spacing:.1em;margin-bottom:0.5rem">⚡ INKOMMENSURABILITÄTEN</div>
-          <p style="line-height:1.8;white-space:pre-wrap;font-size:0.95rem;color:var(--muted)">${escHtml(parsed.incommensurables)}</p>
-        </div>
-
-        <!-- ④ DAS GROßE ABER -->
-        <div class="bhb-section" style="padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.05);">
-          <div class="bhb-label" style="font-size:0.75rem;font-weight:700;color:#e53935;letter-spacing:.1em;margin-bottom:0.5rem">🔴 DAS GROßE ABER</div>
+          <div class="bhb-label" style="font-size:0.75rem;font-weight:700;color:#e53935;letter-spacing:.1em;margin-bottom:0.5rem">⚡ DAS GROßE ABER</div>
           <div id="aber-items">${renderAberItems(parsed.aberItems)}</div>
+          ${parsed.incommensurables ? `<p style="line-height:1.8;white-space:pre-wrap;font-size:0.9rem;color:var(--muted);margin-top:0.8rem;border-top:1px solid rgba(255,255,255,0.04);padding-top:0.6rem">${escHtml(parsed.incommensurables)}</p>` : ''}
         </div>
+
+        ${parsed.fraglich ? `<!-- ④ FRAGLICH / FEHLERHAFT -->
+        <div class="bhb-section" style="padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <div class="bhb-label" style="font-size:0.75rem;font-weight:700;color:#ff9800;letter-spacing:.1em;margin-bottom:0.5rem">❓ FRAGLICH / FEHLERHAFT</div>
+          <p style="line-height:1.8;white-space:pre-wrap;font-size:0.9rem;color:var(--muted)">${escHtml(parsed.fraglich)}</p>
+        </div>` : ''}
 
         <!-- ⑤ Objektklassifikation -->
         <div class="bhb-section" style="padding:0.5rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:0.6rem;">
@@ -3751,12 +3775,12 @@ async function sendT(pushToVaultFlag = true) {
         // Vault push (SPiRALiSiNG & Black-Hole-Box mode)
         const slug = (parsed.title||text.substring(0,50)).replace(/[^a-zA-ZäöüÄÖÜß0-9\s\-]/g,'').trim().replace(/\s+/g,'_').substring(0,60)||'Synthese';
         const path = `Sterne/kiNTEGRiTY_${slug}_${today}.md`;
-        let md = `---\ntyp: BRaiNSTORM-SPiRAL\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\nkoerper: ${bodyType}\n---\n\n# ${parsed.title||text.substring(0,60)}\n\n`;
+        let md = `---\ntyp: BRaiNSTORM-SPiRAL\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\nkoerper: ${bodyType}\nengine: shared-core-kintegrity\nprofil: brainstorm\n---\n\n# ${parsed.title||text.substring(0,60)}\n\n`;
         md += `## 🔗 kiNTEGRiTY-Synthese\n\n${parsed.kintegrity}\n\n`;
-        md += `## 📦 Fazit-Verdichtung\n\n${parsed.condensation}\n\n`;
-        md += `## ⚡ Inkommensurabilitäten\n\n${parsed.incommensurables}\n\n`;
-        md += `## 🔴 DAS GROßE ABER\n\n${parsed.aberItems.map(a=>`- **${a.label}** [${a.severity}/${a.type}]: ${a.description}`).join('\n')}\n`;
-        md += `\n---\n*BRaiNSTORM SPiRAL · kiNTEGRiTY · ${today} · ${plist}*\n`;
+        if (parsed.condensation) md += `## 📦 Fazit-Verdichtung\n\n${parsed.condensation}\n\n`;
+        md += `## ⚡ DAS GROßE ABER\n\n${parsed.aberItems.map(a=>`- **${a.label}** [${a.severity}/${a.type}]: ${a.description}`).join('\n')}\n\n`;
+        if (parsed.fraglich) md += `## ❓ Fraglich / Fehlerhaft\n\n${parsed.fraglich}\n\n`;
+        md += `---\n*BRaiNSTORM SPiRAL · Shared Core kiNTEGRiTY · ${today} · ${plist}*\n`;
         pushToVault(path, md, `SPiRAL: ${text.substring(0,60)}`)
           .then(()=>{const el=document.getElementById('ki-prov-label');if(el)el.textContent=`${bIcon} ${bodyType.toUpperCase()} · ✓ Vault`;})
           .catch(ve=>{const el=document.getElementById('ki-prov-label');if(el)el.textContent=`${bIcon} ✕ `+ve.message.substring(0,30);});
@@ -3774,12 +3798,12 @@ async function sendT(pushToVaultFlag = true) {
           laterBtn.disabled = true; laterBtn.textContent = 'Speichere…';
           const slug = (parsed.title||text.substring(0,50)).replace(/[^a-zA-ZäöüÄÖÜß0-9\s\-]/g,'').trim().replace(/\s+/g,'_').substring(0,60)||'Synthese';
           const path = `Sterne/kiNTEGRiTY_${slug}_${today}.md`;
-          let md = `---\ntyp: BRaiNSTORM-SPiRAL\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\nkoerper: ${bodyType}\n---\n\n# ${parsed.title||text.substring(0,60)}\n\n`;
+          let md = `---\ntyp: BRaiNSTORM-SPiRAL\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\nkoerper: ${bodyType}\nengine: shared-core-kintegrity\nprofil: brainstorm\n---\n\n# ${parsed.title||text.substring(0,60)}\n\n`;
           md += `## 🔗 kiNTEGRiTY-Synthese\n\n${parsed.kintegrity}\n\n`;
-          md += `## 📦 Fazit-Verdichtung\n\n${parsed.condensation}\n\n`;
-          md += `## ⚡ Inkommensurabilitäten\n\n${parsed.incommensurables}\n\n`;
-          md += `## 🔴 DAS GROßE ABER\n\n${parsed.aberItems.map(a=>`- **${a.label}** [${a.severity}/${a.type}]: ${a.description}`).join('\n')}\n`;
-          md += `\n---\n*BRaiNSTORM SPiRAL · kiNTEGRiTY · ${today} · ${plist}*\n`;
+          if (parsed.condensation) md += `## 📦 Fazit-Verdichtung\n\n${parsed.condensation}\n\n`;
+          md += `## ⚡ DAS GROßE ABER\n\n${parsed.aberItems.map(a=>`- **${a.label}** [${a.severity}/${a.type}]: ${a.description}`).join('\n')}\n\n`;
+          if (parsed.fraglich) md += `## ❓ Fraglich / Fehlerhaft\n\n${parsed.fraglich}\n\n`;
+          md += `---\n*BRaiNSTORM SPiRAL · Shared Core kiNTEGRiTY · ${today} · ${plist}*\n`;
           pushToVault(path, md, `SPiRAL: ${text.substring(0,60)}`)
             .then(()=>{ laterBtn.textContent = '✓ In Vault gespeichert'; laterBtn.style.color='#50c870'; const el2=document.getElementById('ki-prov-label');if(el2)el2.textContent=`${bIcon} ${bodyType.toUpperCase()} · ✓ Vault`; })
             .catch(ve=>{ laterBtn.textContent = '✕ '+ve.message.substring(0,40); laterBtn.disabled=false; });
@@ -5469,5 +5493,12 @@ document.addEventListener('keydown', (e) => {
 });
 
 </script>
+
+<!-- NOTiZBUCH Shared Core Component -->
+<script type="module">
+import { initNotizbuch } from './core/ui/notizbuch.js';
+initNotizbuch();
+</script>
+
 </body>
 </html>
