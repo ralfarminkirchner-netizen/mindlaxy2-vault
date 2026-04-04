@@ -1048,13 +1048,27 @@
     <div style="font-size:0.85rem;font-weight:700;color:var(--text);margin-bottom:0.6rem;display:flex;align-items:center;gap:0.5rem;letter-spacing:0.03em">⊞ 4 LLMs</div>
     <div class="matrix-grid" id="mGrid"></div>
 
-    <!-- SPiRALiNG button — appears below panes after all LLMs respond -->
-    <div id="spiralBtnContainer" style="display:none;text-align:center;margin:1.2rem 0 0.8rem;padding:0.5rem">
-      <button id="tBtn" onclick="sendT()" title="SPiRALiNG — Synthese starten"
-        style="font-size:1rem;padding:0.7rem 2.5rem;white-space:nowrap;background:linear-gradient(135deg,rgba(192,64,160,0.85),rgba(240,192,64,0.85));border:1px solid rgba(240,180,100,0.35);border-radius:14px;color:#fff;font-weight:700;letter-spacing:0.08em;box-shadow:0 6px 28px rgba(192,64,160,0.3),0 0 40px rgba(240,192,64,0.15),inset 0 1px 0 rgba(255,255,255,0.2);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);cursor:pointer;transition:all 0.35s cubic-bezier(0.25,0.46,0.45,0.94);"
-        onmouseover="this.style.transform='translateY(-3px) scale(1.03)';this.style.boxShadow='0 10px 40px rgba(192,64,160,0.45),0 0 60px rgba(240,192,64,0.2),inset 0 1px 0 rgba(255,255,255,0.25)'"
-        onmouseout="this.style.transform='none';this.style.boxShadow='0 6px 28px rgba(192,64,160,0.3),0 0 40px rgba(240,192,64,0.15),inset 0 1px 0 rgba(255,255,255,0.2)'"
-      >SPiRALiNG</button>
+    <!-- SPiRALiSiNG buttons — appear below panes after all LLMs respond -->
+    <div id="spiralBtnContainer" style="display:none;margin:1.2rem 0 0.8rem;padding:0.5rem">
+      <div style="display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap">
+        <button id="tBtnFull" onclick="sendTFull()" title="SPiRALiSiNG + direkt in die Vault speichern"
+          style="font-size:0.88rem;padding:0.6rem 1.6rem;white-space:nowrap;background:linear-gradient(135deg,rgba(192,64,160,0.85),rgba(240,192,64,0.85));border:1px solid rgba(240,180,100,0.35);border-radius:12px;color:#fff;font-weight:700;letter-spacing:0.06em;box-shadow:0 6px 28px rgba(192,64,160,0.3),0 0 40px rgba(240,192,64,0.15),inset 0 1px 0 rgba(255,255,255,0.2);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);cursor:pointer;transition:all 0.35s cubic-bezier(0.25,0.46,0.45,0.94);"
+          onmouseover="this.style.transform='translateY(-2px) scale(1.02)';this.style.boxShadow='0 10px 40px rgba(192,64,160,0.45),0 0 60px rgba(240,192,64,0.2),inset 0 1px 0 rgba(255,255,255,0.25)'"
+          onmouseout="this.style.transform='none';this.style.boxShadow='0 6px 28px rgba(192,64,160,0.3),0 0 40px rgba(240,192,64,0.15),inset 0 1px 0 rgba(255,255,255,0.2)'"
+        >SPiRALiSiNG & Black-Hole-Box</button>
+
+        <button id="tBtn" onclick="sendTOnly()" title="SPiRALiSiNG — nur verdichten, ohne Vault-Push"
+          style="font-size:0.88rem;padding:0.6rem 1.6rem;white-space:nowrap;background:rgba(120,80,200,0.7);border:1px solid rgba(160,120,240,0.3);border-radius:12px;color:#fff;font-weight:700;letter-spacing:0.06em;box-shadow:0 4px 20px rgba(120,80,200,0.25),inset 0 1px 0 rgba(255,255,255,0.15);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);cursor:pointer;transition:all 0.35s cubic-bezier(0.25,0.46,0.45,0.94);"
+          onmouseover="this.style.transform='translateY(-2px) scale(1.02)';this.style.boxShadow='0 8px 30px rgba(120,80,200,0.4),inset 0 1px 0 rgba(255,255,255,0.2)'"
+          onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 20px rgba(120,80,200,0.25),inset 0 1px 0 rgba(255,255,255,0.15)'"
+        >SPiRALiSiNG</button>
+
+        <button id="tBtnBHB" onclick="openBlackHoleBox()" title="Black-Hole-Box öffnen"
+          style="font-size:0.88rem;padding:0.6rem 1.6rem;white-space:nowrap;background:rgba(20,20,50,0.8);border:1px solid rgba(80,80,160,0.3);border-radius:12px;color:var(--gold);font-weight:700;letter-spacing:0.06em;box-shadow:0 4px 20px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);cursor:pointer;transition:all 0.35s cubic-bezier(0.25,0.46,0.45,0.94);"
+          onmouseover="this.style.transform='translateY(-2px) scale(1.02)';this.style.boxShadow='0 8px 30px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.12)'"
+          onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 20px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.08)'"
+        >open Black-Hole-Box</button>
+      </div>
     </div>
 
     <!-- ③④⑤⑥ kiNTEGRiTY + BLACK-HOLE-BOX + Objektbildung + Export -->
@@ -3007,12 +3021,49 @@ function classifyBody(text) {
   return 'asteroid';
 }
 
-async function sendT() {
+// Wrapper: SPiRALiSiNG & Black-Hole-Box (full flow with vault push)
+async function sendTFull() { return sendT(true); }
+// Wrapper: SPiRALiSiNG only (verdichten, no vault push — kiNTEGRiTY bleibt editierbar)
+async function sendTOnly() { return sendT(false); }
+
+// open Black-Hole-Box: scrolle zur bestehenden BHB oder zeige die letzte gespeicherte
+function openBlackHoleBox() {
+  const existing = document.getElementById('black-hole-box');
+  if (existing) {
+    existing.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    existing.style.transition = 'box-shadow 0.4s ease';
+    existing.style.boxShadow = '0 0 40px rgba(240,192,64,0.4), 0 12px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)';
+    setTimeout(() => { existing.style.boxShadow = '0 12px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)'; }, 1500);
+    return;
+  }
+  // Kein BHB vorhanden — lade letzten Run aus History falls vorhanden
+  if (window._lastSpiral) {
+    const s = window._lastSpiral;
+    const out = document.getElementById('tOut');
+    if (out && !document.getElementById('black-hole-box')) {
+      // Re-render BHB from stored data
+      sendTFull(); // Trigger full flow
+    }
+    return;
+  }
+  // Nichts vorhanden
+  const out = document.getElementById('tOut');
+  if (out) {
+    out.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.85rem">⚫ Noch keine Black-Hole-Box vorhanden.<br>Starte zuerst ein BRaiNSTORMiNG, dann SPiRALiSiNG.</div>';
+    out.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+async function sendT(pushToVaultFlag = true) {
   const cfg  = getCfg();
   const text = document.getElementById('mAllText').value.trim() || _lastBrainstormText;
   if (!text) return;
   const btn = document.getElementById('tBtn');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>SPiRALiNG…'; btn.style.animation = 'none';
+  const btnFull = document.getElementById('tBtnFull');
+  const btnBHB = document.getElementById('tBtnBHB');
+  if(btn){ btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>SPiRALiSiNG…'; btn.style.animation = 'none'; }
+  if(btnFull){ btnFull.disabled = true; btnFull.innerHTML = '<span class="spinner"></span>SPiRALiSiNG…'; }
+  if(btnBHB) btnBHB.disabled = true;
   const out = document.getElementById('tOut');
   out.innerHTML = '';
 
@@ -3023,7 +3074,7 @@ async function sendT() {
   const providers = availableProviders().filter(p => p !== 'anthropic');
   if (providers.length === 0) {
     out.innerHTML = '<div style="color:var(--asteroid)">⚠ Kein AI-Key konfiguriert (Gemini, DeepSeek, Grok oder OpenAI) → ⚙ Settings</div>';
-    btn.disabled = false; btn.textContent = 'SPiRALiNG'; const _sc=document.getElementById('spiralBtnContainer'); if(_sc)_sc.style.display='none';
+    if(btn){btn.disabled=false;btn.textContent='SPiRALiSiNG';}if(btnFull){btnFull.disabled=false;btnFull.textContent='SPiRALiSiNG & Black-Hole-Box';}if(btnBHB)btnBHB.disabled=false;const _sc=document.getElementById('spiralBtnContainer');if(_sc)_sc.style.display='none';
     main.classList.remove('spiral-mode');
     return;
   }
@@ -3181,25 +3232,52 @@ async function sendT() {
 
       outputTarget.appendChild(bhb);
 
-      // Vault push
-      const slug = (parsed.title||text.substring(0,50)).replace(/[^a-zA-ZäöüÄÖÜß0-9\s\-]/g,'').trim().replace(/\s+/g,'_').substring(0,60)||'Synthese';
-      const path = `Sterne/kiNTEGRiTY_${slug}_${today}.md`;
-      let md = `---\ntyp: BRaiNSTORM-SPiRAL\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\nkoerper: ${bodyType}\n---\n\n# ${parsed.title||text.substring(0,60)}\n\n`;
-      md += `## 🔗 kiNTEGRiTY-Synthese\n\n${parsed.kintegrity}\n\n`;
-      md += `## 📦 Fazit-Verdichtung\n\n${parsed.condensation}\n\n`;
-      md += `## ⚡ Inkommensurabilitäten\n\n${parsed.incommensurables}\n\n`;
-      md += `## 🔴 DAS GROßE ABER\n\n${parsed.aberItems.map(a=>`- **${a.label}** [${a.severity}/${a.type}]: ${a.description}`).join('\n')}\n`;
-      md += `\n---\n*BRaiNSTORM SPiRAL · kiNTEGRiTY · ${today} · ${plist}*\n`;
-      pushToVault(path, md, `SPiRAL: ${text.substring(0,60)}`)
-        .then(()=>{const el=document.getElementById('ki-prov-label');if(el)el.textContent=`${bIcon} ${bodyType.toUpperCase()} · ✓ Vault`;})
-        .catch(ve=>{const el=document.getElementById('ki-prov-label');if(el)el.textContent=`${bIcon} ✕ `+ve.message.substring(0,30);});
+      if (pushToVaultFlag) {
+        // Vault push (SPiRALiSiNG & Black-Hole-Box mode)
+        const slug = (parsed.title||text.substring(0,50)).replace(/[^a-zA-ZäöüÄÖÜß0-9\s\-]/g,'').trim().replace(/\s+/g,'_').substring(0,60)||'Synthese';
+        const path = `Sterne/kiNTEGRiTY_${slug}_${today}.md`;
+        let md = `---\ntyp: BRaiNSTORM-SPiRAL\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\nkoerper: ${bodyType}\n---\n\n# ${parsed.title||text.substring(0,60)}\n\n`;
+        md += `## 🔗 kiNTEGRiTY-Synthese\n\n${parsed.kintegrity}\n\n`;
+        md += `## 📦 Fazit-Verdichtung\n\n${parsed.condensation}\n\n`;
+        md += `## ⚡ Inkommensurabilitäten\n\n${parsed.incommensurables}\n\n`;
+        md += `## 🔴 DAS GROßE ABER\n\n${parsed.aberItems.map(a=>`- **${a.label}** [${a.severity}/${a.type}]: ${a.description}`).join('\n')}\n`;
+        md += `\n---\n*BRaiNSTORM SPiRAL · kiNTEGRiTY · ${today} · ${plist}*\n`;
+        pushToVault(path, md, `SPiRAL: ${text.substring(0,60)}`)
+          .then(()=>{const el=document.getElementById('ki-prov-label');if(el)el.textContent=`${bIcon} ${bodyType.toUpperCase()} · ✓ Vault`;})
+          .catch(ve=>{const el=document.getElementById('ki-prov-label');if(el)el.textContent=`${bIcon} ✕ `+ve.message.substring(0,30);});
+      } else {
+        // SPiRALiSiNG-only mode: kein Vault-Push, kiNTEGRiTY bleibt für weitere Arbeit
+        const el=document.getElementById('ki-prov-label');
+        if(el) el.textContent=`${bIcon} ${bodyType.toUpperCase()} · verdichtet (nicht in Vault)`;
+        // Add a "Jetzt in die Vault" button so user can push later
+        const laterBtn = document.createElement('button');
+        laterBtn.textContent = '⚫ Jetzt in die Black-Hole-Box → Vault';
+        laterBtn.style.cssText = 'display:block;margin:0.8rem auto;font-size:0.78rem;padding:0.5rem 1.2rem;background:rgba(20,20,50,0.8);border:1px solid rgba(80,80,160,0.3);border-radius:10px;color:var(--gold);font-weight:600;cursor:pointer;transition:all 0.3s ease;';
+        laterBtn.onmouseover = () => { laterBtn.style.background='rgba(40,40,80,0.9)'; };
+        laterBtn.onmouseout = () => { laterBtn.style.background='rgba(20,20,50,0.8)'; };
+        laterBtn.onclick = () => {
+          laterBtn.disabled = true; laterBtn.textContent = 'Speichere…';
+          const slug = (parsed.title||text.substring(0,50)).replace(/[^a-zA-ZäöüÄÖÜß0-9\s\-]/g,'').trim().replace(/\s+/g,'_').substring(0,60)||'Synthese';
+          const path = `Sterne/kiNTEGRiTY_${slug}_${today}.md`;
+          let md = `---\ntyp: BRaiNSTORM-SPiRAL\ndatum: ${today}\nquellen: ${plist}\nthema: "${text.substring(0,100)}"\nkoerper: ${bodyType}\n---\n\n# ${parsed.title||text.substring(0,60)}\n\n`;
+          md += `## 🔗 kiNTEGRiTY-Synthese\n\n${parsed.kintegrity}\n\n`;
+          md += `## 📦 Fazit-Verdichtung\n\n${parsed.condensation}\n\n`;
+          md += `## ⚡ Inkommensurabilitäten\n\n${parsed.incommensurables}\n\n`;
+          md += `## 🔴 DAS GROßE ABER\n\n${parsed.aberItems.map(a=>`- **${a.label}** [${a.severity}/${a.type}]: ${a.description}`).join('\n')}\n`;
+          md += `\n---\n*BRaiNSTORM SPiRAL · kiNTEGRiTY · ${today} · ${plist}*\n`;
+          pushToVault(path, md, `SPiRAL: ${text.substring(0,60)}`)
+            .then(()=>{ laterBtn.textContent = '✓ In Vault gespeichert'; laterBtn.style.color='#50c870'; const el2=document.getElementById('ki-prov-label');if(el2)el2.textContent=`${bIcon} ${bodyType.toUpperCase()} · ✓ Vault`; })
+            .catch(ve=>{ laterBtn.textContent = '✕ '+ve.message.substring(0,40); laterBtn.disabled=false; });
+        };
+        outputTarget.appendChild(laterBtn);
+      }
     } else if(responses.length >= 2) {
       const d = document.createElement('div');
       d.className='tornado-card kreuzung reveal-card';d.style.cssText='opacity:0.55;margin-top:0.5rem;';
       d.innerHTML=`<div class="tornado-provider" style="color:var(--gold)">BRaiNSTORM SPiRAL</div><div style="color:var(--muted);font-size:.85rem">⚠ Kein Synthese-Provider konfiguriert → ⚙ Settings</div>`;
       outputTarget.appendChild(d);
     }
-    btn.disabled = false; btn.textContent = 'SPiRALiNG'; const _sc=document.getElementById('spiralBtnContainer'); if(_sc)_sc.style.display='none';
+    if(btn){btn.disabled=false;btn.textContent='SPiRALiSiNG';}if(btnFull){btnFull.disabled=false;btnFull.textContent='SPiRALiSiNG & Black-Hole-Box';}if(btnBHB)btnBHB.disabled=false;const _sc=document.getElementById('spiralBtnContainer');if(_sc)_sc.style.display='none';
     document.getElementById('mAllText').value = '';
     // Remove spiral mode when done
     const main = document.querySelector('main');
@@ -3815,7 +3893,9 @@ async function sendMatrixAll() {
   if (spiralContainer) {
     spiralContainer.style.display = 'block';
     const spiralBtn = document.getElementById('tBtn');
+    const spiralBtnFull = document.getElementById('tBtnFull');
     if (spiralBtn) spiralBtn.style.animation = 'spiralBtnPulse 1.5s ease-in-out infinite';
+    if (spiralBtnFull) spiralBtnFull.style.animation = 'spiralBtnPulse 1.5s ease-in-out infinite';
     // Scroll to make the button visible
     spiralContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
