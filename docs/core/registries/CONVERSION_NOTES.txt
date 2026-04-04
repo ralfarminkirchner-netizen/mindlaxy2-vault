@@ -1,0 +1,64 @@
+CONVERSION SUMMARY: ibv-practices.ts -> practices.js
+======================================================
+
+File: /tmp/mindlaxy2-vault/docs/core/registries/practices.js
+Original: /sessions/pensive-sharp-mendel/mnt/uploads/ibv-practices.ts
+
+CHANGES MADE:
+1. Removed all TypeScript type annotations (Omit<>, Record<string, string[]>, etc.)
+2. Removed type imports from './types.js'
+3. Removed SharedPracticeSeed type alias (simplified as function parameter)
+4. Added comprehensive JSDoc type definitions:
+   - SharedPracticeTai
+   - SharedPracticeRisks
+   - SharedPracticeRiskLevel
+   - SharedPracticeRecord
+
+5. Added JSDoc comments for all functions:
+   - uniqueStrings()
+   - riskLevelFromValues()
+   - createPractice()
+
+6. Main export renamed: ibvSharedPractices -> sharedPractices
+7. Added backward compatibility alias: ibvSharedPractices (deprecated)
+8. Explicitly exported IBV_ATLAS_NODE_LINKS
+
+ALL DATA PRESERVED:
+- All 23 practice records included exactly as-is
+- IBV_ATLAS_NODE_LINKS mapping unchanged
+- All factory functions (uniqueStrings, riskLevelFromValues, createPractice) working
+- TAI averages calculated correctly (tested: Hatha Yoga = 7.7)
+- Risk levels calculated correctly (tested: Hatha Yoga = medium)
+- Related node IDs resolved correctly (tested: 4 nodes for Hatha Yoga)
+
+FILE VALIDATION:
+- JavaScript syntax: Valid (node -c)
+- ES Module imports: Working
+- All exports accessible
+- No build step required
+- Browser-compatible (vanilla ES6 module)
+
+PRACTICE COUNT: 23
+1. ibv_hatha_yoga
+2. ibv_vipassana
+3. ibv_internal_family_systems
+4. ibv_somatic_experiencing
+5. ibv_mbsr_meditation
+6. ibv_acceptance_commitment
+7. ibv_nonviolent_communication
+8. ibv_zazen_shikantazu
+9. ibv_qigong
+10. ibv_kontemplatives_gebet
+11. ibv_sufi_dhikr
+12. ibv_kashmir_shivaismus
+13. ibv_elemente_kommunikation
+14. ibv_ritualkreis
+15. ibv_philosophisches_tagebuch
+16. ibv_phowa
+17. ibv_sweat_lodge
+18. ibv_self_inquiry
+19. ibv_bahai_andacht_kontemplation
+20. ibv_samayika
+21. ibv_misogi
+22. ibv_simran
+23. ibv_sama
