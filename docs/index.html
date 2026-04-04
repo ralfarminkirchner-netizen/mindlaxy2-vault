@@ -1803,9 +1803,9 @@ class SpectacleAnim {
     this.doneCb = null;
     this.overlayAlpha = 0;
 
-    // Create LEFT-HALF overlay — tornado stays on left, text on right stays readable
+    // Create FULLSCREEN overlay — dramatic tornado merge covers entire viewport
     this.overlay = document.createElement('div');
-    this.overlay.style.cssText = 'position:fixed;top:0;left:0;width:50vw;height:100vh;z-index:998;pointer-events:none;';
+    this.overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:998;pointer-events:none;';
     this.canvas = document.createElement('canvas');
     this.canvas.style.cssText = 'display:block;width:100%;height:100%;';
     this.overlay.appendChild(this.canvas);
@@ -1820,13 +1820,13 @@ class SpectacleAnim {
 
   _resize() {
     const dpr = window.devicePixelRatio||1;
-    // Canvas only covers the LEFT half of the screen
-    this.W = Math.floor(window.innerWidth / 2);
+    // Canvas covers FULL screen for dramatic merge
+    this.W = window.innerWidth;
     this.H = window.innerHeight;
     this.canvas.width = this.W*dpr;
     this.canvas.height = this.H*dpr;
     this.ctx.setTransform(dpr,0,0,dpr,0,0);
-    // Tornado center = center of left half
+    // Tornado center = center of screen
     this.cx = this.W / 2;
     this.tornado_cy = this.H * 0.40;
     this.trap_y = this.H * 0.82;
@@ -1838,8 +1838,8 @@ class SpectacleAnim {
     for(const pp of this.providerPositions) {
       for(let i=0;i<60;i++) {
         const col = pp.cols[Math.random()*pp.cols.length|0];
-        // Remap source positions: pp.x/pp.y are full-screen coords, canvas is left-half only
-        const srcX = Math.min(pp.x, this.W) * 0.8 + (Math.random()-0.5)*60;
+        // Source positions from the actual LLM pane positions
+        const srcX = pp.x + (Math.random()-0.5)*60;
         const srcY = pp.y + (Math.random()-0.5)*60;
         this.migrants.push({
           sx: srcX, sy: srcY,
@@ -2061,198 +2061,235 @@ class SpectacleAnim {
     this._drawTrap(ctx, 0.1+0.06*Math.sin(T*0.04), 'idle');
   }
 
-  // ── 3D VOXEL GHOST TRAP (isometric aesthetic) ──
+  // ── GHOSTBUSTERS GHOST TRAP (polygon wireframe aesthetic) ──
   _drawTrap(ctx, f, trapPhase) {
     const {cx, trap_y:by, W, H, T} = this;
-    const trapW = Math.min(W*0.5, 380);
-    const trapH = trapW * 0.8;
-    const isometric = 0.866; // ~cos(30°) for isometric projection
+    const trapW = Math.min(W*0.45, 420);
+    const trapH = trapW * 0.35;
+    const fast = trapPhase==='absorb'||trapPhase==='capturing';
+    const iso = 0.5; // perspective foreshortening
 
-    // Containment energy beam (when opening/absorbing)
+    // ─── CONTAINMENT BEAM (when opening) ───
     if(f > 0.15 && (trapPhase==='absorb'||trapPhase==='capturing')) {
       this.trapCapT++;
       const beamOp = Math.min(1,(this.trapCapT-4)/20) * (0.5+0.3*Math.sin(T*0.2));
-      const beamW = trapW*0.35*f;
+      const beamW = trapW*0.5*f;
 
-      // Gradient energy beam
-      const bg = ctx.createLinearGradient(cx, by-trapH*0.6, cx, by-H*0.4);
-      bg.addColorStop(0, `rgba(255,100,50,${beamOp*0.9})`);
-      bg.addColorStop(0.4, `rgba(200,80,255,${beamOp*0.5})`);
-      bg.addColorStop(1, 'transparent');
+      // Triangular containment beam (widens upward like the movie)
+      ctx.save();
+      const beamTop = by - H*0.45;
+      const topWidth = beamW * 2.5;
+      // Outer beam glow
+      const bg = ctx.createLinearGradient(cx, beamTop, cx, by-trapH*0.3);
+      bg.addColorStop(0, 'transparent');
+      bg.addColorStop(0.3, `rgba(255,180,50,${beamOp*0.15})`);
+      bg.addColorStop(0.7, `rgba(255,100,20,${beamOp*0.4})`);
+      bg.addColorStop(1, `rgba(255,200,50,${beamOp*0.8})`);
       ctx.fillStyle = bg;
-      ctx.fillRect(cx-beamW/2, by-H*0.4, beamW, H*0.3);
+      ctx.beginPath();
+      ctx.moveTo(cx - beamW*0.3, by - trapH*0.3);
+      ctx.lineTo(cx - topWidth/2, beamTop);
+      ctx.lineTo(cx + topWidth/2, beamTop);
+      ctx.lineTo(cx + beamW*0.3, by - trapH*0.3);
+      ctx.closePath();
+      ctx.fill();
 
-      // Swirling energy rings
-      ctx.globalAlpha = beamOp*0.6;
-      for(let i=0;i<5;i++){
-        const ry = by-trapH*0.5 - i*(H*0.06);
-        const rw = beamW*(0.7-i*0.1);
-        const ringOp = 0.4+0.3*Math.sin(T*0.18+i);
-        ctx.globalAlpha = beamOp*ringOp;
-        ctx.strokeStyle = i%2 ? '#ff6600' : '#ff00ff';
-        ctx.lineWidth = 2;
+      // Inner bright beam core
+      const coreW = beamW * 0.15;
+      const coreG = ctx.createLinearGradient(cx, beamTop, cx, by-trapH*0.3);
+      coreG.addColorStop(0, 'transparent');
+      coreG.addColorStop(0.5, `rgba(255,255,200,${beamOp*0.6})`);
+      coreG.addColorStop(1, `rgba(255,255,255,${beamOp*0.9})`);
+      ctx.fillStyle = coreG;
+      ctx.beginPath();
+      ctx.moveTo(cx - coreW, by - trapH*0.3);
+      ctx.lineTo(cx - topWidth*0.15, beamTop);
+      ctx.lineTo(cx + topWidth*0.15, beamTop);
+      ctx.lineTo(cx + coreW, by - trapH*0.3);
+      ctx.closePath();
+      ctx.fill();
+
+      // Horizontal containment rings spinning up the beam
+      for(let i=0;i<8;i++){
+        const ry = by - trapH*0.3 - (i+1)*(H*0.045);
+        const progress = (ry - beamTop) / (by - trapH*0.3 - beamTop);
+        const ringW = beamW*0.3 + (topWidth/2 - beamW*0.3) * (1-progress);
+        const ringOp = beamOp * (0.3+0.4*Math.sin(T*0.25+i*1.2));
+        ctx.globalAlpha = ringOp;
+        ctx.strokeStyle = '#ffcc00';
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.ellipse(cx, ry, rw/2+Math.sin(T*0.1+i)*3, rw*0.06, 0, 0, Math.PI*2);
+        ctx.ellipse(cx, ry, ringW, ringW*0.08, 0, 0, Math.PI*2);
         ctx.stroke();
       }
+      ctx.restore();
       ctx.globalAlpha = 1;
     }
 
-    // Energy field glow around trap
-    if(f>0.08){
-      const g = ctx.createRadialGradient(cx,by,0,cx,by,trapW*0.8*f);
-      g.addColorStop(0, `rgba(255,100,200,${0.3*f})`);
-      g.addColorStop(0.6, `rgba(100,100,255,${0.1*f})`);
+    // ─── GROUND GLOW ───
+    if(f>0.05){
+      const g = ctx.createRadialGradient(cx, by+trapH*0.2, 0, cx, by+trapH*0.2, trapW*0.7*Math.max(0.3,f));
+      g.addColorStop(0, `rgba(255,200,50,${0.25*f})`);
+      g.addColorStop(0.4, `rgba(255,120,20,${0.1*f})`);
       g.addColorStop(1, 'transparent');
       ctx.fillStyle = g;
       ctx.fillRect(0,0,W,H);
     }
 
-    // Draw 3D voxel trap in isometric perspective
-    const drawVoxelTrap = (centerX, centerY, openFactor) => {
-      // Box dimensions (isometric)
-      const sz = trapW/3;
+    // ─── THE TRAP BODY (Ghostbusters-style rectangular case) ───
+    const bx = cx - trapW/2;
+    const topY = by - trapH;
+    const lidAngle = Math.min(1, f*2) * (Math.PI*0.45); // lid opens up to ~80°
 
-      // Define isometric directions (angles in 2D for 3D effect)
-      const isoX = (x, z) => centerX + x;
-      const isoY = (y, z) => centerY - y - z*isometric;
+    ctx.save();
 
-      // Top face (when closed, visible)
-      const openF = Math.min(1, openFactor*2);
-      const topShift = openF*sz*0.5;
+    // Yellow/black hazard stripes on sides
+    const stripeCount = 8;
+    const stripeW = trapW / stripeCount;
+    for(let i=0;i<stripeCount;i++){
+      ctx.fillStyle = i%2===0 ? '#1a1a1a' : '#e8b800';
+      ctx.globalAlpha = f>0.1 ? 0.7 : 0.35;
+      ctx.fillRect(bx + i*stripeW, topY + trapH*0.65, stripeW, trapH*0.35);
+    }
 
-      // Draw main box faces
-      ctx.globalAlpha = f>0.1 ? 0.85 : 0.5;
+    // Main trap body — dark metallic
+    ctx.globalAlpha = f>0.1 ? 0.9 : 0.55;
+    ctx.fillStyle = '#1c1c2a';
+    ctx.fillRect(bx, topY, trapW, trapH*0.7);
+    // Darker bottom section
+    ctx.fillStyle = '#0e0e18';
+    ctx.fillRect(bx, topY + trapH*0.65, trapW, trapH*0.35);
 
-      // Front face (dark)
-      ctx.fillStyle = f>0 ? '#1a0a2a' : '#0f0f1f';
+    // Wireframe polygon edges (the key aesthetic)
+    ctx.globalAlpha = f>0 ? (0.7+0.2*Math.sin(T*0.08)) : 0.3;
+    ctx.strokeStyle = f>0 ? '#ffaa00' : '#444';
+    ctx.lineWidth = f>0 ? 1.8 : 0.8;
+    // Outer rectangle
+    ctx.strokeRect(bx, topY, trapW, trapH);
+    // Inner panel lines
+    ctx.beginPath();
+    ctx.moveTo(bx, topY + trapH*0.65); ctx.lineTo(bx+trapW, topY + trapH*0.65);
+    ctx.moveTo(bx + trapW*0.15, topY); ctx.lineTo(bx + trapW*0.15, topY + trapH*0.65);
+    ctx.moveTo(bx + trapW*0.85, topY); ctx.lineTo(bx + trapW*0.85, topY + trapH*0.65);
+    // Diagonal reinforcement polygons
+    ctx.moveTo(bx, topY); ctx.lineTo(bx + trapW*0.15, topY + trapH*0.35);
+    ctx.moveTo(bx + trapW, topY); ctx.lineTo(bx + trapW*0.85, topY + trapH*0.35);
+    ctx.stroke();
+
+    // Inner polygon detail grid (wireframe triangles)
+    ctx.globalAlpha = (f>0 ? 0.35 : 0.12) + 0.08*Math.sin(T*0.1);
+    ctx.strokeStyle = f>0 ? '#ff8800' : '#333';
+    ctx.lineWidth = 0.5;
+    const segments = 6;
+    for(let i=1;i<segments;i++){
+      const x = bx + trapW*0.15 + (trapW*0.7)*(i/segments);
       ctx.beginPath();
-      ctx.moveTo(isoX(-sz, 0), isoY(0, 0));
-      ctx.lineTo(isoX(sz, 0), isoY(0, 0));
-      ctx.lineTo(isoX(sz, -sz*0.8), isoY(0, 0));
-      ctx.lineTo(isoX(-sz, -sz*0.8), isoY(0, 0));
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = f>0 ? '#ff6600' : '#333';
-      ctx.lineWidth = f>0 ? 2 : 1;
+      ctx.moveTo(x, topY); ctx.lineTo(x, topY + trapH*0.65);
       ctx.stroke();
-
-      // Left face (medium)
-      ctx.fillStyle = f>0 ? '#2a1a3a' : '#15151f';
-      ctx.beginPath();
-      ctx.moveTo(isoX(-sz, 0), isoY(0, 0));
-      ctx.lineTo(isoX(-sz, -sz*0.8), isoY(0, 0));
-      ctx.lineTo(isoX(-sz*0.5, -sz*1.2), isoY(0, sz*0.6));
-      ctx.lineTo(isoX(-sz*0.5, -sz*0.4), isoY(0, sz*0.6));
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = f>0 ? '#ff9900' : '#222';
-      ctx.lineWidth = f>0 ? 1.5 : 0.5;
-      ctx.stroke();
-
-      // Right face (lighter)
-      ctx.fillStyle = f>0 ? '#3a2a5a' : '#1a1a2a';
-      ctx.beginPath();
-      ctx.moveTo(isoX(sz, 0), isoY(0, 0));
-      ctx.lineTo(isoX(sz*0.5, -sz*0.4), isoY(0, sz*0.6));
-      ctx.lineTo(isoX(sz*0.5, -sz*1.2), isoY(0, sz*0.6));
-      ctx.lineTo(isoX(sz, -sz*0.8), isoY(0, 0));
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = f>0 ? '#ffaa00' : '#333';
-      ctx.lineWidth = f>0 ? 1.5 : 0.5;
-      ctx.stroke();
-
-      // Top face (opens/splits when activating)
-      ctx.globalAlpha = f>0 ? (0.6+0.2*Math.sin(T*0.1)) : 0.3;
-      if(openFactor < 1) {
-        // Closed top
-        ctx.fillStyle = f>0 ? '#4a3a6a' : '#2a2a3a';
+      // Cross-hatching for polygon look
+      if(i%2===0){
         ctx.beginPath();
-        ctx.moveTo(isoX(-sz*0.5, -sz*0.4), isoY(0, sz*0.6));
-        ctx.lineTo(isoX(sz*0.5, -sz*0.4), isoY(0, sz*0.6));
-        ctx.lineTo(isoX(sz, -sz*0.8), isoY(0, 0));
-        ctx.lineTo(isoX(-sz, -sz*0.8), isoY(0, 0));
-        ctx.closePath();
-        ctx.fill();
-      } else {
-        // Split top halves opening
-        ctx.fillStyle = f>0 ? '#5a5a8a' : '#3a3a4a';
-        // Left half
-        ctx.beginPath();
-        ctx.moveTo(isoX(-sz*0.5-topShift, -sz*0.4), isoY(0, sz*0.6));
-        ctx.lineTo(isoX(-0.1, -sz*0.4), isoY(0, sz*0.6));
-        ctx.lineTo(isoX(-sz*0.5, -sz*0.8), isoY(0, 0));
-        ctx.lineTo(isoX(-sz, -sz*0.8), isoY(0, 0));
-        ctx.closePath();
-        ctx.fill();
-        // Right half
-        ctx.beginPath();
-        ctx.moveTo(isoX(0.1, -sz*0.4), isoY(0, sz*0.6));
-        ctx.lineTo(isoX(sz*0.5+topShift, -sz*0.4), isoY(0, sz*0.6));
-        ctx.lineTo(isoX(sz, -sz*0.8), isoY(0, 0));
-        ctx.lineTo(isoX(sz*0.5, -sz*0.8), isoY(0, 0));
-        ctx.closePath();
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-
-      // Glowing seams between polygons
-      if(f>0){
-        ctx.globalAlpha = 0.6+0.2*Math.sin(T*0.12);
-        ctx.strokeStyle = '#00ff88';
-        ctx.lineWidth = 0.8;
-        // Vertical seams
-        ctx.beginPath();
-        ctx.moveTo(isoX(-sz*0.5, -sz*0.4), isoY(0, sz*0.6));
-        ctx.lineTo(isoX(-sz*0.5, -sz*1.2), isoY(0, sz*0.6));
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(isoX(sz*0.5, -sz*0.4), isoY(0, sz*0.6));
-        ctx.lineTo(isoX(sz*0.5, -sz*1.2), isoY(0, sz*0.6));
+        ctx.moveTo(x - trapW*0.7/segments, topY);
+        ctx.lineTo(x, topY + trapH*0.35);
+        ctx.lineTo(x + trapW*0.7/segments, topY);
         ctx.stroke();
       }
+    }
 
-      // Pulsing warning lights (colored dots)
-      const fast = trapPhase==='absorb'||trapPhase==='capturing';
-      const lightPos = [
-        [isoX(-sz*0.5), isoY(-sz*0.2, 0.3*sz)],
-        [isoX(0), isoY(-sz*0.2, 0.3*sz)],
-        [isoX(sz*0.5), isoY(-sz*0.2, 0.3*sz)],
-      ];
-      for(let i=0;i<lightPos.length;i++){
-        const blink = Math.sin(T*(fast?0.4:0.08)+i) > 0;
-        ctx.globalAlpha = blink ? 1 : 0.3;
-        ctx.fillStyle = i===1 ? '#ff1155' : '#ff6600';
-        ctx.beginPath();
-        ctx.arc(lightPos[i][0], lightPos[i][1], 4, 0, Math.PI*2);
-        ctx.fill();
-        if(blink && f>0){
-          ctx.globalAlpha = 0.4;
-          ctx.beginPath();
-          ctx.arc(lightPos[i][0], lightPos[i][1], 8, 0, Math.PI*2);
-          ctx.fill();
-        }
+    // ─── OPENING LID (hinged at back edge) ───
+    if(lidAngle > 0.01) {
+      ctx.globalAlpha = 0.85;
+      const lidH = trapH * 0.25;
+      const lidVisualH = lidH * Math.cos(lidAngle);
+      const lidLift = lidH * Math.sin(lidAngle);
+      // Lid surface (foreshortened as it opens)
+      ctx.fillStyle = '#2a2a3a';
+      ctx.beginPath();
+      ctx.moveTo(bx + trapW*0.15, topY - lidLift);
+      ctx.lineTo(bx + trapW*0.85, topY - lidLift);
+      ctx.lineTo(bx + trapW*0.85, topY - lidLift + lidVisualH);
+      ctx.lineTo(bx + trapW*0.15, topY - lidLift + lidVisualH);
+      ctx.closePath();
+      ctx.fill();
+      // Lid wireframe
+      ctx.strokeStyle = '#ffaa00';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      // Lid diagonal polygon
+      ctx.globalAlpha = 0.4;
+      ctx.beginPath();
+      ctx.moveTo(bx + trapW*0.15, topY - lidLift);
+      ctx.lineTo(cx, topY - lidLift + lidVisualH);
+      ctx.lineTo(bx + trapW*0.85, topY - lidLift);
+      ctx.stroke();
+      // Opening slot glow
+      if(f > 0.3) {
+        const slotG = ctx.createLinearGradient(cx, topY, cx, topY - lidLift*0.5);
+        slotG.addColorStop(0, `rgba(255,200,50,${f*0.8})`);
+        slotG.addColorStop(1, 'transparent');
+        ctx.globalAlpha = 0.6+0.2*Math.sin(T*0.15);
+        ctx.fillStyle = slotG;
+        ctx.fillRect(bx + trapW*0.18, topY - 3, trapW*0.64, 6);
       }
-      ctx.globalAlpha = 1;
-    };
+    }
 
-    drawVoxelTrap(cx, by, f);
+    // ─── WARNING LIGHTS ───
+    const lightPositions = [
+      [bx + trapW*0.08, topY + trapH*0.35],
+      [bx + trapW*0.5, topY + trapH*0.82],
+      [bx + trapW*0.92, topY + trapH*0.35],
+    ];
+    for(let i=0;i<lightPositions.length;i++){
+      const blink = Math.sin(T*(fast?0.5:0.08)+i*2.1) > 0;
+      ctx.globalAlpha = blink ? 1 : 0.25;
+      ctx.fillStyle = i===1 ? '#ff1155' : (f>0.3 ? '#00ff44' : '#ff6600');
+      ctx.beginPath();
+      ctx.arc(lightPositions[i][0], lightPositions[i][1], f>0.1?5:3, 0, Math.PI*2);
+      ctx.fill();
+      if(blink && f>0.1){
+        ctx.globalAlpha = 0.3;
+        const lg = ctx.createRadialGradient(lightPositions[i][0], lightPositions[i][1], 0, lightPositions[i][0], lightPositions[i][1], 15);
+        lg.addColorStop(0, ctx.fillStyle);
+        lg.addColorStop(1, 'transparent');
+        ctx.fillStyle = lg;
+        ctx.beginPath();
+        ctx.arc(lightPositions[i][0], lightPositions[i][1], 15, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
 
-    // Status label
+    // ─── PEDAL / CABLE ───
+    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = '#555';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(bx + trapW + 5, topY + trapH*0.8);
+    ctx.quadraticCurveTo(bx + trapW + 40, topY + trapH + 20, bx + trapW + 60, topY + trapH + 10);
+    ctx.stroke();
+    // Pedal rectangle
+    ctx.fillStyle = '#2a2a2a';
+    ctx.fillRect(bx + trapW + 50, topY + trapH + 5, 25, 12);
+    ctx.strokeStyle = '#666';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx + trapW + 50, topY + trapH + 5, 25, 12);
+
+    ctx.restore();
+    ctx.globalAlpha = 1;
+
+    // ─── STATUS LABEL ───
     const labels = {
-      idle: '─ SPiRAL CONTAINMENT READY ─',
-      opening: '◆ TRAP OPENING ◆',
-      absorb: '◈ CAPTURE INITIATED ◈',
-      capturing: '◈ SIPHONING ENERGY ◈',
-      closing: '● SEALED ●'
+      idle: '── BLACK-HOLE-BOX · BEREIT ──',
+      opening: '◆ TRAP ÖFFNET ◆',
+      absorb: '◈ CAPTURE AKTIV ◈',
+      capturing: '◈ ENERGY SIPHON ◈',
+      closing: '● VERSIEGELT ●'
     };
     ctx.globalAlpha = f>0 ? (0.85+0.15*Math.sin(T*0.06)) : 0.4;
-    ctx.fillStyle = f>0 ? '#00ff88' : '#666';
-    ctx.font = 'bold 10px monospace';
+    ctx.fillStyle = f>0 ? '#ffcc00' : '#666';
+    ctx.font = 'bold 11px monospace';
     ctx.textAlign='center';
     ctx.textBaseline='middle';
-    ctx.fillText(labels[trapPhase]||labels.idle, cx, by+trapH*0.8);
+    ctx.fillText(labels[trapPhase]||labels.idle, cx, by + trapH + 20);
     ctx.globalAlpha = 1;
   }
 
@@ -2706,32 +2743,41 @@ class BainstormHub {
     this.activeSet = new Set(activeSet);
     this.tornados = {};
     this.anim = null;
+    this._injectedEls = []; // track injected elements for cleanup
     this._build();
   }
 
   _build() {
-    const grid = document.createElement('div');
-    grid.id = 'bs-grid';
-    grid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:6px;';
-    this.container.appendChild(grid);
-
+    // Inject tornado canvases directly into each matrix-col in the main grid
     for(const p of BS_PROVIDERS) {
       const meta = BS_META[p];
       const active = this.activeSet.has(p);
       const col = meta.cols[0];
-      const cell = document.createElement('div');
-      cell.id = `bs-cell-${p}`;
-      cell.setAttribute('data-provider', p);
-      cell.style.cssText = `display:flex;flex-direction:column;border:1px solid ${active?col+'55':'rgba(255,255,255,0.06)'};border-radius:14px;overflow:hidden;background:rgba(10,10,20,0.35);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);transition:all 0.35s cubic-bezier(0.25,0.46,0.45,0.94);box-shadow:0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.06);`;
+
+      // Find the actual matrix-col pane for this provider
+      const paneCol = document.querySelector(`.matrix-col[data-provider="${p}"]`);
+      if(!paneCol) continue;
+
+      // Create tornado section inside the pane
+      const tornadoSection = document.createElement('div');
+      tornadoSection.id = `bs-cell-${p}`;
+      tornadoSection.setAttribute('data-provider', p);
+      tornadoSection.style.cssText = `border-top:1px solid ${active ? col+'33' : 'rgba(255,255,255,0.04)'};background:rgba(4,4,12,0.6);`;
+
       const cv = document.createElement('canvas');
       cv.style.cssText = 'display:block;width:100%;flex-shrink:0;';
-      cell.appendChild(cv);
+      tornadoSection.appendChild(cv);
+
+      // Text response area — much bigger, fills available space
       const tx = document.createElement('div');
       tx.id = `bs-tx-${p}`;
-      tx.style.cssText = `font-size:0.67rem;line-height:1.5;padding:6px 8px;color:${active?'#d0d0e0':'#2e2e2e'};min-height:48px;max-height:130px;overflow-y:auto;border-top:1px solid ${active?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.2)'};white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,0.15);`;
+      tx.style.cssText = `font-size:0.82rem;line-height:1.65;padding:10px 12px;color:${active?'#d0d0e0':'#2e2e2e'};min-height:180px;overflow-y:auto;border-top:1px solid ${active?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.2)'};white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,0.12);flex:1;`;
       tx.textContent = active ? '…' : 'kein Key';
-      cell.appendChild(tx);
-      grid.appendChild(cell);
+      tornadoSection.appendChild(tx);
+
+      paneCol.appendChild(tornadoSection);
+      this._injectedEls.push(tornadoSection);
+
       const self = this;
       requestAnimationFrame(() => { self.tornados[p] = new WildTornado(cv, meta.cols, meta.label, active); });
     }
@@ -2765,13 +2811,13 @@ class BainstormHub {
   setError(p, msg) { const el=document.getElementById(`bs-tx-${p}`); if(el){el.textContent='✕ '+msg;el.style.color='#cc3333';} }
 
   merge() {
-    // Collect pane positions for migration
+    // Collect positions from the actual LLM panes in the matrix grid
     const positions = [];
     for(const p of BS_PROVIDERS) {
       if(!this.activeSet.has(p)) continue;
-      const cell = document.getElementById(`bs-cell-${p}`);
-      if(cell) {
-        const rect = cell.getBoundingClientRect();
+      const paneCol = document.querySelector(`.matrix-col[data-provider="${p}"]`);
+      if(paneCol) {
+        const rect = paneCol.getBoundingClientRect();
         positions.push({
           x: rect.left + rect.width/2,
           y: rect.top + rect.height/2,
@@ -2787,7 +2833,7 @@ class BainstormHub {
       .filter(p => this.activeSet.has(p) && this._responseTexts?.[p])
       .map(p => this._responseTexts[p]).join(' ');
 
-    // Launch fullscreen spectacle with real text
+    // Launch FULLSCREEN spectacle with real text (covers entire viewport)
     setTimeout(() => {
       const activeCols = BS_PROVIDERS.filter(p=>this.activeSet.has(p)).map(p=>BS_META[p].cols);
       this.anim = new SpectacleAnim(activeCols, positions, allRealText);
@@ -2796,7 +2842,13 @@ class BainstormHub {
 
   startSynth() { setTimeout(() => { if(this.anim) this.anim.startSynth(); }, 200); }
   absorb(bodyType, cb) { if(this.anim) this.anim.startAbsorb(bodyType, cb); else if(cb) cb(); }
-  stopAll() { for(const p of BS_PROVIDERS) this.tornados[p]?.stop(); this.anim?.stop(); }
+  stopAll() {
+    for(const p of BS_PROVIDERS) this.tornados[p]?.stop();
+    this.anim?.stop();
+    // Remove injected tornado sections from matrix-cols
+    for(const el of this._injectedEls) el?.remove();
+    this._injectedEls = [];
+  }
 }
 
 // ─── SPiRAL Parser + Renderer ─────────────────────────────────────────────────
@@ -3079,22 +3131,8 @@ async function sendT(pushToVaultFlag = true) {
     return;
   }
 
-  // Create two-column wrapper for spiral layout
-  const spiralWrapper = document.createElement('div');
-  spiralWrapper.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:1rem;width:100%;max-height:calc(100vh - 200px);';
-
-  const textColumn = document.createElement('div');
-  textColumn.className = 'spiral-text-column';
-
-  const canvasColumn = document.createElement('div');
-  canvasColumn.className = 'spiral-canvas-column';
-
-  spiralWrapper.appendChild(canvasColumn);
-  spiralWrapper.appendChild(textColumn);
-  out.appendChild(spiralWrapper);
-
-  // BainstormHub will render into canvasColumn
-  const hub = new BainstormHub(canvasColumn, providers);
+  // Inject tornado canvases directly under each LLM pane in the main grid
+  const hub = new BainstormHub(null, providers); // null = inject into matrix-cols
   let okCards = [], errCards = [], responses = [];
 
   // Fire all LLM calls in parallel, show responses live
@@ -3144,9 +3182,8 @@ async function sendT(pushToVaultFlag = true) {
 
   // Start absorb → black hole → emerge sequence
   hub.absorb(bodyType, () => {
-    // Get the text column for spiral layout
-    const textColumn = out.querySelector('.spiral-text-column');
-    const outputTarget = textColumn || out;
+    // Results appear full-width below the grid
+    const outputTarget = out;
 
     if (synthRaw) {
       const parsed = parseSpiralOutput(synthRaw, text);
@@ -3164,12 +3201,12 @@ async function sendT(pushToVaultFlag = true) {
       const kintegrityPanel = document.createElement('div');
       kintegrityPanel.id = 'kintegrity-panel';
       kintegrityPanel.className = 'tornado-card';
-      kintegrityPanel.style.cssText = 'background:rgba(40,30,70,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(90,74,154,0.35);box-shadow:0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.1);';
+      kintegrityPanel.style.cssText = 'background:rgba(40,30,70,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(90,74,154,0.35);box-shadow:0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.1);padding:1.2rem 1.4rem;margin-top:1rem;';
       kintegrityPanel.innerHTML = `
-        <div style="font-size:0.7rem;font-weight:700;letter-spacing:.12em;color:#8080e0;text-transform:uppercase;margin-bottom:0.8rem;">
+        <div style="font-size:0.8rem;font-weight:700;letter-spacing:.12em;color:#8080e0;text-transform:uppercase;margin-bottom:1rem;">
           🔗 kiNTEGRiTY
         </div>
-        <div style="line-height:1.6;font-size:0.85rem;white-space:pre-wrap;">${escHtml(parsed.kintegrity)}</div>
+        <div style="line-height:1.8;font-size:0.95rem;white-space:pre-wrap;">${escHtml(parsed.kintegrity)}</div>
       `;
       outputTarget.appendChild(kintegrityPanel);
 
@@ -3177,39 +3214,39 @@ async function sendT(pushToVaultFlag = true) {
       const bhb = document.createElement('div');
       bhb.id = 'black-hole-box';
       bhb.className = 'tornado-card';
-      bhb.style.cssText = 'background:rgba(16,16,32,0.6);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(42,42,90,0.35);box-shadow:0 12px 40px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;';
+      bhb.style.cssText = 'background:rgba(16,16,32,0.6);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(42,42,90,0.35);box-shadow:0 12px 40px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;margin-top:1rem;';
 
       // Header
       bhb.innerHTML = `
-        <div style="padding:0.7rem 0.9rem;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:0.5rem;">
-          <span style="font-size:1.1rem">⚫</span>
-          <span style="font-size:0.7rem;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase">BLACK-HOLE-BOX</span>
-          <span style="margin-left:auto;font-size:0.65rem;color:var(--muted)" id="ki-prov-label">${bIcon} ${bodyType.toUpperCase()} · BRaiNSTORM SPiRAL</span>
+        <div style="padding:1rem 1.2rem;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:0.6rem;">
+          <span style="font-size:1.3rem">⚫</span>
+          <span style="font-size:0.85rem;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase">BLACK-HOLE-BOX</span>
+          <span style="margin-left:auto;font-size:0.72rem;color:var(--muted)" id="ki-prov-label">${bIcon} ${bodyType.toUpperCase()} · BRaiNSTORM SPiRAL</span>
         </div>
 
-        ${parsed.title?`<div style="padding:0.7rem 0.8rem 0;font-size:1.05rem;font-weight:600;color:var(--text)">${escHtml(parsed.title)}</div>`:''}
+        ${parsed.title?`<div style="padding:1rem 1.2rem 0.3rem;font-size:1.2rem;font-weight:700;color:var(--text)">${escHtml(parsed.title)}</div>`:''}
 
         <!-- ① kiNTEGRiTY-Synthese -->
-        <div class="bhb-section" style="padding:0.7rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.05);">
-          <div class="bhb-label" style="font-size:0.68rem;font-weight:700;color:#4285f4;letter-spacing:.1em;margin-bottom:0.4rem">🔗 kiNTEGRiTY-SYNTHESE</div>
-          <p style="line-height:1.7;white-space:pre-wrap;font-size:0.88rem;color:var(--text)">${escHtml(parsed.kintegrity)}</p>
+        <div class="bhb-section" style="padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <div class="bhb-label" style="font-size:0.75rem;font-weight:700;color:#4285f4;letter-spacing:.1em;margin-bottom:0.5rem">🔗 kiNTEGRiTY-SYNTHESE</div>
+          <p style="line-height:1.8;white-space:pre-wrap;font-size:0.95rem;color:var(--text)">${escHtml(parsed.kintegrity)}</p>
         </div>
 
         <!-- ② Fazit-Verdichtung -->
-        <div class="bhb-section" style="padding:0.7rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.05);">
-          <div class="bhb-label" style="font-size:0.68rem;font-weight:700;color:#10a37f;letter-spacing:.1em;margin-bottom:0.4rem">📦 FAZIT-VERDICHTUNG</div>
-          <p style="line-height:1.7;white-space:pre-wrap;font-size:0.88rem;color:var(--text)">${escHtml(parsed.condensation)}</p>
+        <div class="bhb-section" style="padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <div class="bhb-label" style="font-size:0.75rem;font-weight:700;color:#10a37f;letter-spacing:.1em;margin-bottom:0.5rem">📦 FAZIT-VERDICHTUNG</div>
+          <p style="line-height:1.8;white-space:pre-wrap;font-size:0.95rem;color:var(--text)">${escHtml(parsed.condensation)}</p>
         </div>
 
         <!-- ③ Inkommensurabilitäten -->
-        <div class="bhb-section" style="padding:0.7rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.05);">
-          <div class="bhb-label" style="font-size:0.68rem;font-weight:700;color:#c060ff;letter-spacing:.1em;margin-bottom:0.4rem">⚡ INKOMMENSURABILITÄTEN</div>
-          <p style="line-height:1.7;white-space:pre-wrap;font-size:0.88rem;color:var(--muted)">${escHtml(parsed.incommensurables)}</p>
+        <div class="bhb-section" style="padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <div class="bhb-label" style="font-size:0.75rem;font-weight:700;color:#c060ff;letter-spacing:.1em;margin-bottom:0.5rem">⚡ INKOMMENSURABILITÄTEN</div>
+          <p style="line-height:1.8;white-space:pre-wrap;font-size:0.95rem;color:var(--muted)">${escHtml(parsed.incommensurables)}</p>
         </div>
 
         <!-- ④ DAS GROßE ABER -->
-        <div class="bhb-section" style="padding:0.7rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.05);">
-          <div class="bhb-label" style="font-size:0.68rem;font-weight:700;color:#e53935;letter-spacing:.1em;margin-bottom:0.4rem">🔴 DAS GROßE ABER</div>
+        <div class="bhb-section" style="padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <div class="bhb-label" style="font-size:0.75rem;font-weight:700;color:#e53935;letter-spacing:.1em;margin-bottom:0.5rem">🔴 DAS GROßE ABER</div>
           <div id="aber-items">${renderAberItems(parsed.aberItems)}</div>
         </div>
 
