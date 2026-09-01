@@ -19,13 +19,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if ! compgen -G '.transfer/index.tar.xz.part-*' > /dev/null; then
+            echo 'Archive already expanded; nothing to do.'
+            exit 0
+          fi
           cat .transfer/index.tar.xz.part-* > /tmp/index.tar.xz
           echo "225e22fff142ea14aba63029412178f37e92466cc62aef4fb9b394e46ea4adeb  /tmp/index.tar.xz" | sha256sum --check -
           rm -rf /tmp/index && mkdir -p /tmp/index
           tar -xJf /tmp/index.tar.xz -C /tmp/index
           SOURCE="$(find /tmp/index -mindepth 1 -maxdepth 1 -type d -print -quit)"
           test -n "$SOURCE"
-          rsync -a --delete --exclude='.git/' "$SOURCE"/ ./
+          rsync -a --delete --exclude='.git/' --exclude='.github/workflows/' "$SOURCE"/ ./
       - name: Commit expanded index
         shell: bash
         run: |
