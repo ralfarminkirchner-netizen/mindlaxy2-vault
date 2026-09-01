@@ -1,0 +1,265 @@
+# RAKi Public System Index
+
+- captured: 2026-09-01
+- public repositories: 30
+- private repository entries: excluded
+- human_sealed: false
+- canonical_textbase: false
+
+Read `INSTANCE-HANDOFF.md`, then `data/repositories.json`, then the target dossier.
+
+# Handoff für andere KI-Instanzen
+
+Dies ist der öffentliche Teilindex. Er enthält nur öffentlich klonbare Repository-Einträge.
+
+Vor einer Fortsetzung:
+
+1. Ziel-Dossier unter `docs/repositories/` lesen.
+2. Evidenzstufe und Claim Ceiling beachten.
+3. Repository selbst lesen, bevor Code gebaut oder verändert wird.
+4. Ähnliche Namen nicht als Identität, Nachfolge oder Ablösung behandeln.
+5. Quellen, Fassungen, Ereignisse, Herkunft und Relationsstatus unterscheidbar halten.
+6. Keine stillen Überschreibungen.
+7. Ein Human Seal lässt eine Fortsetzung für einen Zweck zu; er macht keine Aussage wahr.
+
+Die Apps wurden in dieser Indexrunde nicht lokal ausgeführt. Runtime- und Testangaben sind nur quellenberichtet.
+
+
+## GH-0003 der-tisch
+- family: tisch-multi-perspective
+- summary: TiSCH-Familie mit mehreren dialogischen Perspektivräumen, Backend und mobilen/webbasierten Oberflächen für strukturierte Mehrperspektivität.
+- evidence: historical-handoff
+- boundaries: Historische Handoffs können veraltete Laufzeitangaben und sensible Konfiguration enthalten; vor Nutzung neu prüfen.
+- url: https://github.com/ralfarminkirchner-netizen/der-tisch
+
+
+## GH-0004 DEiN-SEiN
+- family: moonfingers-philosophy
+- summary: Öffentliche Projekthülle der SEiN-Familie für persönliche Existenz-, Selbst- und Bewusstseinsräume.
+- evidence: title-and-context-derived
+- boundaries: Nur Existenz und Name sind belegt.
+- url: https://github.com/ralfarminkirchner-netizen/DEiN-SEiN
+
+
+## GH-0010 mindlaxy2-vault
+- family: mindlaxy-knowledge-lineage
+- summary: Öffentliches Vault-Repository der MiNDLAXY-Linie; wahrscheinlich zweite oder migrierte Fassung.
+- evidence: title-and-context-derived
+- boundaries: Vault ist Arbeitsraum und Quelle, nicht automatisch Wahrheit oder kanonischer Textbestand.
+- url: https://github.com/ralfarminkirchner-netizen/mindlaxy2-vault
+
+
+## GH-0015 mindlaxy-core-engine
+- family: mindlaxy-knowledge-lineage
+- summary: Kleine öffentliche Engine-Hülle der MiNDLAXY-Linie.
+- evidence: title-and-context-derived
+- boundaries: Ein Core-Name begründet keine zentrale Wahrheitsschicht.
+- url: https://github.com/ralfarminkirchner-netizen/mindlaxy-core-engine
+
+
+## GH-0016 brainstorm-spiral
+- family: mindlaxy-knowledge-lineage
+- summary: Öffentlicher Spiralraum für Ideenaufnahme, Weiterbewegung oder Strukturierung.
+- evidence: title-and-context-derived
+- boundaries: Nicht mit einem automatischen Funkenfänger gleichsetzen.
+- url: https://github.com/ralfarminkirchner-netizen/brainstorm-spiral
+
+
+## GH-0017 claude-obsidian
+- family: mindlaxy-knowledge-lineage
+- summary: Integration oder Arbeitsumgebung zwischen Claude und Obsidian für lokale Wissens- und Textarbeit.
+- evidence: title-and-context-derived
+- boundaries: Direkte Vault-Schreibrechte und Herkunftspflichten müssen pro Lauf geprüft werden.
+- url: https://github.com/ralfarminkirchner-netizen/claude-obsidian
+
+
+## GH-0022 spiral-wiki-app
+- family: mindlaxy-knowledge-lineage
+- summary: Substanzielle öffentliche Wiki-Anwendung der SPiRAL-/MiNDLAXY-Linie.
+- evidence: title-and-context-derived
+- boundaries: Wiki-Seiten sind Projektionen und Fassungen, keine automatische Kanonisierung.
+- url: https://github.com/ralfarminkirchner-netizen/spiral-wiki-app
+
+
+## GH-0030 klebensfroh
+- family: klebensfroh-creative
+- summary: React-/Vite-Website für Petras handgemachte Tier-Verpackungen, Bastelideen, Galerie und Auftragsanfragen.
+- evidence: source-described
+- boundaries: Personen- und Auftragsdaten gehören nicht in den Index.
+- url: https://github.com/ralfarminkirchner-netizen/klebensfroh
+
+
+## GH-0031 Aithentik-Alpha-Loop
+- family: integrity-autonomy-governance
+- summary: Öffentliche Alpha-Loop-Fassung der AiTHENTiK-Linie für wiederholte, integritätsgebundene Verarbeitung.
+- evidence: title-and-context-derived
+- boundaries: Alpha bedeutet Experiment, nicht Human Seal oder Freigabe.
+- url: https://github.com/ralfarminkirchner-netizen/Aithentik-Alpha-Loop
+
+
+## GH-0034 stephs-kreativwelt
+- family: klebensfroh-creative
+- summary: Öffentliche Kreativwelt-Website für ein eigenständiges Gestaltungs- oder Verkaufsprojekt.
+- evidence: title-and-context-derived
+- boundaries: Nicht ohne Beleg als KlebensFroh-Unterseite behandeln.
+- url: https://github.com/ralfarminkirchner-netizen/stephs-kreativwelt
+
+
+## GH-0035 deutsch-party-brett
+- family: faska-learning-documentation
+- summary: Öffentliches spielerisches Deutsch-Lernbrett mit umfangreichen Medienassets.
+- evidence: title-and-context-derived
+- boundaries: Spielergebnis ist keine Kompetenzdiagnose.
+- url: https://github.com/ralfarminkirchner-netizen/deutsch-party-brett
+
+
+## GH-0036 faska-flow-pro
+- family: faska-learning-documentation
+- summary: FASKA-Flow-Anwendung; der aktuelle README liefert nur die generische React-/Vite-Vorlage und belegt die Fachfunktion deshalb nicht ausreichend.
+- evidence: repository-observed
+- boundaries: Fachliche Rolle erst nach Code-/UI-Prüfung höher als titelbasiert behaupten.
+- url: https://github.com/ralfarminkirchner-netizen/faska-flow-pro
+
+
+## GH-0037 AiTHENTiSCGH
+- family: tisch-multi-perspective
+- summary: Öffentliche AiTHENTiSCH-Fassung oder GitHub-Distribution innerhalb der TiSCH-Familie.
+- evidence: title-and-context-derived
+- boundaries: Nicht mit `aithentisch-tisch` gleichsetzen.
+- url: https://github.com/ralfarminkirchner-netizen/AiTHENTiSCGH
+
+
+## GH-0038 rhyme-engine
+- family: music-language-media
+- summary: Öffentliche Reim- und wahrscheinlich Phonetik-Engine für Rap-, Text- oder Sprachproduktion.
+- evidence: title-and-context-derived
+- boundaries: Reimvorschlag ist keine stilistische Autorität.
+- url: https://github.com/ralfarminkirchner-netizen/rhyme-engine
+
+
+## GH-0040 ridge-racer-clone
+- family: games-interactive-worlds
+- summary: Öffentlicher Rennspielprototyp in Anlehnung an Ridge-Racer-Mechaniken.
+- evidence: title-and-context-derived
+- boundaries: Referenzbezug bedeutet keine behauptete Rechteübernahme.
+- url: https://github.com/ralfarminkirchner-netizen/ridge-racer-clone
+
+
+## GH-0048 growing-ninja-game
+- family: faska-learning-documentation
+- summary: Kleine öffentliche Fassung des Growing-Ninja-Lernspiels.
+- evidence: title-and-context-derived
+- boundaries: Nur Variantenstatus, keine Reihenfolge, ist belegt.
+- url: https://github.com/ralfarminkirchner-netizen/growing-ninja-game
+
+
+## GH-0050 growing-ninja-2
+- family: faska-learning-documentation
+- summary: Substanzielle öffentliche zweite Fassung des Growing-Ninja-Lernspiels.
+- evidence: title-and-context-derived
+- boundaries: Versionsnummer begründet keine automatische Ablösung.
+- url: https://github.com/ralfarminkirchner-netizen/growing-ninja-2
+
+
+## GH-0051 faska-flow-2-wortarten-ninja
+- family: faska-learning-documentation
+- summary: Öffentliches Wortarten-Lernspiel der FASKA-Flow-/Ninja-Linie.
+- evidence: title-and-context-derived
+- boundaries: Lernhandlungen nicht als feste Kompetenzprofile deuten.
+- url: https://github.com/ralfarminkirchner-netizen/faska-flow-2-wortarten-ninja
+
+
+## GH-0052 MOONFiNGERS-2
+- family: moonfingers-philosophy
+- summary: Kleine öffentliche zweite oder exportierte Fassung von MOONFiNGERS.
+- evidence: title-and-context-derived
+- boundaries: Nicht automatisch als neuere oder kanonische Fassung behandeln.
+- url: https://github.com/ralfarminkirchner-netizen/MOONFiNGERS-2
+
+
+## GH-0053 neuro-psych-map
+- family: adhs-neuro-trauma
+- summary: Interaktive Karte zu ADHS, Trauma, OCD, RSD, Autismus, Tourette und verwandten Phänomenen.
+- evidence: source-described
+- boundaries: Graphgewichte sind Visualisierungsgewichte, keine Prävalenzen.; Keine Diagnose.
+- url: https://github.com/ralfarminkirchner-netizen/neuro-psych-map
+
+
+## GH-0055 hexagon-al-spiel
+- family: faska-learning-documentation
+- summary: Öffentliches Hexagon-Lernspiel, im lokalen Bestand auch als Wortarten-Spiel belegt.
+- evidence: title-and-context-derived
+- boundaries: Spielmechanik und pädagogische Aussage getrennt prüfen.
+- url: https://github.com/ralfarminkirchner-netizen/hexagon-al-spiel
+
+
+## GH-0056 looptisch
+- family: music-language-media
+- summary: Öffentlicher LOOPTiSCH für Loop-, Audio- oder Medienarbeit innerhalb der TiSCH-Metapher.
+- evidence: title-and-context-derived
+- boundaries: App-Code und umfangreiche Library-Assets getrennt behandeln.
+- url: https://github.com/ralfarminkirchner-netizen/looptisch
+
+
+## GH-0057 aithentisch-tisch
+- family: tisch-multi-perspective
+- summary: Kleine öffentliche AiTHENTiSCH-Fassung für Perspektiven-, Integritäts- oder Autorisierungsarbeit.
+- evidence: title-and-context-derived
+- boundaries: Nicht mit dem gesamten TiSCH-System gleichsetzen.
+- url: https://github.com/ralfarminkirchner-netizen/aithentisch-tisch
+
+
+## GH-0062 juggling-down-babylon
+- family: games-interactive-worlds
+- summary: Kleiner öffentlicher Spielprototyp mit dem Motiv `Juggling Down Babylon`.
+- evidence: title-and-context-derived
+- boundaries: Keine Mechanik oder politische Aussage über den Titel hinaus behaupten.
+- url: https://github.com/ralfarminkirchner-netizen/juggling-down-babylon
+
+
+## GH-0064 weltretten-in-klein
+- family: games-interactive-worlds
+- summary: Kleiner öffentlicher Spiel- oder Erzählprototyp über wirksames Handeln im Kleinen.
+- evidence: title-and-context-derived
+- boundaries: Titelgebundene Beschreibung; konkrete Mechanik ungeprüft.
+- url: https://github.com/ralfarminkirchner-netizen/weltretten-in-klein
+
+
+## GH-0065 klangwerkstatt
+- family: music-language-media
+- summary: Kleine öffentliche Klangwerkstatt für Audio-, Sound- oder Musikexperimente.
+- evidence: title-and-context-derived
+- boundaries: Quellmaterial, Bearbeitung und Export getrennt halten.
+- url: https://github.com/ralfarminkirchner-netizen/klangwerkstatt
+
+
+## GH-0066 inkarnat
+- family: integrity-autonomy-governance
+- summary: Serious-Autonomy-Workbench, die Systeme als Organe und Flüsse verkörpert, Varianten morpht und Ratifikation an Evidenz und Human Gate bindet.
+- evidence: source-described
+- boundaries: Autonomie ist nicht Autorität.; Keine stillen Vault-Schreibwege.; File over AI.
+- url: https://github.com/ralfarminkirchner-netizen/inkarnat
+
+
+## GH-0068 faska-eigenraum-pages
+- family: faska-learning-documentation
+- summary: Öffentliche Pages- oder Exportfassung des FASKA Eigenraums.
+- evidence: title-and-context-derived
+- boundaries: Deployment-Fassung nicht automatisch als vollständige Arbeitsquelle behandeln.
+- url: https://github.com/ralfarminkirchner-netizen/faska-eigenraum-pages
+
+
+## GH-0072 faska-lernlandschaft
+- family: faska-learning-documentation
+- summary: Interaktiver Demonstrator für quellengebundene, menschenzentrierte Lerndokumentation mit Fach-, Ereignis- und Morph-Ansichten.
+- evidence: source-described
+- boundaries: Aus Beobachtungen keine festen Eigenschaften oder Bewertungen ableiten.; Synthetische Demo-Fälle nicht als reale Personen lesen.
+- url: https://github.com/ralfarminkirchner-netizen/faska-lernlandschaft
+
+
+## GH-0076 faska-invaria-2
+- family: faska-learning-documentation
+- summary: Öffentliche zweite Fassung eines FASKA-/Invarianz-Prototyps.
+- evidence: title-and-context-derived
+- boundaries: Genaue pädagogische oder technische Funktion ungeklärt.
+- url: https://github.com/ralfarminkirchner-netizen/faska-invaria-2

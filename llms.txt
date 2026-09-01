@@ -1,0 +1,9 @@
+# RAKi Public System Index
+
+- captured: 2026-09-01
+- public repositories: 30
+- private repository entries: excluded
+- human_sealed: false
+- canonical_textbase: false
+
+Read `INSTANCE-HANDOFF.md`, then `data/repositories.json`, then the target dossier.

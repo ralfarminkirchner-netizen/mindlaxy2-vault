@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0.0",
+  "families": {
+    "mindlaxy-knowledge-lineage": {
+      "title": "MiNDLAXY · Wissens-, Herkunfts- und Arbeitsräume",
+      "summary": "Werkzeuge für Quellspuren, Wissensräume, Maßstabswechsel, semantische Netze, Arbeitswege, Timeline, Wiki und modulare Steuerung.",
+      "core_principle": "Quelle, Fassung, Ereignis und Relation bleiben unterscheidbar; Projektionen ersetzen keine Herkunft.",
+      "color_hint": "cosmic"
+    },
+    "tisch-multi-perspective": {
+      "title": "TiSCH · Perspektiven, Reibung und Mehrmodell-Arbeit",
+      "summary": "Dialogische und multi-agentische Werkzeuge, die Perspektiven nebeneinanderstellen, prüfen und koordinieren, ohne Widersprüche still zu glätten.",
+      "core_principle": "Mehrere Stimmen erzeugen Varianten und Einwände; menschliche Verantwortung bleibt vom Modelloutput getrennt.",
+      "color_hint": "table"
+    },
+    "integrity-autonomy-governance": {
+      "title": "AiTHENTiK · KiNTEGRiTY · Autonomie und Übergänge",
+      "summary": "Instrumente für Integrität, Invarianz, sichere Transformation, Autonomieachsen, Human Gates und verantwortete Übergänge.",
+      "core_principle": "Autonomie ist nicht Autorität; Übergänge brauchen Herkunft, Aussagegrenze und gegebenenfalls Human Gate.",
+      "color_hint": "amber"
+    },
+    "faska-learning-documentation": {
+      "title": "FASKA · Lernen, Dokumentation und pädagogische Räume",
+      "summary": "Lernlandschaften, Eigenräume, Dokumentationsinstrumente und Lernspiele für freie, aktive und heterogene Lernumgebungen.",
+      "core_principle": "Handlung unter Bedingungen ist keine feste Eigenschaft; nicht gezeigt ist nicht nicht vorhanden.",
+      "color_hint": "garden"
+    },
+    "adhs-neuro-trauma": {
+      "title": "ADHSOS · Neurodivergenz, Trauma und Erfahrungsmodelle",
+      "summary": "Psychoedukative, dokumentarische und narrative Werkzeuge für ADHS-, Neurodivergenz-, Trauma- und Bewusstseinsdynamiken.",
+      "core_principle": "Beobachtung ist kein Symptom, Phänomen keine Diagnose und ein Wirkmodell keine Wahrheit über eine Person.",
+      "color_hint": "neuro"
+    },
+    "moonfingers-philosophy": {
+      "title": "MOONFiNGERS · SEiN · Philosophie und Bewusstseinsräume",
+      "summary": "Vergleichende, kontemplative und philosophische Räume für Sein, Bewusstsein, Traditionen, Übersetzbarkeit und bleibende Differenzen.",
+      "core_principle": "Kein Finger ist der Mond; das Zentrum wird nicht als letzter Wahrheitsbegriff besetzt.",
+      "color_hint": "moon"
+    },
+    "klebensfroh-creative": {
+      "title": "KlebensFroh · Kreativwelt, Material und Veröffentlichung",
+      "summary": "Webseiten, Bild- und Materialwerkzeuge sowie kreative Erlebnisräume rund um KlebensFroh und verwandte Gestaltungsprojekte.",
+      "core_principle": "Gestaltung, Materialbestand, Veröffentlichung und Varianten werden getrennt dokumentiert.",
+      "color_hint": "craft"
+    },
+    "games-interactive-worlds": {
+      "title": "Spiele und interaktive Welten",
+      "summary": "Rennspiele, Jump-and-Run-, Lernspiel-, Märchen- und experimentelle Weltprototypen.",
+      "core_principle": "Prototyp, Referenz, Recovery-Stand und eigenständiges Werk werden nicht automatisch gleichgesetzt.",
+      "color_hint": "game"
+    },
+    "music-language-media": {
+      "title": "Musik, Sprache und Medienwerkzeuge",
+      "summary": "Reim-, Phonetik-, Schreib-, Klang-, Loop- und Medienwerkzeuge.",
+      "core_principle": "Ausgangsmaterial, Bearbeitung, Variante und Export bleiben rückführbar.",
+      "color_hint": "sound"
+    },
+    "inventory-operations": {
+      "title": "Inventur, Betrieb und Systemaufsicht",
+      "summary": "Werkzeuge für Bestandsaufnahme, Arbeitsfront, Mitschrift, Laufsteuerung, Audit und maschinenlesbare Übergaben.",
+      "core_principle": "Lesen vor Bauen; Messung, Setzung, Vorschlag und Aufsicht sind verschiedene Operationen.",
+      "color_hint": "ops"
+    },
+    "experimental-other": {
+      "title": "Experimentelle und noch unklare Vorhaben",
+      "summary": "Repositories, deren genaue Rolle in dieser Inventurrunde nicht ausreichend durch README oder Quellprüfung belegt wurde.",
+      "core_principle": "Unklarheit wird nicht durch erfundene Präzision ersetzt.",
+      "color_hint": "unknown"
+    }
+  }
+}

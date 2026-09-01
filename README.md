@@ -1,9 +1,14 @@
-# RAKi System Index — öffentliche Fassung
+# RAKi Public System Index
 
-Dieser Branch trägt die öffentlich teilbare Projektdokumentation. Die Quelldateien werden aus einem verlustfrei übertragenen und mit SHA-256 geprüften Archiv entfaltet.
+**Stand:** 1. September 2026 · **30 öffentlich klonbare Repositories**
 
-Archiv-SHA-256: `225e22fff142ea14aba63029412178f37e92466cc62aef4fb9b394e46ea4adeb`
+Diese reduzierte Projektion enthält ausschließlich öffentliche GitHub-Repository-Einträge. Private Repository-Einträge, lokale Altbeobachtungen, Quellinhalte, absolute Pfade und Zugangsdaten sind ausgeschlossen.
 
-Branch: `raki-system-index-public`
+- [Index](INDEX.md)
+- [Statischer Suchindex](site/index.html)
+- [Maschinenkatalog](data/repositories.json)
+- [NDJSON](data/repositories.ndjson)
+- [CSV](data/repositories.csv)
+- [Handoff für KI-Instanzen](INSTANCE-HANDOFF.md)
 
-Die Hauptbranch des Träger-Repositories bleibt unverändert.
+Auch dieser Index ist keine kanonische Textbasis. README-Aussagen sind quellenberichtet; Variantenrelationen sind nicht menschlich versiegelt.

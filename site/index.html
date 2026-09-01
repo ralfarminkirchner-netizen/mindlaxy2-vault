@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RAKi System Index</title>
+  <meta name="description" content="Provenienzbewusster Index der Apps und technischen Systeme von RAKi.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="hero">
+    <p class="eyebrow">DESKRIPTIVE PROJEKTION · 01.09.2026</p>
+    <h1>RAKi System Index</h1>
+    <p class="lede">Apps, Prototypen, Systemräume und Werkzeuge — auffindbar, unterscheidbar und mit Aussagegrenze.</p>
+    <div id="stats" class="stats" aria-label="Bestandszahlen"></div>
+  </header>
+
+  <main>
+    <section class="controls" aria-label="Index filtern">
+      <label>
+        <span>Suche</span>
+        <input id="search" type="search" placeholder="Name, Funktion, Tag, Grenze …" autocomplete="off">
+      </label>
+      <label>
+        <span>Familie</span>
+        <select id="family"><option value="">Alle Familien</option></select>
+      </label>
+      <label>
+        <span>Sichtbarkeit</span>
+        <select id="visibility">
+          <option value="">öffentlich + privat</option>
+          <option value="public">nur öffentlich</option>
+          <option value="private">nur privat</option>
+        </select>
+      </label>
+      <label>
+        <span>Evidenz</span>
+        <select id="evidence">
+          <option value="">alle Evidenzstufen</option>
+          <option value="source-described">Quelle gelesen</option>
+          <option value="historical-handoff">historischer Handoff</option>
+          <option value="repository-observed">Repo beobachtet</option>
+          <option value="title-and-context-derived">Titel/Kontext-Deutung</option>
+        </select>
+      </label>
+      <button id="reset" type="button">Filter zurücksetzen</button>
+    </section>
+
+    <section class="notice" aria-label="Leseregel">
+      <strong>Leseregel:</strong> Ähnliche Namen beweisen weder Identität noch Nachfolge.
+      README-Aussagen sind quellenberichtet, nicht hier ausgeführt. Human Seal: <code>false</code>.
+    </section>
+
+    <p id="result-count" class="result-count" aria-live="polite"></p>
+    <section id="results" class="grid" aria-label="Repository-Ergebnisse"></section>
+  </main>
+
+  <footer>
+    <p>Kein kanonischer Textbestand. Quellen, Fassungen, Ereignisse, Herkunft und deklarierte Status bleiben unterscheidbar.</p>
+    <p><a href="../INSTANCE-HANDOFF.md">Handoff</a> · <a href="../data/repositories.json">JSON</a> · <a href="../PUBLIC-INDEX.md">Öffentlicher Teilindex</a></p>
+  </footer>
+
+  <template id="card-template">
+    <article class="card">
+      <div class="card-top">
+        <span class="family-pill"></span>
+        <span class="visibility-pill"></span>
+      </div>
+      <h2></h2>
+      <p class="kind"></p>
+      <p class="summary"></p>
+      <dl>
+        <div><dt>Status</dt><dd class="status"></dd></div>
+        <div><dt>Evidenz</dt><dd class="evidence"></dd></div>
+        <div><dt>Claim Ceiling</dt><dd class="ceiling"></dd></div>
+      </dl>
+      <details>
+        <summary>Grenzen und Beziehungen</summary>
+        <h3>Grenzen</h3>
+        <ul class="boundaries"></ul>
+        <h3>Relationen</h3>
+        <ul class="relations"></ul>
+      </details>
+      <div class="links">
+        <a class="repo-link" target="_blank" rel="noreferrer">GitHub</a>
+        <a class="doc-link">Indexdossier</a>
+      </div>
+    </article>
+  </template>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
